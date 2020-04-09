@@ -15,11 +15,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .. import Protocol, ProtocolRegistration
+from .. import Protocol, ProtocolRegistration, SolidityContract
 
 
-class SimplePayment(Protocol):
-    pass
+class TestProtocol(Protocol):
+    def contract_reusable(self):
+        return True
+
+    @property
+    def contract(self):
+        return SolidityContract(self.contract_path(__file__, 'test.sol'), 'Test')
+
+    def run(self):
+        raise NotImplementedError()
 
 
-ProtocolRegistration.register('SimplePayment', SimplePayment)
+ProtocolRegistration.register('TestProtocol', TestProtocol)

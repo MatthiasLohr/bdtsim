@@ -15,11 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .. import Protocol, ProtocolRegistration
+from .testprotocol import TestProtocol
 
-
-class SimplePayment(Protocol):
-    pass
-
-
-ProtocolRegistration.register('SimplePayment', SimplePayment)
+__all__ = [
+    'TestProtocol'
+]

@@ -17,9 +17,11 @@
 
 from .command_manager import CommandManager
 from .list_protocols import ListProtocolsSubCommand
+from .run import RunSubCommand
 
 
 def main():
     command_manager = CommandManager()
     command_manager.register_subcommand('list-protocols', ListProtocolsSubCommand)
+    command_manager.register_subcommand('run', RunSubCommand)
     return command_manager.run()

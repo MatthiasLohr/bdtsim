@@ -15,11 +15,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .. import Protocol, ProtocolRegistration
+from .command_manager import SubCommand
+from ..protocols import ProtocolRegistration
+from ..simulation import Simulation
 
 
-class SimplePayment(Protocol):
-    pass
+class RunSubCommand(SubCommand):
+    def __init__(self, parser):
+        super(RunSubCommand, self).__init__(parser)
+        parser.add_argument('protocol', choices=ProtocolRegistration.protocols.keys())
+        parser.add_argument('environment')
 
-
-ProtocolRegistration.register('SimplePayment', SimplePayment)
+    def __call__(self, args):
+        simulation = Simulation(
+            protocol=ProtocolRegistration.protocols[args.protocol],
+            environment=None
+        )
+        results = simulation.run()
+        print(results)

@@ -32,6 +32,8 @@ setup(
     url='https://gitlab.com/MatthiasLohr/bdtsim',
     license='Apache License 2.0',
     install_requires=[
+        'py-solc-x==0.8.1',
+        'web3==5.7.0'
     ],
     packages=find_packages(exclude=['tests']),
     entry_points={

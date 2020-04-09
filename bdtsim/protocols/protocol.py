@@ -15,6 +15,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 
 class Protocol(object):
-    pass
+    def __init__(self, seller=None, buyer=None, operator=None, contract_address=None):
+        self._seller = seller
+        self._buyer = buyer
+        self._operator = operator
+        self._contract_address = contract_address
+
+    def run(self):
+        raise NotImplementedError()
+
+    def deploy_contract(self):
+        return self._operator.deploy_contract(self.contract)
+
+    @property
+    def seller(self):
+        return self._seller
+
+    @property
+    def buyer(self):
+        return self._buyer
+
+    @property
+    def contract_reusable(self):
+        raise NotImplementedError()
+
+    @property
+    def contract(self):
+        raise NotImplementedError()
+
+    @staticmethod
+    def contract_path(file_var, filename):
+        return os.path.join(os.path.dirname(file_var), filename)

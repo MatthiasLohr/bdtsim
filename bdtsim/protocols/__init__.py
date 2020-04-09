@@ -15,14 +15,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from .contract import Contract, SolidityContract
 from .protocol import Protocol
-from .registration import ProtocolRegistration
+from .protocol_registration import ProtocolRegistration
 from .fairswap import FairSwap
 from .simplepayment import SimplePayment
+from .testprotocol import TestProtocol
 
 __all__ = [
+    'Contract', 'SolidityContract',
     'Protocol',
     'ProtocolRegistration',
     'FairSwap',
-    'SimplePayment'
+    'SimplePayment',
+    'TestProtocol'
 ]

@@ -21,13 +21,19 @@ from .protocol import Protocol
 class ProtocolRegistration(object):
     protocols = {}
 
-    def __init__(self, name, *args, **kwargs):
-        self._name = name
+    def __init__(self, cls, *args, **kwargs):
+        self._cls = cls
         self._args = args
         self._kwargs = kwargs
 
-    def __call__(self, cls):
+    def instantiate(self, **options):
+
+        return self._cls(*self._args, **{**self._kwargs, **options})
+
+    @staticmethod
+    def register(name, cls, *args, **kwargs):
+        if name in ProtocolRegistration.protocols.keys():
+            raise ValueError('Protocol with name "%s" already registered' % name)
         if not issubclass(cls, Protocol):
-            raise ValueError('ProtocolRegistration can only be used for subclasses of Protocol')
-        self.protocols[self._name] = cls(*self._args, **self._kwargs)
-        return cls
+            raise ValueError('Provided class is not a subclass of Protocol')
+        ProtocolRegistration.protocols[name] = ProtocolRegistration(cls, *args, **kwargs)

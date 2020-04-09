@@ -18,6 +18,8 @@
 from .. import Protocol, ProtocolRegistration
 
 
-@ProtocolRegistration('FairSwap')
 class FairSwap(Protocol):
     pass
+
+
+ProtocolRegistration.register('FairSwap', FairSwap)
