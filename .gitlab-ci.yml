@@ -1,0 +1,27 @@
+
+stages:
+  - test
+  - build
+
+unittests:
+  stage: test
+  image: python:3.7
+  script:
+    - python -m unittest
+
+flake8 checks:
+  stage: test
+  image: python:3.7
+  before_script:
+    - pip install flake8
+  script:
+    - python -m flake8
+
+build sdist package:
+  stage: build
+  image: python:3.7
+  script:
+    - python setup.py sdist
+  artifacts:
+    paths:
+      - dist/*.tar.gz
