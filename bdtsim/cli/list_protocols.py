@@ -15,11 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .command_manager import CommandManager
-from .list_protocols import ListProtocolsSubCommand
+from .command_manager import SubCommand
 
 
-def main():
-    command_manager = CommandManager()
-    command_manager.register_subcommand('list-protocols', ListProtocolsSubCommand)
-    return command_manager.run()
+class ListProtocolsSubCommand(SubCommand):
+    def __call__(self, args):
+        print(args)

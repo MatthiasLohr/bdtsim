@@ -14,12 +14,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from .command_manager import CommandManager
-from .list_protocols import ListProtocolsSubCommand
-
-
-def main():
-    command_manager = CommandManager()
-    command_manager.register_subcommand('list-protocols', ListProtocolsSubCommand)
-    return command_manager.run()
