@@ -17,7 +17,7 @@ flake8 checks:
   script:
     - python -m flake8
 
-build sdist package:
+.build sdist package:
   stage: build
   image: python:3.7
   script:
