@@ -15,11 +15,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from bdtsim.protocols import ProtocolRegistration
-from .command_manager import SubCommand
+from .protocol import Protocol
 
 
-class ListProtocolsSubCommand(SubCommand):
-    def __call__(self, args):
-        for name, instance in ProtocolRegistration.protocols.items():
-            print('%s %s' % (name, str(instance)))
+class ProtocolRegistration(object):
+    protocols = {}
+
+    def __init__(self, name, *args, **kwargs):
+        self._name = name
+        self._args = args
+        self._kwargs = kwargs
+
+    def __call__(self, cls):
+        if not issubclass(cls, Protocol):
+            raise ValueError('ProtocolRegistration can only be used for subclasses of Protocol')
+        self.protocols[self._name] = cls(*self._args, **self._kwargs)
+        return cls

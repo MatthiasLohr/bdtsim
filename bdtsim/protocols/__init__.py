@@ -16,7 +16,13 @@
 # limitations under the License.
 
 from .protocol import Protocol
+from .registration import ProtocolRegistration
+from .fairswap import FairSwap
+from .simplepayment import SimplePayment
 
 __all__ = [
-    'Protocol'
+    'Protocol',
+    'ProtocolRegistration',
+    'FairSwap',
+    'SimplePayment'
 ]

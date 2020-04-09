@@ -17,6 +17,4 @@
 
 
 class Protocol(object):
-    @staticmethod
-    def register():
-        pass
+    pass

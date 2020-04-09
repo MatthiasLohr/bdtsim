@@ -15,11 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from bdtsim.protocols import ProtocolRegistration
-from .command_manager import SubCommand
+from .. import Protocol, ProtocolRegistration
 
 
-class ListProtocolsSubCommand(SubCommand):
-    def __call__(self, args):
-        for name, instance in ProtocolRegistration.protocols.items():
-            print('%s %s' % (name, str(instance)))
+@ProtocolRegistration('FairSwap')
+class FairSwap(Protocol):
+    pass

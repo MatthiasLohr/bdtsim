@@ -15,9 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .. import Protocol
+from .. import Protocol, ProtocolRegistration
 
 
-@Protocol.register()
+@ProtocolRegistration('SimplePayment')
 class SimplePayment(Protocol):
     pass
