@@ -29,7 +29,7 @@ flake8 checks:
 pages:
   stage: build
   image: envimate/hugo
-  script_before:
+  before_script:
     - hugo version
   script:
     hugo -s ./docs -d ../public
