@@ -25,3 +25,14 @@ flake8 checks:
   artifacts:
     paths:
       - dist/*.tar.gz
+
+pages:
+  stage: build
+  image: envimate/hugo
+  script_before:
+    - hugo version
+  script:
+    hugo -s ./docs -d ../public
+  artifacts:
+    paths:
+      - public

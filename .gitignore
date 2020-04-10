@@ -1,6 +1,7 @@
 /.eggs/
 /.idea/
 /dist/
+/public/
 /venv/
 __pycache__/
 *.egg-info/
