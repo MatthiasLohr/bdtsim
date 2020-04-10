@@ -14,3 +14,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import logging
+
+# https://docs.python.org/3/library/logging.html#logrecord-attributes
+log = logging.getLogger(__name__)
+log_handler = logging.StreamHandler()
+log_formatter = logging.Formatter(fmt='%(asctime)s %(name)-30s [%(levelname)s] %(message)s')
+log_handler.setFormatter(log_formatter)
+log.addHandler(log_handler)
+
+__all__ = []

@@ -15,14 +15,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+import logging
 from queue import Queue
 from .roles import Operator, Seller, Buyer
 from ..environment import BlockchainEnvironment
 
+logger = logging.getLogger(__name__)
+
 
 class Simulation(object):
     def __init__(self, protocol, environment):
+        logger.debug('Initializing simulation')
         # TODO check protocol type
         if not isinstance(environment, BlockchainEnvironment):
             raise ValueError('environment need to be of type BlockchainEnvironment')

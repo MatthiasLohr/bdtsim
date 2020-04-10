@@ -16,11 +16,15 @@
 # limitations under the License.
 
 import argparse
+import bdtsim
+import logging
 
 
 class CommandManager(object):
     def __init__(self):
         self._argument_parser = argparse.ArgumentParser()
+        self._argument_parser.add_argument('-l', '--log-level', default='WARNING',
+                                           choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
         self._command_parser = self._argument_parser.add_subparsers(title='command', dest='command', required=True)
         self._subcommands = {}
 
@@ -34,6 +38,8 @@ class CommandManager(object):
 
     def run(self):
         args = self._argument_parser.parse_args()
+        logger = logging.getLogger(bdtsim.__name__)
+        logger.setLevel(logging.getLevelName(args.log_level))
         subcommand = self.get_subcommand(args.command)
         return subcommand(args)
 
