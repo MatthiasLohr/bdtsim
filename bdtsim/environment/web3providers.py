@@ -15,13 +15,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .command_manager import CommandManager
-from .list_protocols import ListProtocolsSubCommand
-from .run import RunSubCommand
+from web3 import HTTPProvider, WebsocketProvider, IPCProvider
+from . import BlockchainEnvironment, EnvironmentManager
 
 
-def main():
-    command_manager = CommandManager()
-    command_manager.register_subcommand('list-protocol', ListProtocolsSubCommand)
-    command_manager.register_subcommand('run', RunSubCommand)
-    return command_manager.run()
+class Web3Environment(BlockchainEnvironment):
+    def __init__(self, web3_provider_class, *args, **kwargs):
+        pass
+
+
+EnvironmentManager.register('Web3HTTP', Web3Environment, HTTPProvider)
+EnvironmentManager.register('Web3Websocket', Web3Environment, WebsocketProvider)
+EnvironmentManager.register('Web3IPC', Web3Environment, IPCProvider)

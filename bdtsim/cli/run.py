@@ -16,7 +16,8 @@
 # limitations under the License.
 
 from .command_manager import SubCommand
-from ..protocols import ProtocolRegistration
+from ..environment import EnvironmentManager
+from ..protocol import ProtocolRegistration
 from ..simulation import Simulation
 
 
@@ -24,12 +25,13 @@ class RunSubCommand(SubCommand):
     def __init__(self, parser):
         super(RunSubCommand, self).__init__(parser)
         parser.add_argument('protocol', choices=ProtocolRegistration.protocols.keys())
-        parser.add_argument('environment')
+        parser.add_argument('environment', choices=EnvironmentManager.environments.keys())
 
     def __call__(self, args):
+        environment = EnvironmentManager.instantiate(args.environment, **vars(args))
         simulation = Simulation(
             protocol=ProtocolRegistration.protocols[args.protocol],
-            environment=None
+            environment=environment
         )
         results = simulation.run()
         print(results)

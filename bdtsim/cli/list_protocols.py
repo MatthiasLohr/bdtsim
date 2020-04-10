@@ -16,7 +16,7 @@
 # limitations under the License.
 
 from .command_manager import SubCommand
-from ..protocols import ProtocolRegistration
+from ..protocol import ProtocolRegistration
 
 
 class ListProtocolsSubCommand(SubCommand):

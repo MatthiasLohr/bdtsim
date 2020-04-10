@@ -18,10 +18,15 @@
 
 from queue import Queue
 from .roles import Operator, Seller, Buyer
+from ..environment import BlockchainEnvironment
 
 
 class Simulation(object):
     def __init__(self, protocol, environment):
+        # TODO check protocol type
+        if not isinstance(environment, BlockchainEnvironment):
+            raise ValueError('environment need to be of type BlockchainEnvironment')
+
         # store variables
         self._protocol = protocol
         self._environment = environment

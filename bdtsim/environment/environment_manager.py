@@ -15,13 +15,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .command_manager import CommandManager
-from .list_protocols import ListProtocolsSubCommand
-from .run import RunSubCommand
 
+class EnvironmentManager(object):
+    environments = {}
 
-def main():
-    command_manager = CommandManager()
-    command_manager.register_subcommand('list-protocol', ListProtocolsSubCommand)
-    command_manager.register_subcommand('run', RunSubCommand)
-    return command_manager.run()
+    @staticmethod
+    def register(name, cls, *args, **kwargs):
+        EnvironmentManager.environments[name] = {
+            'cls': cls,
+            'args': args,
+            'kwargs': kwargs
+        }
+
+    @staticmethod
+    def instantiate(name, **kwargs):
+        environment = EnvironmentManager.environments[name]
+        return environment['cls'](*environment['args'], **{**environment['kwargs'], **kwargs})

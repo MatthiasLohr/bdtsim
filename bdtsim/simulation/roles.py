@@ -16,7 +16,7 @@
 # limitations under the License.
 
 from web3 import Web3
-from ..protocols import Contract
+from ..protocol import Contract
 
 
 class Role(object):
