@@ -19,6 +19,7 @@ import logging
 from queue import Queue
 from .roles import Operator, Seller, Buyer
 from ..environment import BlockchainEnvironment
+from ..protocol import ProtocolRegistration
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,8 @@ logger = logging.getLogger(__name__)
 class Simulation(object):
     def __init__(self, protocol, environment):
         logger.debug('Initializing simulation')
-        # TODO check protocol type
+        if not isinstance(protocol, ProtocolRegistration):
+            raise ValueError('protocol need to be of type ProtocolRegistration')
         if not isinstance(environment, BlockchainEnvironment):
             raise ValueError('environment need to be of type BlockchainEnvironment')
 

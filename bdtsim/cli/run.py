@@ -26,9 +26,27 @@ class RunSubCommand(SubCommand):
         super(RunSubCommand, self).__init__(parser)
         parser.add_argument('protocol', choices=ProtocolRegistration.protocols.keys())
         parser.add_argument('environment', choices=EnvironmentManager.environments.keys())
+        parser.add_argument('-c', '--chain-id', type=int, default=1)
+        parser.add_argument('--gas-price', type=int, default=None)
+        parser.add_argument('--gas-price-factor', type=float, default=1)
+        parser.add_argument('--gas-limit', type=int, default=None)
+        parser.add_argument('--tx-wait-timeout', type=int, default=120)
+        parser.add_argument('-e', '--environment-parameter', nargs=2, action='append', dest='environment_parameters',
+                            default=[])
 
     def __call__(self, args):
-        environment = EnvironmentManager.instantiate(args.environment, **vars(args))
+        environment_parameters = {}
+        for key, value in args.environment_parameters:
+            environment_parameters[key.replace('-', '_')] = value
+        environment = EnvironmentManager.instantiate(
+            args.environment,
+            chain_id=args.chain_id,
+            gas_price=args.gas_price,
+            gas_price_factor=args.gas_price_factor,
+            gas_limit=args.gas_limit,
+            tx_wait_timeout = args.tx_wait_timeout,
+            **environment_parameters
+        )
         simulation = Simulation(
             protocol=ProtocolRegistration.protocols[args.protocol],
             environment=environment

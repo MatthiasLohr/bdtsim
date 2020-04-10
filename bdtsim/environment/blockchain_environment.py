@@ -17,6 +17,41 @@
 
 
 class BlockchainEnvironment(object):
+    def __init__(self, web3_provider, chain_id, gas_price=None, gas_price_factor=1, gas_limit=None,
+                 tx_wait_timeout=120):
+        self._web3_provider = web3_provider
+        self._chain_id = chain_id
+        self._gas_price = gas_price
+        self._gas_price_factor = gas_price_factor
+        self._gas_limit = gas_limit
+        self._tx_wait_timeout = tx_wait_timeout
+
+    def set_up(self):
+        raise NotImplementedError()
+
+    def strip_down(self):
+        raise NotImplementedError()
+
     @property
-    def web3provider(self):
-        return None
+    def web3_provider(self):
+        return self._web3_provider
+
+    @property
+    def chain_id(self):
+        return self._chain_id
+
+    @property
+    def gas_price(self):
+        return self._gas_price
+
+    @property
+    def gas_price_factor(self):
+        return self._gas_price_factor
+
+    @property
+    def gas_limit(self):
+        return self._gas_limit
+
+    @property
+    def tx_wait_timeout(self):
+        return self._tx_wait_timeout

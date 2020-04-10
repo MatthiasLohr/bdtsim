@@ -15,8 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 from web3 import Web3
 from ..protocol import Contract
+
+logger = logging.getLogger(__name__)
 
 
 class Role(object):
@@ -24,15 +27,33 @@ class Role(object):
     wallet_private_key = None
 
     def __init__(self, environment):
-        self._web3 = Web3(environment)
+        self._environment = environment
+        self._web3 = Web3(environment.web3_provider)
+        self._gas_limit = environment.gas_limit or self._web3.eth.getBlock('latest').gasLimit
+        self._gas_price = environment.gas_price or self._web3.eth.gasPrice
+        self._gas_price_factor = environment.gas_price_factor or 1
 
-    def send_transaction(self, transaction):
-        tx = transaction.buildTransaction({
-
-        })
-        tx_signed = self._web3.eth.account.sign_transaction(tx, private_key=self.wallet_private_key)
-        tx_hash = self._web3.eth.sendRawTransaction(tx_signed.rawTransaction).hex()
-        tx_receipt = self._web3.eth.waitForTransactionReceipt(tx_hash)
+    def send_transaction(self, transaction, value=0, gas_limit=None, gas_price=None, gas_price_factor=None):
+        if gas_limit is None:
+            gas_limit = self._gas_limit
+        if gas_price is None:
+            gas_price = self._gas_price
+        if gas_price_factor is None:
+            gas_price_factor = self._gas_price_factor
+        tx_dict = {
+            'from': self.wallet_address,
+            'nonce': self._web3.eth.getTransactionCount(self.wallet_address, 'pending'),
+            'gas': gas_limit,
+            'value': value,
+            'gasPrice': int(gas_price * gas_price_factor),
+            'chainId': self._environment.chain_id
+        }
+        logger.debug('Preparing transaction ' + str(tx_dict))
+        tx_unsigned = transaction.buildTransaction(tx_dict)
+        tx_signed = self._web3.eth.account.sign_transaction(tx_unsigned, private_key=self.wallet_private_key)
+        tx_hash = self._web3.eth.sendRawTransaction(tx_signed.rawTransaction)
+        tx_receipt = self._web3.eth.waitForTransactionReceipt(tx_hash, self._environment.tx_wait_timeout)
+        logger.debug('Transaction receipt: ' + str(tx_receipt))
         return tx_receipt
 
 
@@ -44,7 +65,8 @@ class Operator(Role):
         if not isinstance(contract, Contract):
             raise ValueError('Not a contract instance')
         web3_contract = self._web3.eth.contract(abi=contract.abi, bytecode=contract.bytecode)
-        web3_contract_constructor = web3_contract.constructor()
+        web3_contract_tx = web3_contract.constructor()
+        return self.send_transaction(web3_contract_tx)
 
 
 class ActiveRole(Role):
