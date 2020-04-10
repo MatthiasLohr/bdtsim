@@ -44,7 +44,7 @@ class RunSubCommand(SubCommand):
             gas_price=args.gas_price,
             gas_price_factor=args.gas_price_factor,
             gas_limit=args.gas_limit,
-            tx_wait_timeout = args.tx_wait_timeout,
+            tx_wait_timeout=args.tx_wait_timeout,
             **environment_parameters
         )
         simulation = Simulation(
