@@ -29,13 +29,10 @@ class Role(object):
     def __init__(self, environment):
         self._environment = environment
         self._web3 = Web3(environment.web3_provider)
-        self._gas_limit = environment.gas_limit or self._web3.eth.getBlock('latest').gasLimit
         self._gas_price = environment.gas_price or self._web3.eth.gasPrice
         self._gas_price_factor = environment.gas_price_factor or 1
 
-    def send_transaction(self, transaction, value=0, gas_limit=None, gas_price=None, gas_price_factor=None):
-        if gas_limit is None:
-            gas_limit = self._gas_limit
+    def send_transaction(self, transaction, value=0, gas_price=None, gas_price_factor=None):
         if gas_price is None:
             gas_price = self._gas_price
         if gas_price_factor is None:
@@ -43,7 +40,6 @@ class Role(object):
         tx_dict = {
             'from': self.wallet_address,
             'nonce': self._web3.eth.getTransactionCount(self.wallet_address, 'pending'),
-            'gas': gas_limit,
             'value': value,
             'gasPrice': int(gas_price * gas_price_factor),
             'chainId': self._environment.chain_id

@@ -32,6 +32,8 @@ setup(
     url='https://gitlab.com/MatthiasLohr/bdtsim',
     license='Apache License 2.0',
     install_requires=[
+        'eth-tester==0.4.0b1',
+        'py-evm==0.3.0a14',
         'py-solc-x==0.8.1',
         'web3==5.7.0'
     ],

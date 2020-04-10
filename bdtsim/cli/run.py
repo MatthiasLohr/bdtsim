@@ -29,7 +29,6 @@ class RunSubCommand(SubCommand):
         parser.add_argument('-c', '--chain-id', type=int, default=1)
         parser.add_argument('--gas-price', type=int, default=None)
         parser.add_argument('--gas-price-factor', type=float, default=1)
-        parser.add_argument('--gas-limit', type=int, default=None)
         parser.add_argument('--tx-wait-timeout', type=int, default=120)
         parser.add_argument('-e', '--environment-parameter', nargs=2, action='append', dest='environment_parameters',
                             default=[])
@@ -43,7 +42,6 @@ class RunSubCommand(SubCommand):
             chain_id=args.chain_id,
             gas_price=args.gas_price,
             gas_price_factor=args.gas_price_factor,
-            gas_limit=args.gas_limit,
             tx_wait_timeout=args.tx_wait_timeout,
             **environment_parameters
         )

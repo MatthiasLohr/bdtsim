@@ -17,10 +17,12 @@
 
 from .blockchain_environment import BlockchainEnvironment
 from .environment_manager import EnvironmentManager
+from .pyevm import PyEVMEnvironment
 from .web3providers import Web3Environment
 
 __all__ = [
     'BlockchainEnvironment',
     'EnvironmentManager',
+    'PyEVMEnvironment',
     'Web3Environment'
 ]
