@@ -36,7 +36,7 @@ pages:
     - pip install mkdocs pdoc3
   script:
     - python -m mkdocs build -d public
-    - pdoc3 --html -o public/api bdtsim
+    - pdoc3 --html --force -o public/api bdtsim
   artifacts:
     paths:
       - public
