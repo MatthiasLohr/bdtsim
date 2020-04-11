@@ -1,0 +1,9 @@
+site_name: BDTsim
+site_author: Matthias Lohr
+copyright: Copyright &copy; 2020 Matthias Lohr
+theme: readthedocs
+repo_url: https://gitlab.com/MatthiasLohr/bdtsim
+
+nav:
+  - Home: index.md
+  - API Documentation: /api/bdtsim/
