@@ -30,6 +30,7 @@ flake8 checks:
 pages:
   stage: build
   before_script:
+    - pip install .
     - pip install mkdocs pdoc3
   script:
     - python -m mkdocs build -d public
