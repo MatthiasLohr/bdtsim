@@ -6,4 +6,4 @@ repo_url: https://gitlab.com/MatthiasLohr/bdtsim
 
 nav:
   - Home: index.md
-  - API Documentation: /api/bdtsim/
+  - API Documentation: https://matthiaslohr.gitlab.io/bdtsim/api/bdtsim/
