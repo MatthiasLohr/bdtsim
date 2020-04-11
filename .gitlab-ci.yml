@@ -6,6 +6,8 @@ stages:
 unittests:
   stage: test
   image: python:3.7
+  before_script:
+    - pip install .
   script:
     - python -m unittest
 
