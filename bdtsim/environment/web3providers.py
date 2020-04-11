@@ -20,7 +20,8 @@ from . import BlockchainEnvironment, EnvironmentManager
 
 
 class Web3Environment(BlockchainEnvironment):
-    def __init__(self, web3_provider_class, chain_id, gas_price=None, gas_price_factor=1, tx_wait_timeout=120, **kwargs):
+    def __init__(self, web3_provider_class, chain_id, gas_price=None, gas_price_factor=1, tx_wait_timeout=120,
+                 **kwargs):
         super(Web3Environment, self).__init__(
             web3_provider_class(**kwargs),
             chain_id=chain_id,

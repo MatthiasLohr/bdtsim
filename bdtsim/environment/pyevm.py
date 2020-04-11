@@ -21,6 +21,7 @@ from eth_tester import EthereumTester, PyEVMBackend
 from eth_tester.backends import pyevm
 from web3 import EthereumTesterProvider
 from . import BlockchainEnvironment, EnvironmentManager
+from ..simulation.roles import Operator, Seller, Buyer
 
 logger = logging.getLogger(__name__)
 
@@ -29,14 +30,27 @@ class PyEVMEnvironment(BlockchainEnvironment):
     def __init__(self, chain_id, gas_price=None, gas_price_factor=1, tx_wait_timeout=120, persistent=False):
         if chain_id != 61:
             logger.warning('Ignoring chainId %d since PyEVM always uses chainId 61' % chain_id)
+
+        self._persistent = persistent
+        self._pyevm_instance = self.create_pyevm_instance()
+        self._eth_tester_instance = self.create_eth_tester_instance(self._pyevm_instance)
+
         super(PyEVMEnvironment, self).__init__(
-            EthereumTesterProvider(self.create_eth_tester_instance()),
+            EthereumTesterProvider(self._eth_tester_instance),
             chain_id=61,
             gas_price=gas_price,
             gas_price_factor=gas_price_factor,
             tx_wait_timeout=tx_wait_timeout
         )
-        self._persistent = persistent
+
+        for account_index, recipient in [(0, Operator), (1, Seller), (2, Buyer)]:
+            account = self._eth_tester_instance.get_accounts()[account_index]
+            self._eth_tester_instance.send_transaction({
+                'from': account,
+                'to': recipient.wallet_address,
+                'gas': 21000,
+                'value': self._eth_tester_instance.get_balance(account)-21000
+            })
 
     def set_up(self):
         pass
@@ -45,8 +59,8 @@ class PyEVMEnvironment(BlockchainEnvironment):
         pass
 
     @staticmethod
-    def create_eth_tester_instance():
-        return EthereumTester(PyEVMEnvironment.create_pyevm_instance())
+    def create_eth_tester_instance(pyevm_instance):
+        return EthereumTester(pyevm_instance)
 
     @staticmethod
     def create_pyevm_instance():

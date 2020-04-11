@@ -41,7 +41,7 @@ class Simulation(object):
         protocol_instance = self._protocol.instantiate()
         if protocol_instance.contract_reusable:
             protocol = self._protocol.instantiate(operator=Operator(environment))
-            protocol.deploy_contract()
+            self._contract_address = protocol.deploy_contract()
 
         # prepare iteration queue
         self._current_iteration = None
@@ -50,7 +50,22 @@ class Simulation(object):
         results = []
         while not self._iterations.empty():
             self._current_iteration = self._iterations.get(block=False)
+            # prepare environment
+            self._environment.set_up()
+            # deploy contract, if needed
             if not self._protocol.contract_reusable:
-                pass  # TODO deploy smart contract
+                protocol = self._protocol.instantiate(operator=Operator(self._environment))
+                self._contract_address = protocol.deploy_contract()
+            # run iteration
+            protocol = self._protocol.instantiate(
+                operator=Operator(self._environment),
+                seller=Seller(self._environment),
+                buyer=Buyer(self._environment),
+                contract_address=self._contract_address
+            )
+            protocol.run()
+            # TODO work results
+            # strip down environment
+            self._environment.strip_down()
             self._iterations.task_done()
         return results

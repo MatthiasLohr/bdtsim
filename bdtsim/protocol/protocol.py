@@ -25,11 +25,15 @@ class Protocol(object):
         self._operator = operator
         self._contract_address = contract_address
 
+    def monitor(self, role):
+        return Monitor(role)
+
     def run(self):
         raise NotImplementedError()
 
     def deploy_contract(self):
-        return self._operator.deploy_contract(self.contract)
+        with self.monitor(self._operator):
+            return self._operator.deploy_contract(self.contract)
 
     @property
     def seller(self):
@@ -50,3 +54,14 @@ class Protocol(object):
     @staticmethod
     def contract_path(file_var, filename):
         return os.path.join(os.path.dirname(file_var), filename)
+
+
+class Monitor(object):
+    def __init__(self, role):
+        self._role = role
+
+    def __enter__(self):
+        return self._role
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass

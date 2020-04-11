@@ -2,6 +2,7 @@
   <dictionary name="mlohr">
     <words>
       <w>blockchain</w>
+      <w>pyevm</w>
       <w>subcommand</w>
       <w>subcommands</w>
       <w>subparser</w>
