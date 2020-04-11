@@ -50,7 +50,7 @@ setup(
         'Topic :: Scientific/Engineering',
     ],
     project_urls={
-        'Documentation': 'https://gitlab.com/MatthiasLohr/bdtsim',
+        'Documentation': 'https://matthiaslohr.gitlab.io/bdtsim/',
         'Source': 'https://gitlab.com/MatthiasLohr/bdtsim',
         'Tracker': 'https://gitlab.com/MatthiasLohr/bdtsim/issues'
     }
