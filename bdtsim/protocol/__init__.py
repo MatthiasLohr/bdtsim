@@ -20,13 +20,11 @@ from .protocol import Protocol
 from .protocol_registration import ProtocolRegistration
 from .fairswap import FairSwap
 from .simplepayment import SimplePayment
-from .testprotocol import TestProtocol
 
 __all__ = [
     'Contract', 'SolidityContract',
     'Protocol',
     'ProtocolRegistration',
     'FairSwap',
-    'SimplePayment',
-    'TestProtocol'
+    'SimplePayment'
 ]

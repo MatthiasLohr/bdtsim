@@ -26,7 +26,7 @@ class TestProtocolPyEVMEnd2EndTest(unittest.TestCase):
         environment = EnvironmentManager.instantiate('PyEVM', chain_id=61)
 
         simulation = Simulation(
-            protocol=ProtocolRegistration.protocols['TestProtocol'],
+            protocol=ProtocolRegistration.protocols['SimplePayment'],
             environment=environment
         )
         simulation.run()
