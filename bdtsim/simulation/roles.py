@@ -70,7 +70,7 @@ class ActiveRole(Role):
         super(ActiveRole, self).__init__(environment)
         self._honesty_decision_list = honesty_decision_list or []
         self._honesty_decision_index = 0
-        self._scheduler_callback = None
+        self._scheduler_callback = scheduler_callback
 
     def proceed_honestly(self):
         if len(self._honesty_decision_list) == self._honesty_decision_index:

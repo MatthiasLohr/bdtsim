@@ -48,6 +48,26 @@ class Simulation(object):
         self._current_iteration = None
 
     def run(self):
+        def seller_decision_callback(previously, current):
+            self._iterations.put(Iteration(
+                seller_honesty_decision_list=previously + [not current],
+                buyer_honesty_decision_list=self._current_iteration.buyer_honesty_decision_list
+            ))
+            logger.debug('Added new iteration <%s, %s>' % (
+                    str(previously + [not current]),
+                    str(self._current_iteration.buyer_honesty_decision_list)
+            ))
+
+        def buyer_decision_callback(previously, current):
+            self._iterations.put(Iteration(
+                seller_honesty_decision_list=self._current_iteration.seller_honesty_decision_list,
+                buyer_honesty_decision_list=previously + [not current]
+            ))
+            logger.debug('Added new iteration <%s, %s>' % (
+                str(self._current_iteration.seller_honesty_decision_list),
+                str(previously + [not current])
+            ))
+
         # create first iteration
         self._iterations.put(Iteration())
         results = []
@@ -66,11 +86,13 @@ class Simulation(object):
                 operator=Operator(self._environment),
                 seller=Seller(
                     environment=self._environment,
-                    honesty_decision_list=self._current_iteration.seller_honesty_decision_list
+                    honesty_decision_list=self._current_iteration.seller_honesty_decision_list,
+                    scheduler_callback=seller_decision_callback
                 ),
                 buyer=Buyer(
                     environment=self._environment,
-                    honesty_decision_list=self._current_iteration.buyer_honesty_decision_list
+                    honesty_decision_list=self._current_iteration.buyer_honesty_decision_list,
+                    scheduler_callback=buyer_decision_callback
                 ),
                 contract_address=self._contract_address
             )

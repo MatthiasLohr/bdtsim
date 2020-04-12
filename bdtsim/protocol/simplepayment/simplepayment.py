@@ -29,7 +29,9 @@ class SimplePayment(Protocol):
         return SolidityContract(self.contract_path(__file__, 'SimplePayment.sol'), 'SimplePayment')
 
     def run(self):
-        pass
+        if self.seller.proceed_honestly():
+            with self.monitor(self.seller):
+                pass
 
 
 ProtocolRegistration.register('SimplePayment', SimplePayment)
