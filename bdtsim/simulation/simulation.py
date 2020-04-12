@@ -17,6 +17,7 @@
 
 import logging
 from queue import Queue
+from .iteration import Iteration
 from .roles import Operator, Seller, Buyer
 from ..environment import BlockchainEnvironment
 from ..protocol import ProtocolRegistration
@@ -47,20 +48,30 @@ class Simulation(object):
         self._current_iteration = None
 
     def run(self):
+        # create first iteration
+        self._iterations.put(Iteration())
         results = []
+        # run all iterations (might create new iterations)
         while not self._iterations.empty():
             self._current_iteration = self._iterations.get(block=False)
             # prepare environment
             self._environment.set_up()
             # deploy contract, if needed
-            if not self._protocol.contract_reusable:
-                protocol = self._protocol.instantiate(operator=Operator(self._environment))
-                self._contract_address = protocol.deploy_contract()
+            protocol_instance = self._protocol.instantiate()
+            if not protocol_instance.contract_reusable:
+                protocol_instance = self._protocol.instantiate(operator=Operator(self._environment))
+                self._contract_address = protocol_instance.deploy_contract()
             # run iteration
             protocol = self._protocol.instantiate(
                 operator=Operator(self._environment),
-                seller=Seller(self._environment),
-                buyer=Buyer(self._environment),
+                seller=Seller(
+                    environment=self._environment,
+                    honesty_decision_list=self._current_iteration.seller_honesty_decision_list
+                ),
+                buyer=Buyer(
+                    environment=self._environment,
+                    honesty_decision_list=self._current_iteration.buyer_honesty_decision_list
+                ),
                 contract_address=self._contract_address
             )
             protocol.run()

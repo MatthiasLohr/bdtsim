@@ -66,7 +66,8 @@ class Operator(Role):
 
 
 class ActiveRole(Role):
-    def __init__(self, honesty_decision_list=None, scheduler_callback=None):
+    def __init__(self, environment, honesty_decision_list=None, scheduler_callback=None):
+        super(ActiveRole, self).__init__(environment)
         self._honesty_decision_list = honesty_decision_list or []
         self._honesty_decision_index = 0
         self._scheduler_callback = None
