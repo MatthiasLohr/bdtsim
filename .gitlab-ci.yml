@@ -10,7 +10,7 @@ unittests:
   before_script:
     - pip install .
   script:
-    - python -m unittest
+    - python -m unittest discover tests
 
 flake8 checks:
   stage: test
