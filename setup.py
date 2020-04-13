@@ -37,6 +37,7 @@ setup(
         'py-solc-x==0.8.1',
         'web3==5.7.0'
     ],
+    python_requires='~=3.7',
     packages=find_packages(exclude=['tests']),
     entry_points={
         'console_scripts': [
@@ -46,7 +47,7 @@ setup(
     classifiers=[
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.7',
         'Topic :: Scientific/Engineering',
     ],
     project_urls={
