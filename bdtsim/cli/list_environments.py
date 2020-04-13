@@ -15,15 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .command_manager import CommandManager
-from .list_protocols import ListProtocolsSubCommand
-from .list_environments import ListEnvironmentsSubCommand
-from .run import RunSubCommand
+from .command_manager import SubCommand
+from ..environment import EnvironmentManager
 
 
-def main():
-    command_manager = CommandManager()
-    command_manager.register_subcommand('list-protocols', ListProtocolsSubCommand)
-    command_manager.register_subcommand('list-environments', ListEnvironmentsSubCommand)
-    command_manager.register_subcommand('run', RunSubCommand)
-    return command_manager.run()
+class ListEnvironmentsSubCommand(SubCommand):
+    def __call__(self, args):
+        for name in EnvironmentManager.environments.keys():
+            print(name)
