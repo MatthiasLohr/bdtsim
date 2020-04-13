@@ -30,7 +30,7 @@ flake8 checks:
 pages:
   stage: build
   only:
-    - master
+    - tags
   before_script:
     - pip install .
     - pip install mkdocs pdoc3
