@@ -21,6 +21,9 @@ class Participant(object):
         self._wallet_address = wallet_address
         self._wallet_private_key = wallet_private_key
 
+        self._decision_list = []
+        self._decision_index = 0
+
     @property
     def wallet_address(self) -> str:
         return self._wallet_address
@@ -28,6 +31,13 @@ class Participant(object):
     @property
     def wallet_private_key(self) -> str:
         return self._wallet_private_key
+
+    def decide(self) -> bool:
+        if len(self._decision_list) == self._decision_index:
+            self._decision_list.append(True)
+        decision = self._decision_list[self._decision_index]
+        self._decision_index += 1
+        return decision
 
 
 operator = Participant(

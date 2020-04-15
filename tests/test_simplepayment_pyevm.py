@@ -16,26 +16,25 @@
 # limitations under the License.
 
 import unittest
+from bdtsim.data_provider import GenericDataProvider
 from bdtsim.environment import EnvironmentManager
-from bdtsim.protocol import ProtocolRegistration
+from bdtsim.protocol import ProtocolManager
 from bdtsim.simulation import Simulation
 
 
 class SimplePaymentPyEVMTests(unittest.TestCase):
     def test_simple_payment_pyevm_direct(self):
-        environment = EnvironmentManager.instantiate('PyEVM', chain_id=61)
-
         simulation = Simulation(
-            protocol=ProtocolRegistration.protocols['SimplePayment-direct'],
-            environment=environment
+            protocol=ProtocolManager.instantiate('SimplePayment-direct'),
+            environment=EnvironmentManager.instantiate('PyEVM', chain_id=61),
+            data_provider=GenericDataProvider()
         )
         simulation.run()
 
     def test_simple_payment_pyevm_indirect(self):
-        environment = EnvironmentManager.instantiate('PyEVM', chain_id=61)
-
         simulation = Simulation(
-            protocol=ProtocolRegistration.protocols['SimplePayment-indirect'],
-            environment=environment
+            protocol=ProtocolManager.instantiate('SimplePayment-indirect'),
+            environment=EnvironmentManager.instantiate('PyEVM', chain_id=61),
+            data_provider=GenericDataProvider()
         )
         simulation.run()

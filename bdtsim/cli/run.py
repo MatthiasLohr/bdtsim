@@ -16,7 +16,7 @@
 # limitations under the License.
 
 from .command_manager import SubCommand
-from ..dataprovider import DataProviderManager
+from ..data_provider import DataProviderManager
 from ..environment import EnvironmentManager
 from ..protocol import ProtocolManager
 from ..simulation import Simulation

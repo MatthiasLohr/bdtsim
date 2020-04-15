@@ -21,7 +21,7 @@ from eth_tester import EthereumTester, PyEVMBackend
 from eth_tester.backends import pyevm
 from web3 import EthereumTesterProvider
 from . import Environment, EnvironmentManager
-from ..participants import operator, seller, buyer
+from ..participant import operator, seller, buyer
 
 logger = logging.getLogger(__name__)
 

@@ -17,8 +17,8 @@
 
 import logging
 from queue import Queue
-from .participants import operator, seller, buyer
-from .dataprovider import DataProvider
+from .participant import operator, seller, buyer
+from .data_provider import DataProvider
 from .environment import Environment
 from .protocol import Protocol
 
@@ -33,17 +33,22 @@ class Simulation(object):
 
         self._iteration_queue = Queue()
 
-        if self._protocol.contract_is_reusable:
+        if self._protocol.contract_is_reusable and self._protocol.contract is not None:
             self._environment.deploy_contract(operator, self._protocol.contract)
 
     def run(self):
+        logger.debug('Simulation started')
         while not self._iteration_queue.empty():
-            current_iteration = self._iteration_queue.get(block=False)
+            current_iteration = self._iteration_queue.get(block=False)  # noqa
 
-            if not self._protocol.contract_is_reusable:
+            if not self._protocol.contract_is_reusable and self._protocol.contract is not None:
                 self._environment.deploy_contract(operator, self._protocol.contract)
 
+            logger.debug('Preparing environment...')
             self._protocol.prepare_environment(self._environment, operator)
+            logger.debug('Starting protocol iteration...')
             self._protocol.run(self._environment, seller, buyer)
+            logger.debug('Protocol iteration finished, cleaning up...')
             self._protocol.cleanup_environment(self._environment, operator)
             self._iteration_queue.task_done()
+        logger.debug('Simulation finished')

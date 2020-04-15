@@ -15,14 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .contract import Contract, SolidityContract
 from .protocol import Protocol
 from .protocol_manager import ProtocolManager
 # from .fairswap import FairSwap
 from .simplepayment import SimplePayment
 
 __all__ = [
-    'Contract', 'SolidityContract',
     'Protocol',
     'ProtocolManager',
     # 'FairSwap',

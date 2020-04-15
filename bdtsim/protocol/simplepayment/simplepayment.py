@@ -16,7 +16,8 @@
 # limitations under the License.
 
 import logging
-from .. import Protocol, ProtocolManager, SolidityContract
+from .. import Protocol, ProtocolManager
+from ...contract import SolidityContract
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +36,16 @@ class SimplePayment(Protocol):
             return None
 
     def run(self, environment, seller, buyer):
-        logger.debug('Protocol Start')
-        # TODO implement
+        if buyer.decide():
+            logger.debug('Decided to be honest')
+            if self._use_contract:
+                environment.send_contract_transaction()
+                # todo continue
+            else:
+                environment.send_direct_transaction()
+                # todo continue
+        else:
+            logger.debug('Decided to cheat')  # just doing nothing
 
 
 ProtocolManager.register('SimplePayment-direct', SimplePayment, use_contract=False)

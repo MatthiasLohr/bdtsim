@@ -17,8 +17,8 @@
 
 import logging
 from web3 import Web3
-from ..participants import Participant
-from ..protocol import Contract
+from ..participant import Participant
+from ..contract import Contract
 
 logger = logging.getLogger(__name__)
 

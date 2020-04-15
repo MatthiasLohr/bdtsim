@@ -16,8 +16,8 @@
 # limitations under the License.
 
 import os
-from ..participants import Participant
 from ..environment import Environment
+from ..participant import Participant
 
 
 class Protocol(object):

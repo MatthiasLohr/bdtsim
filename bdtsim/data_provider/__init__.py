@@ -21,5 +21,6 @@ from .generic_data_provider import GenericDataProvider
 
 __all__ = [
     'DataProvider',
-    'DataProviderManager'
+    'DataProviderManager',
+    'GenericDataProvider'
 ]
