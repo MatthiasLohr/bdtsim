@@ -13,6 +13,9 @@ for carrying out simulations and working with the results.
 Please take a look to the [Quickstart](quickstart.md) guide for information on how to start using
 BDTsim.
 
+For a list of changes in the latest release, please check the
+[Changelog file](https://gitlab.com/MatthiasLohr/bdtsim/-/blob/master/CHANGELOG.md).
+
 Read more about:
 
   * [Commands](commands.md)
