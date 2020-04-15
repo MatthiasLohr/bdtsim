@@ -27,8 +27,8 @@ class RunSubCommand(SubCommand):
         super(RunSubCommand, self).__init__(parser)
         parser.add_argument('protocol', choices=ProtocolManager.protocols.keys())
         parser.add_argument('environment', choices=EnvironmentManager.environments.keys())
-        parser.add_argument('--data-provider', choices=DataProviderManager.data_providers.keys(),
-                            default='GenericDataProvider')
+        # parser.add_argument('--data-provider', choices=DataProviderManager.data_providers.keys(),
+        #                     default='GenericDataProvider')
         parser.add_argument('-c', '--chain-id', type=int, default=1)
         parser.add_argument('--gas-price', type=int, default=None)
         parser.add_argument('--gas-price-factor', type=float, default=1)
@@ -37,8 +37,8 @@ class RunSubCommand(SubCommand):
                             default=[])
         parser.add_argument('-e', '--environment-parameter', nargs=2, action='append', dest='environment_parameters',
                             default=[])
-        parser.add_argument('-d', '--data-provider-parameter', nargs=2, action='append',
-                            dest='data_provider_parameters', default=[])
+        # parser.add_argument('-d', '--data-provider-parameter', nargs=2, action='append',
+        #                     dest='data_provider_parameters', default=[])
 
     def __call__(self, args):
         protocol_parameters = {}
@@ -49,9 +49,9 @@ class RunSubCommand(SubCommand):
         for key, value in args.environment_parameters:
             environment_parameters[key.replace('-', '_')] = value
 
-        data_provider_parameters = {}
-        for key, value in args.data_provider_parameters:
-            data_provider_parameters[key.replace('-', '_')] = value
+        # data_provider_parameters = {}
+        # for key, value in args.data_provider_parameters:
+        #    data_provider_parameters[key.replace('-', '_')] = value
 
         protocol = ProtocolManager.instantiate(
             args.protocol,
@@ -67,15 +67,16 @@ class RunSubCommand(SubCommand):
             **environment_parameters
         )
 
-        data_provider = DataProviderManager.instantiate(
-            args.data_provider,
-            **data_provider_parameters
-        )
+        # TODO implement support for data providers
+        # data_provider = DataProviderManager.instantiate(
+        #     args.data_provider,
+        #     **data_provider_parameters
+        # )
 
         simulation = Simulation(
             protocol=protocol,
             environment=environment,
-            data_provider=data_provider
+            data_provider=DataProviderManager.instantiate('GenericDataProvider')  # TODO replace with data_provider
         )
 
         results = simulation.run()
