@@ -23,4 +23,4 @@ See the [Contribution Guidelines](CONTRIBUTING.md) for information on how to con
 This project is published under the Apache License, Version 2.0.
 See [LICENSE.md](LICENSE.md) for more information.
 
-Copyright (c) by Matthias Lohr <mail@mlohr.com>
+Copyright &copy; by Matthias Lohr <mail@mlohr.com>
