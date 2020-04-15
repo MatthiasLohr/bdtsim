@@ -15,17 +15,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from eth_typing import ChecksumAddress
+from web3 import Web3
+
 
 class Participant(object):
     def __init__(self, wallet_address: str, wallet_private_key: str):
-        self._wallet_address = wallet_address
+        self._wallet_address = Web3.toChecksumAddress(wallet_address)
         self._wallet_private_key = wallet_private_key
 
         self._decision_list = []
         self._decision_index = 0
 
     @property
-    def wallet_address(self) -> str:
+    def wallet_address(self) -> ChecksumAddress:
         return self._wallet_address
 
     @property

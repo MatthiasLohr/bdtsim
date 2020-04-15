@@ -37,6 +37,8 @@ class Simulation(object):
             self._environment.deploy_contract(operator, self._protocol.contract)
 
     def run(self):
+        self._iteration_queue.put(Iteration())
+
         logger.debug('Simulation started')
         while not self._iteration_queue.empty():
             current_iteration = self._iteration_queue.get(block=False)  # noqa
@@ -52,3 +54,7 @@ class Simulation(object):
             self._protocol.cleanup_environment(self._environment, operator)
             self._iteration_queue.task_done()
         logger.debug('Simulation finished')
+
+
+class Iteration(object):
+    pass

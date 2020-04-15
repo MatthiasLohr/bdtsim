@@ -38,12 +38,10 @@ class SimplePayment(Protocol):
     def run(self, environment, seller, buyer):
         if buyer.decide():
             logger.debug('Decided to be honest')
-            if self._use_contract:
-                environment.send_contract_transaction()
-                # todo continue
+            if self._use_contract:                                                       # TODO parameterize value
+                environment.send_contract_transaction(buyer, 'pay', seller.wallet_address, value=1000000000)
             else:
-                environment.send_direct_transaction()
-                # todo continue
+                environment.send_direct_transaction(buyer, seller, 1000000000)  # TODO parameterize value
         else:
             logger.debug('Decided to cheat')  # just doing nothing
 

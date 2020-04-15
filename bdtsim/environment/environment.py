@@ -16,6 +16,7 @@
 # limitations under the License.
 
 import logging
+from typing import Optional
 from web3 import Web3
 from ..participant import Participant
 from ..contract import Contract
@@ -58,13 +59,24 @@ class Environment(object):
         logger.debug('New contract address: %s' % self._contract_address)
         self._contract = contract
 
-    def send_contract_transaction(self):
-        pass  # TODO implement
+    def send_contract_transaction(self, account: Participant, method, *args, value: int = 0):
+        web3_contract = self._web3.eth.contract(address=self._contract_address, abi=self._contract.abi)
+        contract_method = getattr(web3_contract.functions, method)
+        factory = contract_method(*args)
+        return self._send_transaction(
+            account=account,
+            factory=factory,
+            value=value
+        )
 
-    def send_direct_transaction(self):
-        pass  # TODO implement
+    def send_direct_transaction(self, account: Participant, to: Participant, value: int = 0):
+        return self._send_transaction(
+            account=account,
+            to=to,
+            value=value
+        )
 
-    def _send_transaction(self, account: Participant, factory, value: int = 0):
+    def _send_transaction(self, account: Participant, factory=None, to: Optional[Participant] = None, value: int = 0):
         gas_price = self.gas_price
         if gas_price is None:
             gas_price = self._web3.eth.gasPrice
@@ -75,8 +87,12 @@ class Environment(object):
             'gasPrice': int(gas_price * self._gas_price_factor),
             'chainId': self._chain_id
         }
+        if to is not None:
+            tx_dict['to'] = to.wallet_address
         if factory is not None:
             tx_dict = factory.buildTransaction(tx_dict)
+        else:
+            tx_dict['gas'] = 21000
         tx_signed = self._web3.eth.account.sign_transaction(tx_dict, private_key=account.wallet_private_key)
         tx_hash = self._web3.eth.sendRawTransaction(tx_signed.rawTransaction)
         tx_receipt = self._web3.eth.waitForTransactionReceipt(tx_hash, self.tx_wait_timeout)
