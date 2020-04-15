@@ -15,13 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .blockchain_environment import BlockchainEnvironment
+from .environment import Environment
 from .environment_manager import EnvironmentManager
 from .pyevm import PyEVMEnvironment
 from .web3providers import Web3Environment
 
 __all__ = [
-    'BlockchainEnvironment',
+    'Environment',
     'EnvironmentManager',
     'PyEVMEnvironment',
     'Web3Environment'

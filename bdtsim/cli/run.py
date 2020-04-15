@@ -16,27 +16,48 @@
 # limitations under the License.
 
 from .command_manager import SubCommand
+from ..dataprovider import DataProviderManager
 from ..environment import EnvironmentManager
-from ..protocol import ProtocolRegistration
+from ..protocol import ProtocolManager
 from ..simulation import Simulation
 
 
 class RunSubCommand(SubCommand):
     def __init__(self, parser):
         super(RunSubCommand, self).__init__(parser)
-        parser.add_argument('protocol', choices=ProtocolRegistration.protocols.keys())
+        parser.add_argument('protocol', choices=ProtocolManager.protocols.keys())
         parser.add_argument('environment', choices=EnvironmentManager.environments.keys())
+        parser.add_argument('--data-provider', choices=DataProviderManager.data_providers.keys(),
+                            default='GenericDataProvider')
         parser.add_argument('-c', '--chain-id', type=int, default=1)
         parser.add_argument('--gas-price', type=int, default=None)
         parser.add_argument('--gas-price-factor', type=float, default=1)
         parser.add_argument('--tx-wait-timeout', type=int, default=120)
+        parser.add_argument('-p', '--protocol-parameter', nargs=2, action='append', dest='protocol_parameters',
+                            default=[])
         parser.add_argument('-e', '--environment-parameter', nargs=2, action='append', dest='environment_parameters',
                             default=[])
+        parser.add_argument('-d', '--data-provider-parameter', nargs=2, action='append',
+                            dest='data_provider_parameters', default=[])
 
     def __call__(self, args):
+        protocol_parameters = {}
+        for key, value in args.protocol_parameters:
+            protocol_parameters[key.replace('-', '_')] = value
+
         environment_parameters = {}
         for key, value in args.environment_parameters:
             environment_parameters[key.replace('-', '_')] = value
+
+        data_provider_parameters = {}
+        for key, value in args.data_provider_parameters:
+            data_provider_parameters[key.replace('-', '_')] = value
+
+        protocol = ProtocolManager.instantiate(
+            args.protocol,
+            **protocol_parameters
+        )
+
         environment = EnvironmentManager.instantiate(
             args.environment,
             chain_id=args.chain_id,
@@ -45,9 +66,17 @@ class RunSubCommand(SubCommand):
             tx_wait_timeout=args.tx_wait_timeout,
             **environment_parameters
         )
-        simulation = Simulation(
-            protocol=ProtocolRegistration.protocols[args.protocol],
-            environment=environment
+
+        data_provider = DataProviderManager.instantiate(
+            args.data_provider,
+            **data_provider_parameters
         )
+
+        simulation = Simulation(
+            protocol=protocol,
+            environment=environment,
+            data_provider=data_provider
+        )
+
         results = simulation.run()
-        print(results)
+        print(results)  # TODO nicer results

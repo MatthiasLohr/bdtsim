@@ -17,14 +17,14 @@
 
 from .contract import Contract, SolidityContract
 from .protocol import Protocol
-from .protocol_registration import ProtocolRegistration
-from .fairswap import FairSwap
+from .protocol_manager import ProtocolManager
+# from .fairswap import FairSwap
 from .simplepayment import SimplePayment
 
 __all__ = [
     'Contract', 'SolidityContract',
     'Protocol',
-    'ProtocolRegistration',
-    'FairSwap',
+    'ProtocolManager',
+    # 'FairSwap',
     'SimplePayment'
 ]

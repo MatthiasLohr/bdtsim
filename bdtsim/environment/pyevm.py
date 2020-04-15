@@ -20,13 +20,13 @@ import time
 from eth_tester import EthereumTester, PyEVMBackend
 from eth_tester.backends import pyevm
 from web3 import EthereumTesterProvider
-from . import BlockchainEnvironment, EnvironmentManager
-from ..simulation.roles import Operator, Seller, Buyer
+from . import Environment, EnvironmentManager
+from ..roles import operator, seller, buyer
 
 logger = logging.getLogger(__name__)
 
 
-class PyEVMEnvironment(BlockchainEnvironment):
+class PyEVMEnvironment(Environment):
     def __init__(self, chain_id, gas_price=None, gas_price_factor=1, tx_wait_timeout=120, persistent=False):
         if chain_id != 61:
             logger.warning('Ignoring chainId %d since PyEVM always uses chainId 61' % chain_id)
@@ -43,7 +43,7 @@ class PyEVMEnvironment(BlockchainEnvironment):
             tx_wait_timeout=tx_wait_timeout
         )
 
-        for account_index, recipient in [(0, Operator), (1, Seller), (2, Buyer)]:
+        for account_index, recipient in [(0, operator), (1, seller), (2, buyer)]:
             account = self._eth_tester_instance.get_accounts()[account_index]
             self._eth_tester_instance.send_transaction({
                 'from': account,

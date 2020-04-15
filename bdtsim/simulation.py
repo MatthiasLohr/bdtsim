@@ -15,25 +15,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+from queue import Queue
+from .roles import operator
+from .dataprovider import DataProvider
+from .environment import Environment
 from .protocol import Protocol
 
+logger = logging.getLogger(__name__)
 
-class ProtocolRegistration(object):
-    protocols = {}
 
-    def __init__(self, cls, *args, **kwargs):
-        self._cls = cls
-        self._args = args
-        self._kwargs = kwargs
+class Simulation(object):
+    def __init__(self, protocol: Protocol, environment: Environment, data_provider: DataProvider):
+        self._protocol = protocol
+        self._environment = environment
+        self._data_provider = data_provider
 
-    def instantiate(self, **options):
+        self._iterations = Queue()
+        self._current_iteration = None
 
-        return self._cls(*self._args, **{**self._kwargs, **options})
+        if self._protocol.contract_is_reusable:
+            self._environment.deploy_contract(operator, self._protocol.contract)
 
-    @staticmethod
-    def register(name, cls, *args, **kwargs):
-        if name in ProtocolRegistration.protocols.keys():
-            raise ValueError('Protocol with name "%s" already registered' % name)
-        if not issubclass(cls, Protocol):
-            raise ValueError('Provided class is not a subclass of Protocol')
-        ProtocolRegistration.protocols[name] = ProtocolRegistration(cls, *args, **kwargs)
+    def run(self):
+        pass

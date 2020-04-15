@@ -15,12 +15,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from .environment import Environment
+
 
 class EnvironmentManager(object):
     environments = {}
 
+    def __init__(self):
+        raise NotImplementedError('This class is not to be instantiated')
+
     @staticmethod
     def register(name, cls, *args, **kwargs):
+        if not issubclass(cls, Environment):
+            raise ValueError('Provided class is not a subclass of Environment')
         EnvironmentManager.environments[name] = {
             'cls': cls,
             'args': args,

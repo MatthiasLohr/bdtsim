@@ -21,12 +21,21 @@ from bdtsim.protocol import ProtocolRegistration
 from bdtsim.simulation import Simulation
 
 
-class TestProtocolPyEVMEnd2EndTest(unittest.TestCase):
-    def test_end2end(self):
+class SimplePaymentPyEVMTests(unittest.TestCase):
+    def test_simple_payment_pyevm_direct(self):
         environment = EnvironmentManager.instantiate('PyEVM', chain_id=61)
 
         simulation = Simulation(
-            protocol=ProtocolRegistration.protocols['SimplePayment'],
+            protocol=ProtocolRegistration.protocols['SimplePayment-direct'],
+            environment=environment
+        )
+        simulation.run()
+
+    def test_simple_payment_pyevm_indirect(self):
+        environment = EnvironmentManager.instantiate('PyEVM', chain_id=61)
+
+        simulation = Simulation(
+            protocol=ProtocolRegistration.protocols['SimplePayment-indirect'],
             environment=environment
         )
         simulation.run()

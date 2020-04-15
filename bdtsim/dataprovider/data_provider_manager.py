@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from . import DataProvider
+
 
 class DataProviderManager(object):
     data_providers = {}
@@ -24,8 +26,8 @@ class DataProviderManager(object):
 
     @staticmethod
     def register(name, cls, *args, **kwargs):
-        if not issubclass(cls, BlockchainEnvironment):
-            raise ValueError('Provided class is not a subclass of Protocol')
+        if not issubclass(cls, DataProvider):
+            raise ValueError('Provided class is not a subclass of DataProvider')
         DataProviderManager.data_providers[name] = {
             'cls': cls,
             'args': args,

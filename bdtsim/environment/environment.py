@@ -15,24 +15,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from ..roles import Role
+from ..protocol import Contract
 
-class BlockchainEnvironment(object):
+
+class Environment(object):
     def __init__(self, web3_provider, chain_id, gas_price=None, gas_price_factor=1, tx_wait_timeout=120):
         self._web3_provider = web3_provider
+
         self._chain_id = chain_id
         self._gas_price = gas_price
         self._gas_price_factor = gas_price_factor
         self._tx_wait_timeout = tx_wait_timeout
-
-    def set_up(self):
-        raise NotImplementedError()
-
-    def strip_down(self):
-        raise NotImplementedError()
-
-    @property
-    def web3_provider(self):
-        return self._web3_provider
 
     @property
     def chain_id(self):
@@ -49,3 +43,12 @@ class BlockchainEnvironment(object):
     @property
     def tx_wait_timeout(self):
         return self._tx_wait_timeout
+
+    def deploy_contract(self, sender: Role, contract: Contract):
+        pass  # TODO implement
+
+    def send_contract_transaction(self):
+        pass  # TODO implement
+
+    def send_raw_transaction(self):
+        pass  # TODO implement

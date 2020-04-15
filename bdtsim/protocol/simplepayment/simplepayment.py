@@ -15,23 +15,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .. import Protocol, ProtocolRegistration, SolidityContract
+import logging
+from .. import Protocol, ProtocolManager, SolidityContract
+
+logger = logging.getLogger(__name__)
 
 
 class SimplePayment(Protocol):
+    def __init__(self, use_contract):
+        super(SimplePayment, self).__init__(contract_is_reusable=True)
 
-    @property
-    def contract_reusable(self):
-        return True
+        self._use_contract = use_contract
 
     @property
     def contract(self):
-        return SolidityContract(self.contract_path(__file__, 'SimplePayment.sol'), 'SimplePayment')
+        if self._use_contract:
+            return SolidityContract(self.contract_path(__file__, 'SimplePayment.sol'), 'SimplePayment')
+        else:
+            return None
 
-    def run(self):
-        if self.seller.proceed_honestly():
-            with self.monitor(self.seller):
-                pass
+    def run(self, environment, seller, buyer):
+        logger.debug('Protocol Start')
+        # TODO implement
 
 
-ProtocolRegistration.register('SimplePayment', SimplePayment)
+ProtocolManager.register('SimplePayment-direct', SimplePayment, use_contract=False)
+ProtocolManager.register('SimplePayment-indirect', SimplePayment, use_contract=True)

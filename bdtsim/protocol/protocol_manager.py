@@ -15,11 +15,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .command_manager import SubCommand
-from ..protocol import ProtocolManager
+from .protocol import Protocol
 
 
-class ListProtocolsSubCommand(SubCommand):
-    def __call__(self, args):
-        for name in ProtocolManager.protocols.keys():
-            print(name)
+class ProtocolManager(object):
+    protocols = {}
+
+    def __init__(self):
+        raise NotImplementedError('This class is not to be instantiated')
+
+    @staticmethod
+    def register(name, cls, *args, **kwargs):
+        if not issubclass(cls, Protocol):
+            raise ValueError('Provided class is not a subclass of Protocol')
+        ProtocolManager.protocols[name] = {
+            'cls': cls,
+            'args': args,
+            'kwargs': kwargs
+        }
+
+    @staticmethod
+    def instantiate(name, **kwargs):
+        environment = ProtocolManager.protocols[name]
+        return environment['cls'](*environment['args'], **{**environment['kwargs'], **kwargs})

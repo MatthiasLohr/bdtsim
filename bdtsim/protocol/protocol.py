@@ -16,36 +16,20 @@
 # limitations under the License.
 
 import os
+from ..roles import Role
+from ..environment import Environment
 
 
 class Protocol(object):
-    def __init__(self, seller=None, buyer=None, operator=None, contract_address=None):
-        self._seller = seller
-        self._buyer = buyer
-        self._operator = operator
-        self._contract_address = contract_address
+    def __init__(self, contract_is_reusable=False):
+        self._contract_is_reusable = contract_is_reusable
 
-    def monitor(self, role):
-        return Monitor(role)
-
-    def run(self):
+    def run(self, environment: Environment, seller: Role, buyer: Role):
         raise NotImplementedError()
 
-    def deploy_contract(self):
-        with self.monitor(self._operator):
-            return self._operator.deploy_contract(self.contract)
-
     @property
-    def seller(self):
-        return self._seller
-
-    @property
-    def buyer(self):
-        return self._buyer
-
-    @property
-    def contract_reusable(self):
-        raise NotImplementedError()
+    def contract_is_reusable(self) -> bool:
+        return self._contract_is_reusable
 
     @property
     def contract(self):
@@ -54,14 +38,3 @@ class Protocol(object):
     @staticmethod
     def contract_path(file_var, filename):
         return os.path.join(os.path.dirname(file_var), filename)
-
-
-class Monitor(object):
-    def __init__(self, role):
-        self._role = role
-
-    def __enter__(self):
-        return self._role
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass

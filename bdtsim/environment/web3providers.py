@@ -16,10 +16,10 @@
 # limitations under the License.
 
 from web3 import HTTPProvider, WebsocketProvider, IPCProvider
-from . import BlockchainEnvironment, EnvironmentManager
+from . import Environment, EnvironmentManager
 
 
-class Web3Environment(BlockchainEnvironment):
+class Web3Environment(Environment):
     def __init__(self, web3_provider_class, chain_id, gas_price=None, gas_price_factor=1, tx_wait_timeout=120,
                  **kwargs):
         super(Web3Environment, self).__init__(
