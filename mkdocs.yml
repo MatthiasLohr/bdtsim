@@ -6,4 +6,9 @@ repo_url: https://gitlab.com/MatthiasLohr/bdtsim
 
 nav:
   - Home: index.md
+  - Quickstart: quickstart.md
+  - Commands: commands.md
+  - Protocols: protocols.md
+  - Environments: environments.md
+  - Data Providers: dataproviders.md
   - API Documentation: https://matthiaslohr.gitlab.io/bdtsim/api/bdtsim/
