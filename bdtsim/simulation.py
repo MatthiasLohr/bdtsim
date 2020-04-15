@@ -21,6 +21,7 @@ from .participant import operator, seller, buyer
 from .data_provider import DataProvider
 from .environment import Environment
 from .protocol import Protocol
+from .protocol_path import ProtocolPath
 
 logger = logging.getLogger(__name__)
 
@@ -31,17 +32,18 @@ class Simulation(object):
         self._environment = environment
         self._data_provider = data_provider
 
-        self._iteration_queue = Queue()
+        self._protocol_path_queue: "Queue[ProtocolPath]" = Queue()
 
         if self._protocol.contract_is_reusable and self._protocol.contract is not None:
             self._environment.deploy_contract(operator, self._protocol.contract)
 
     def run(self):
-        self._iteration_queue.put(Iteration())
+        self._protocol_path_queue.put(ProtocolPath())
 
         logger.debug('Simulation started')
-        while not self._iteration_queue.empty():
-            current_iteration = self._iteration_queue.get(block=False)  # noqa
+        while not self._protocol_path_queue.empty():
+            protocol_path = self._protocol_path_queue.get(block=False)
+            logger.debug('Simulation will follow path %s' % str(protocol_path.decisions_list))
 
             if not self._protocol.contract_is_reusable and self._protocol.contract is not None:
                 self._environment.deploy_contract(operator, self._protocol.contract)
@@ -49,12 +51,11 @@ class Simulation(object):
             logger.debug('Preparing environment...')
             self._protocol.prepare_environment(self._environment, operator)
             logger.debug('Starting protocol iteration...')
-            self._protocol.run(self._environment, seller, buyer)
-            logger.debug('Protocol iteration finished, cleaning up...')
+            self._protocol.run(protocol_path, self._environment, seller, buyer)
+            logger.debug('Protocol iteration finished, collecting alternative paths...')
+            for alternative_path in ProtocolPath.get_alternative_paths(protocol_path.new_decisions_list):
+                self._protocol_path_queue.put(ProtocolPath(protocol_path.initial_decisions_list + alternative_path))
+            logger.debug('Cleaning up environment...')
             self._protocol.cleanup_environment(self._environment, operator)
-            self._iteration_queue.task_done()
+            self._protocol_path_queue.task_done()
         logger.debug('Simulation finished')
-
-
-class Iteration(object):
-    pass

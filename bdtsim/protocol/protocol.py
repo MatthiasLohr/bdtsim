@@ -18,6 +18,7 @@
 import os
 from ..environment import Environment
 from ..participant import Participant
+from ..protocol_path import ProtocolPath
 
 
 class Protocol(object):
@@ -27,7 +28,7 @@ class Protocol(object):
     def prepare_environment(self, environment: Environment, operator: Participant):
         pass
 
-    def run(self, environment: Environment, seller: Participant, buyer: Participant):
+    def run(self, protocol_path: ProtocolPath, environment: Environment, seller: Participant, buyer: Participant):
         raise NotImplementedError()
 
     def cleanup_environment(self, environment: Environment, operator: Participant):
