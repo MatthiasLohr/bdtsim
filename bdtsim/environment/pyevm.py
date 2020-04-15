@@ -21,17 +21,16 @@ from eth_tester import EthereumTester, PyEVMBackend
 from eth_tester.backends import pyevm
 from web3 import EthereumTesterProvider
 from . import Environment, EnvironmentManager
-from ..roles import operator, seller, buyer
+from ..participants import operator, seller, buyer
 
 logger = logging.getLogger(__name__)
 
 
 class PyEVMEnvironment(Environment):
-    def __init__(self, chain_id, gas_price=None, gas_price_factor=1, tx_wait_timeout=120, persistent=False):
+    def __init__(self, chain_id, gas_price=None, gas_price_factor=1, tx_wait_timeout=120):
         if chain_id != 61:
             logger.warning('Ignoring chainId %d since PyEVM always uses chainId 61' % chain_id)
 
-        self._persistent = persistent
         self._pyevm_instance = self.create_pyevm_instance()
         self._eth_tester_instance = self.create_eth_tester_instance(self._pyevm_instance)
 
@@ -51,12 +50,6 @@ class PyEVMEnvironment(Environment):
                 'gas': 21000,
                 'value': self._eth_tester_instance.get_balance(account)-21000
             })
-
-    def set_up(self):
-        pass
-
-    def strip_down(self):
-        pass
 
     @staticmethod
     def create_eth_tester_instance(pyevm_instance):
@@ -82,5 +75,4 @@ class PyEVMEnvironment(Environment):
         })
 
 
-EnvironmentManager.register('PyEVM', PyEVMEnvironment, persistent=False)
-EnvironmentManager.register('PyEVM-persistent', PyEVMEnvironment, persistent=True)
+EnvironmentManager.register('PyEVM', PyEVMEnvironment)

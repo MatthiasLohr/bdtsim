@@ -16,7 +16,7 @@
 # limitations under the License.
 
 import os
-from ..roles import Role
+from ..participants import Participant
 from ..environment import Environment
 
 
@@ -24,8 +24,14 @@ class Protocol(object):
     def __init__(self, contract_is_reusable=False):
         self._contract_is_reusable = contract_is_reusable
 
-    def run(self, environment: Environment, seller: Role, buyer: Role):
+    def prepare_environment(self, environment: Environment, operator: Participant):
+        pass
+
+    def run(self, environment: Environment, seller: Participant, buyer: Participant):
         raise NotImplementedError()
+
+    def cleanup_environment(self, environment: Environment, operator: Participant):
+        pass
 
     @property
     def contract_is_reusable(self) -> bool:
