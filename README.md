@@ -11,6 +11,7 @@ Quick Links:
   * [Command Documentation](https://matthiaslohr.gitlab.io/bdtsim/commands/)
   * [Protocol Documentation](https://matthiaslohr.gitlab.io/bdtsim/protocols/)
   * [Environment Documentation](https://matthiaslohr.gitlab.io/bdtsim/environments/)
+  * [Data Provider Documentation](https://matthiaslohr.gitlab.io/bdtsim/dataproviders/)
 
 
 ## Contributing
