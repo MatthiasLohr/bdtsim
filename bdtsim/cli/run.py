@@ -15,11 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 from .command_manager import SubCommand
 from ..data_provider import DataProviderManager
 from ..environment import EnvironmentManager
 from ..protocol import ProtocolManager
 from ..simulation import Simulation
+from ..simulation_result_collector import SimulationResultJSONEncoder
 
 
 class RunSubCommand(SubCommand):
@@ -79,5 +81,5 @@ class RunSubCommand(SubCommand):
             data_provider=DataProviderManager.instantiate('GenericDataProvider')  # TODO replace with data_provider
         )
 
-        results = simulation.run()
-        print(results)  # TODO nicer results
+        result = simulation.run()
+        print(json.dumps(result, cls=SimulationResultJSONEncoder, indent=2))

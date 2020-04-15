@@ -36,6 +36,8 @@ class Environment(object):
         self._contract = None
         self._contract_address = None
 
+        self._transaction_log = []
+
     @property
     def chain_id(self):
         return self._chain_id
@@ -51,6 +53,13 @@ class Environment(object):
     @property
     def tx_wait_timeout(self):
         return self._tx_wait_timeout
+
+    @property
+    def transaction_log(self):
+        return self._transaction_log
+
+    def clear_transaction_log(self):
+        self._transaction_log = []
 
     def deploy_contract(self, account: Participant, contract: Contract) -> None:
         web3_contract = self._web3.eth.contract(abi=contract.abi, bytecode=contract.bytecode)
@@ -96,5 +105,6 @@ class Environment(object):
         tx_signed = self._web3.eth.account.sign_transaction(tx_dict, private_key=account.wallet_private_key)
         tx_hash = self._web3.eth.sendRawTransaction(tx_signed.rawTransaction)
         tx_receipt = self._web3.eth.waitForTransactionReceipt(tx_hash, self.tx_wait_timeout)
-        logger.debug('Successfully sent transaction: %s' % str(tx_receipt))
+        logger.debug('Successfully submitted transaction: %s' % str(tx_receipt))
+        self._transaction_log.append((account, tx_receipt))
         return tx_receipt

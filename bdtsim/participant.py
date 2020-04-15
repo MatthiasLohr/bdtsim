@@ -43,6 +43,13 @@ class Participant(object):
     def __str__(self):
         return '%s<%s>' % (self.name, self.wallet_address)
 
+    def __dict__(self):
+        return {
+            'name': self.name,
+            'wallet_address': self.wallet_address,
+            'wallet_private_key': self.wallet_private_key
+        }
+
 
 operator = Participant(
     name='Operator',
