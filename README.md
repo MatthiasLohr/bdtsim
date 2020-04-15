@@ -8,6 +8,7 @@ The full documentation can be found here: https://matthiaslohr.gitlab.io/bdtsim/
 
 Quick Links:
 
+  * [Quickstart Guide](https://matthiaslohr.gitlab.io/bdtsim/quickstart/)
   * [Command Documentation](https://matthiaslohr.gitlab.io/bdtsim/commands/)
   * [Protocol Documentation](https://matthiaslohr.gitlab.io/bdtsim/protocols/)
   * [Environment Documentation](https://matthiaslohr.gitlab.io/bdtsim/environments/)
