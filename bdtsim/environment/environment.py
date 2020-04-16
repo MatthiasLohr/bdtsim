@@ -64,7 +64,7 @@ class Environment(object):
     def deploy_contract(self, account: Participant, contract: Contract) -> None:
         web3_contract = self._web3.eth.contract(abi=contract.abi, bytecode=contract.bytecode)
         tx_receipt = self._send_transaction(account, web3_contract.constructor())
-        self._contract_address = tx_receipt = tx_receipt['contractAddress']
+        self._contract_address = tx_receipt['contractAddress']
         logger.debug('New contract address: %s' % self._contract_address)
         self._contract = contract
 
