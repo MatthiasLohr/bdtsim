@@ -12,3 +12,9 @@ nav:
   - Environments: environments.md
   - Data Providers: dataproviders.md
   - API Documentation: https://matthiaslohr.gitlab.io/bdtsim/api/bdtsim/
+
+# TODO permalink option
+# https://pythonhosted.org/Markdown/extensions/toc.html#usage
+markdown_extensions:
+  - toc:
+      permalink: true
