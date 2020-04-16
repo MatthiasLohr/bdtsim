@@ -19,6 +19,13 @@ flake8 checks:
   script:
     - python -m flake8
 
+mypy checks:
+  stage: test
+  before_script:
+    - pip install mypy
+  script:
+    - python -m mypy -p bdtsim
+
 .build sdist package:
   stage: build
   script:
