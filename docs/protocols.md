@@ -4,6 +4,7 @@ These protocols are currently supported (or planned to be supported) by BDTsim:
 
   * [SimplePayment](#simplepayment)
   * FairSwap ([planned](https://gitlab.com/MatthiasLohr/bdtsim/-/issues/2))
+  * OptiSwap ([planned](https://gitlab.com/MatthiasLohr/bdtsim/-/issues/5))
   * Delgado-Segura ([planned](https://gitlab.com/MatthiasLohr/bdtsim/-/issues/1))
 
 
@@ -24,15 +25,28 @@ The following command executes the indirect variant of the SimplePayment protoco
 bdtsim run -c 61 SimplePayment-indirect PyEVM
 ```
 
+
 ## FairSwap
 
 *(not implemented yet)*
 
 FairSwap Paper:
 
-> Dziembowski, S., Eckey, L., & Faust, S. (2018). Fairswap: How to fairly exchange digital goods. In Proceedings of the ACM Conference on Computer and Communications Security. https://doi.org/10.1145/3243734.3243857
+> Dziembowski, S., Eckey, L., & Faust, S. (2018).
+> Fairswap: How to fairly exchange digital goods.
+> In Proceedings of the ACM Conference on Computer and Communications Security.
+> [https://doi.org/10.1145/3243734.3243857](https://doi.org/10.1145/3243734.3243857)
 
-Original example smart contract repository: https://github.com/lEthDev/FairSwap.
+Original example smart contract repository: [https://github.com/lEthDev/FairSwap](https://github.com/lEthDev/FairSwap).
+Use kindly permitted by Lisa Eckey (16. April 2020).
+
+
+## OptiSwap
+
+*(not implemented yet)*
+
+Original example smart contract repository: [https://github.com/CryBtoS/OptiSwap](https://github.com/CryBtoS/OptiSwap).
+Use kindly permitted by Lisa Eckey (16. April 2020).
 
 
 ## Delgado-Segura
@@ -41,4 +55,7 @@ Original example smart contract repository: https://github.com/lEthDev/FairSwap.
 
 Delgado-Segura Paper:
 
-> Delgado-Segura, S., Pérez-Solà, C., Navarro-Arribas, G., & Herrera-Joancomartí, J. (2017). A fair protocol for data trading based on Bitcoin transactions. Future Generation Computer Systems. https://doi.org/10.1016/j.future.2017.08.021
+> Delgado-Segura, S., Pérez-Solà, C., Navarro-Arribas, G., & Herrera-Joancomartí, J. (2017).
+> A fair protocol for data trading based on Bitcoin transactions.
+> Future Generation Computer Systems.
+> [https://doi.org/10.1016/j.future.2017.08.021](https://doi.org/10.1016/j.future.2017.08.021)
