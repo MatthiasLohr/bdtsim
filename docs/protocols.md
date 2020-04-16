@@ -23,3 +23,22 @@ The following command executes the indirect variant of the SimplePayment protoco
 ```
 bdtsim run -c 61 SimplePayment-indirect PyEVM
 ```
+
+## FairSwap
+
+*(not implemented yet)*
+
+FairSwap Paper:
+
+> Dziembowski, S., Eckey, L., & Faust, S. (2018). Fairswap: How to fairly exchange digital goods. In Proceedings of the ACM Conference on Computer and Communications Security. https://doi.org/10.1145/3243734.3243857
+
+Original example smart contract repository: https://github.com/lEthDev/FairSwap.
+
+
+## Delgado-Segura
+
+*(not implemented yet)*
+
+Delgado-Segura Paper:
+
+> Delgado-Segura, S., Pérez-Solà, C., Navarro-Arribas, G., & Herrera-Joancomartí, J. (2017). A fair protocol for data trading based on Bitcoin transactions. Future Generation Computer Systems. https://doi.org/10.1016/j.future.2017.08.021
