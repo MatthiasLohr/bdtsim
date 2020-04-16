@@ -13,8 +13,9 @@ nav:
   - Data Providers: dataproviders.md
   - API Documentation: https://matthiaslohr.gitlab.io/bdtsim/api/bdtsim/
 
-# TODO permalink option
-# https://pythonhosted.org/Markdown/extensions/toc.html#usage
+# Markdown Extension documentation:
+# https://python-markdown.github.io/extensions/
 markdown_extensions:
+  - extra:
   - toc:
       permalink: true
