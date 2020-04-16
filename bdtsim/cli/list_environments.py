@@ -15,11 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 from .command_manager import SubCommand
 from ..environment import EnvironmentManager
 
 
 class ListEnvironmentsSubCommand(SubCommand):
-    def __call__(self, args):
+    def __call__(self, args: argparse.Namespace) -> None:
         for name in EnvironmentManager.environments.keys():
             print(name)

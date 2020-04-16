@@ -16,7 +16,8 @@
 # limitations under the License.
 
 import logging
-import solcx
+import solcx  # type: ignore
+from typing import Any, Dict, Optional, Tuple
 
 SOLC_VERSION = 'v0.6.1'
 
@@ -25,35 +26,35 @@ logger = logging.getLogger(__name__)
 
 class Contract(object):
     @property
-    def abi(self):
+    def abi(self) -> Dict[str, Any]:
         raise NotImplementedError()
 
     @property
-    def bytecode(self):
+    def bytecode(self) -> str:
         raise NotImplementedError()
 
 
 class SolidityContract(Contract):
-    def __init__(self, contract_file, contract_name):
+    def __init__(self, contract_file: str, contract_name: str) -> None:
         self._contract_file = contract_file
         self._contract_name = contract_name
-        self._abi = None
-        self._bytecode = None
+        self._abi: Optional[Dict[str, Any]] = None
+        self._bytecode: Optional[str] = None
 
     @property
-    def abi(self):
+    def abi(self) -> Dict[str, Any]:
         if self._abi is None:
             self._abi, self._bytecode = self.compile(self._contract_file, self._contract_name)
         return self._abi
 
     @property
-    def bytecode(self):
+    def bytecode(self) -> str:
         if self._bytecode is None:
             self._abi, self._bytecode = self.compile(self._contract_file, self._contract_name)
         return self._bytecode
 
     @staticmethod
-    def compile(contract_file, contract_name, solc_version=SOLC_VERSION):
+    def compile(contract_file: str, contract_name: str, solc_version: str = SOLC_VERSION) -> Tuple[Dict[str, Any], str]:
         # configure solc
         logger.debug('Checking for solc version %s' % solc_version)
         if solc_version not in solcx.get_installed_solc_versions():

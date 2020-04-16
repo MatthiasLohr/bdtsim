@@ -15,18 +15,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from eth_typing import ChecksumAddress
+from eth_typing.evm import ChecksumAddress
 from web3 import Web3
 
 
 class Participant(object):
-    def __init__(self, name: str, wallet_address: str, wallet_private_key: str):
+    def __init__(self, name: str, wallet_address: str, wallet_private_key: str) -> None:
         self._name = name
-        self._wallet_address = Web3.toChecksumAddress(wallet_address)
+        self._wallet_address: ChecksumAddress = Web3.toChecksumAddress(wallet_address)
         self._wallet_private_key = wallet_private_key
-
-        self._decision_list = []
-        self._decision_index = 0
 
     @property
     def name(self) -> str:
@@ -40,15 +37,8 @@ class Participant(object):
     def wallet_private_key(self) -> str:
         return self._wallet_private_key
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '%s<%s>' % (self.name, self.wallet_address)
-
-    def __dict__(self):
-        return {
-            'name': self.name,
-            'wallet_address': self.wallet_address,
-            'wallet_private_key': self.wallet_private_key
-        }
 
 
 operator = Participant(

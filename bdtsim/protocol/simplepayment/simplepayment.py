@@ -16,26 +16,30 @@
 # limitations under the License.
 
 import logging
+from typing import Optional
 from .. import Protocol, ProtocolManager
 from ...contract import SolidityContract
+from ... import Environment, Participant
+from ...protocol_path import ProtocolPath
 
 logger = logging.getLogger(__name__)
 
 
 class SimplePayment(Protocol):
-    def __init__(self, use_contract):
+    def __init__(self, use_contract: bool) -> None:
         super(SimplePayment, self).__init__(contract_is_reusable=True)
 
         self._use_contract = use_contract
 
     @property
-    def contract(self):
+    def contract(self) -> Optional[SolidityContract]:
         if self._use_contract:
             return SolidityContract(self.contract_path(__file__, 'SimplePayment.sol'), 'SimplePayment')
         else:
             return None
 
-    def run(self, protocol_path, environment, seller, buyer):
+    def run(self, protocol_path: ProtocolPath, environment: Environment, seller: Participant, buyer: Participant)\
+            -> None:
         if protocol_path.decide():
             logger.debug('Decided to be honest')
             if self._use_contract:                                                       # TODO parameterize value

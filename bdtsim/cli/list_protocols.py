@@ -15,11 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 from .command_manager import SubCommand
 from ..protocol import ProtocolManager
 
 
 class ListProtocolsSubCommand(SubCommand):
-    def __call__(self, args):
+    def __call__(self, args: argparse.Namespace) -> None:
         for name in ProtocolManager.protocols.keys():
             print(name)

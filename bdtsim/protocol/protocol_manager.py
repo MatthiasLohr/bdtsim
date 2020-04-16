@@ -15,26 +15,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Any, Dict, Type
 from .protocol import Protocol
 
 
-class ProtocolManager(object):
-    protocols = {}
+class ProtocolRegistration(object):
+    def __init__(self, cls: Type[Protocol], *args: Any, **kwargs: Any) -> None:
+        self.cls = cls
+        self.args = args
+        self.kwargs = kwargs
 
-    def __init__(self):
+
+class ProtocolManager(object):
+    protocols: Dict[str, ProtocolRegistration] = {}
+
+    def __init__(self) -> None:
         raise NotImplementedError('This class is not to be instantiated')
 
     @staticmethod
-    def register(name, cls, *args, **kwargs):
+    def register(name: str, cls: Type[Protocol], *args: Any, **kwargs: Any) -> None:
         if not issubclass(cls, Protocol):
             raise ValueError('Provided class is not a subclass of Protocol')
-        ProtocolManager.protocols[name] = {
-            'cls': cls,
-            'args': args,
-            'kwargs': kwargs
-        }
+        ProtocolManager.protocols[name] = ProtocolRegistration(cls, *args, **kwargs)
 
     @staticmethod
-    def instantiate(name, **kwargs):
+    def instantiate(name: str, **kwargs: Any) -> Protocol:
         environment = ProtocolManager.protocols[name]
-        return environment['cls'](*environment['args'], **{**environment['kwargs'], **kwargs})
+        return environment.cls(*environment.args, **{**environment.kwargs, **kwargs})

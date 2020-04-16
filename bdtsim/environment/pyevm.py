@@ -17,8 +17,9 @@
 
 import logging
 import time
-from eth_tester import EthereumTester, PyEVMBackend
-from eth_tester.backends import pyevm
+from eth_tester import EthereumTester, PyEVMBackend  # type: ignore
+from eth_tester.backends import pyevm  # type: ignore
+from typing import Optional
 from web3 import EthereumTesterProvider
 from . import Environment, EnvironmentManager
 from ..participant import operator, seller, buyer
@@ -27,7 +28,8 @@ logger = logging.getLogger(__name__)
 
 
 class PyEVMEnvironment(Environment):
-    def __init__(self, chain_id, gas_price=None, gas_price_factor=1, tx_wait_timeout=120):
+    def __init__(self, chain_id: int, gas_price: Optional[int] = None, gas_price_factor: float = 1,
+                 tx_wait_timeout: int = 120) -> None:
         if chain_id != 61:
             logger.warning('Ignoring chainId %d since PyEVM always uses chainId 61' % chain_id)
 
@@ -52,11 +54,11 @@ class PyEVMEnvironment(Environment):
             })
 
     @staticmethod
-    def create_eth_tester_instance(pyevm_instance):
+    def create_eth_tester_instance(pyevm_instance: PyEVMBackend) -> EthereumTester:
         return EthereumTester(pyevm_instance)
 
     @staticmethod
-    def create_pyevm_instance():
+    def create_pyevm_instance() -> PyEVMBackend:
         return PyEVMBackend({
             'bloom': 0,
             'coinbase': pyevm.main.GENESIS_COINBASE,

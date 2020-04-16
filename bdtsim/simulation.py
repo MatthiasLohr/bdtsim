@@ -35,7 +35,7 @@ class Simulation(object):
 
         self._protocol_path_queue: "Queue[ProtocolPath]" = Queue()
 
-    def run(self):
+    def run(self) -> SimulationResultCollector:
         result_collector = SimulationResultCollector()
 
         # single initial contract deployment?

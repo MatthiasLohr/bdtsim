@@ -16,16 +16,34 @@
 # limitations under the License.
 
 import logging
-from typing import Optional
+from typing import Any, List, Optional
 from web3 import Web3
+from web3.datastructures import AttributeDict
+from web3.providers.base import BaseProvider
 from ..participant import Participant
 from ..contract import Contract
 
 logger = logging.getLogger(__name__)
 
 
+class LogEntry(object):
+    def __init__(self, account: Participant, transaction_receipt: AttributeDict[str, Any]):
+        # TODO save contract method and contract method args
+        self._account = account
+        self._transaction_receipt = transaction_receipt
+
+    @property
+    def account(self) -> Participant:
+        return self._account
+
+    @property
+    def transaction_receipt(self) -> AttributeDict[str, Any]:
+        return self._transaction_receipt
+
+
 class Environment(object):
-    def __init__(self, web3_provider, chain_id, gas_price=None, gas_price_factor=1, tx_wait_timeout=120):
+    def __init__(self, web3_provider: BaseProvider, chain_id: int, gas_price: Optional[int] = None,
+                 gas_price_factor: float = 1, tx_wait_timeout: int = 120) -> None:
         self._web3 = Web3(web3_provider)
 
         self._chain_id = chain_id
@@ -33,32 +51,32 @@ class Environment(object):
         self._gas_price_factor = gas_price_factor
         self._tx_wait_timeout = tx_wait_timeout
 
-        self._contract = None
-        self._contract_address = None
+        self._contract: Optional[Contract] = None
+        self._contract_address: Optional[str] = None
 
-        self._transaction_log = []
+        self._transaction_log: List[LogEntry] = []
 
     @property
-    def chain_id(self):
+    def chain_id(self) -> int:
         return self._chain_id
 
     @property
-    def gas_price(self):
+    def gas_price(self) -> Optional[int]:
         return self._gas_price
 
     @property
-    def gas_price_factor(self):
+    def gas_price_factor(self) -> float:
         return self._gas_price_factor
 
     @property
-    def tx_wait_timeout(self):
+    def tx_wait_timeout(self) -> int:
         return self._tx_wait_timeout
 
     @property
-    def transaction_log(self):
+    def transaction_log(self) -> List[LogEntry]:
         return self._transaction_log
 
-    def clear_transaction_log(self):
+    def clear_transaction_log(self) -> None:
         self._transaction_log = []
 
     def deploy_contract(self, account: Participant, contract: Contract) -> None:
@@ -68,24 +86,28 @@ class Environment(object):
         logger.debug('New contract address: %s' % self._contract_address)
         self._contract = contract
 
-    def send_contract_transaction(self, account: Participant, method, *args, value: int = 0):
+    def send_contract_transaction(self, account: Participant, method: str, *args: Any, value: int = 0) -> Any:
+        if self._contract is None:
+            raise RuntimeError('No contract available!')
         web3_contract = self._web3.eth.contract(address=self._contract_address, abi=self._contract.abi)
         contract_method = getattr(web3_contract.functions, method)
         factory = contract_method(*args)
-        return self._send_transaction(
+        self._send_transaction(
             account=account,
             factory=factory,
             value=value
         )
+        # TODO implement contract return value
 
-    def send_direct_transaction(self, account: Participant, to: Participant, value: int = 0):
-        return self._send_transaction(
+    def send_direct_transaction(self, account: Participant, to: Participant, value: int = 0) -> None:
+        self._send_transaction(
             account=account,
             to=to,
             value=value
         )
 
-    def _send_transaction(self, account: Participant, factory=None, to: Optional[Participant] = None, value: int = 0):
+    def _send_transaction(self, account: Participant, factory: Optional[Any] = None, to: Optional[Participant] = None,
+                          value: int = 0) -> AttributeDict[str, Any]:
         gas_price = self.gas_price
         if gas_price is None:
             gas_price = self._web3.eth.gasPrice
@@ -106,5 +128,5 @@ class Environment(object):
         tx_hash = self._web3.eth.sendRawTransaction(tx_signed.rawTransaction)
         tx_receipt = self._web3.eth.waitForTransactionReceipt(tx_hash, self.tx_wait_timeout)
         logger.debug('Successfully submitted transaction: %s' % str(tx_receipt))
-        self._transaction_log.append((account, tx_receipt))
+        self._transaction_log.append(LogEntry(account, tx_receipt))
         return tx_receipt

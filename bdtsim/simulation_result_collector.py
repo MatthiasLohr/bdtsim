@@ -15,36 +15,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from hexbytes import HexBytes
+from hexbytes.main import HexBytes
 from json import JSONEncoder
-from typing import List, Tuple, Any
+from typing import Any, List, Optional, Tuple
 from web3.datastructures import AttributeDict
+from .environment.environment import LogEntry
 from .participant import Participant
 from .protocol_path import ProtocolPath
 
 
 class SimulationResultCollector(object):
-    _preparation_result = None
-    _execution_results = []
+    _preparation_result: Optional[LogEntry] = None
+    _execution_results: List[Tuple[ProtocolPath, List[LogEntry]]] = []
 
-    def set_preparation_result(self, result: Tuple):
+    def set_preparation_result(self, result: LogEntry) -> None:
         self._preparation_result = result
 
-    def add_execution_result(self, protocol_path: ProtocolPath, logs: List[Tuple]):
-        self._execution_results.append({
-            'protocol_path': protocol_path,
-            'transactions': [{
-                'account': participant,
-                'receipt': receipt
-            } for participant, receipt in logs]
-        })
+    def add_execution_result(self, protocol_path: ProtocolPath, logs: List[LogEntry]) -> None:
+        self._execution_results.append((protocol_path, logs))
 
     @property
-    def preparation_result(self):
+    def preparation_result(self) -> Optional[LogEntry]:
         return self._preparation_result
 
     @property
-    def execution_results(self):
+    def execution_results(self) -> List[Tuple[ProtocolPath, List[LogEntry]]]:
         return self._execution_results
 
 
@@ -54,6 +49,11 @@ class SimulationResultJSONEncoder(JSONEncoder):
             return dict(obj)
         elif isinstance(obj, HexBytes):
             return obj.hex()
+        elif isinstance(obj, LogEntry):
+            return {
+                'account': obj.account,
+                'transaction_receipt': obj.transaction_receipt
+            }
         elif isinstance(obj, Participant):
             return {
                 'name': obj.name,
@@ -63,16 +63,8 @@ class SimulationResultJSONEncoder(JSONEncoder):
         elif isinstance(obj, ProtocolPath):
             return obj.decisions_list
         elif isinstance(obj, SimulationResultCollector):
-            result = {
-                'preparation_result': {},
+            return {
+                'preparation_result': obj.preparation_result,
                 'execution_results': obj.execution_results
             }
-            if obj.preparation_result is not None:
-                result['preparation_result'] = {
-                    'account': obj.preparation_result[0],
-                    'transaction': {
-                        'receipt': obj.preparation_result[1]
-                    }
-                }
-            return result
         return JSONEncoder.default(self, obj)

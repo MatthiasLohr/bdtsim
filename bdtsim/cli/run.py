@@ -15,7 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import json
+from typing import Dict
 from .command_manager import SubCommand
 from ..data_provider import DataProviderManager
 from ..environment import EnvironmentManager
@@ -25,7 +27,7 @@ from ..simulation_result_collector import SimulationResultJSONEncoder
 
 
 class RunSubCommand(SubCommand):
-    def __init__(self, parser):
+    def __init__(self, parser: argparse.ArgumentParser) -> None:
         super(RunSubCommand, self).__init__(parser)
         parser.add_argument('protocol', choices=ProtocolManager.protocols.keys())
         parser.add_argument('environment', choices=EnvironmentManager.environments.keys())
@@ -42,16 +44,16 @@ class RunSubCommand(SubCommand):
         # parser.add_argument('-d', '--data-provider-parameter', nargs=2, action='append',
         #                     dest='data_provider_parameters', default=[])
 
-    def __call__(self, args):
-        protocol_parameters = {}
+    def __call__(self, args: argparse.Namespace) -> None:
+        protocol_parameters: Dict[str, str] = {}
         for key, value in args.protocol_parameters:
             protocol_parameters[key.replace('-', '_')] = value
 
-        environment_parameters = {}
+        environment_parameters: Dict[str, str] = {}
         for key, value in args.environment_parameters:
             environment_parameters[key.replace('-', '_')] = value
 
-        # data_provider_parameters = {}
+        # data_provider_parameters: Dict[str, str] = {}
         # for key, value in args.data_provider_parameters:
         #    data_provider_parameters[key.replace('-', '_')] = value
 

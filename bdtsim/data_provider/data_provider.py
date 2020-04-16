@@ -15,6 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Any
+
 
 class DataProvider(object):
-    pass
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        pass

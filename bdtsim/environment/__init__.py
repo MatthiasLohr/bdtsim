@@ -18,7 +18,7 @@
 from .environment import Environment
 from .environment_manager import EnvironmentManager
 from .pyevm import PyEVMEnvironment
-from .web3providers import Web3Environment
+from .web3_environments import Web3Environment
 
 __all__ = [
     'Environment',

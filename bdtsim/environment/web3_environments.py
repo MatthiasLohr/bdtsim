@@ -15,25 +15,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Any, Optional, Type
 from web3 import HTTPProvider, WebsocketProvider, IPCProvider
+from web3.providers.base import JSONBaseProvider
 from . import Environment, EnvironmentManager
 
 
 class Web3Environment(Environment):
-    def __init__(self, web3_provider_class, chain_id, gas_price=None, gas_price_factor=1, tx_wait_timeout=120,
-                 **kwargs):
+    def __init__(self, web3_provider_class: Type[JSONBaseProvider], chain_id: int, gas_price: Optional[int] = None,
+                 gas_price_factor: float = 1, tx_wait_timeout: int = 120, **kwargs: Any) -> None:
+        # noinspection PyArgumentList
         super(Web3Environment, self).__init__(
-            web3_provider_class(**kwargs),
+            web3_provider_class(**kwargs),  # type: ignore
             chain_id=chain_id,
             gas_price=gas_price,
             gas_price_factor=gas_price_factor,
             tx_wait_timeout=tx_wait_timeout
         )
 
-    def set_up(self):
+    def set_up(self) -> None:
         pass
 
-    def strip_down(self):
+    def strip_down(self) -> None:
         pass
 
 

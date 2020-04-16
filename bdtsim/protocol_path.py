@@ -16,14 +16,14 @@
 # limitations under the License.
 
 import itertools
-from typing import Optional, List
+from typing import List, Optional, Union
 
 
 class ProtocolPath(object):
-    def __init__(self, decisions_list: Optional[List[bool]] = None):
-        self._initial_decisions_list = decisions_list or []
-        self._new_decisions_list = []
-        self._decisions_index = 0
+    def __init__(self, decisions_list: Optional[Union[List[bool], List[bool]]] = None):
+        self._initial_decisions_list: List[bool] = decisions_list or []
+        self._new_decisions_list: List[bool] = []
+        self._decisions_index: int = 0
 
     def decide(self) -> bool:
         if len(self.decisions_list) == self._decisions_index:

@@ -15,13 +15,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Optional
 from .command_manager import CommandManager
 from .list_protocols import ListProtocolsSubCommand
 from .list_environments import ListEnvironmentsSubCommand
 from .run import RunSubCommand
 
 
-def main():
+def main() -> Optional[int]:
     command_manager = CommandManager()
     command_manager.register_subcommand('list-protocols', ListProtocolsSubCommand)
     command_manager.register_subcommand('list-environments', ListEnvironmentsSubCommand)

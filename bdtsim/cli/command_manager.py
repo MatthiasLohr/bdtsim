@@ -18,34 +18,38 @@
 import argparse
 import bdtsim
 import logging
+from typing import Dict, Optional, Type
+
+
+class SubCommand(object):
+    help: Optional[str] = None
+
+    def __init__(self, parser: argparse.ArgumentParser):
+        self._parser = parser
+
+    def __call__(self, args: argparse.Namespace) -> Optional[int]:
+        raise NotImplementedError()
 
 
 class CommandManager(object):
-    def __init__(self):
+    def __init__(self) -> None:
         self._argument_parser = argparse.ArgumentParser()
         self._argument_parser.add_argument('-l', '--log-level', default='WARNING',
                                            choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
         self._command_parser = self._argument_parser.add_subparsers(title='command', dest='command', required=True)
-        self._subcommands = {}
+        self._subcommands: Dict[str, SubCommand] = {}
 
-    def register_subcommand(self, subcommand, cls):
+    def register_subcommand(self, subcommand: str, cls: Type[SubCommand]) -> None:
         if not issubclass(cls, SubCommand):
             raise ValueError('cls is not a subclass of SubCommand')
         self._subcommands[subcommand] = cls(self._command_parser.add_parser(subcommand, help=cls.help))
 
-    def get_subcommand(self, subcommand):
+    def get_subcommand(self, subcommand: str) -> SubCommand:
         return self._subcommands[subcommand]
 
-    def run(self):
+    def run(self) -> Optional[int]:
         args = self._argument_parser.parse_args()
         logger = logging.getLogger(bdtsim.__name__)
         logger.setLevel(logging.getLevelName(args.log_level))
         subcommand = self.get_subcommand(args.command)
         return subcommand(args)
-
-
-class SubCommand(object):
-    help = None
-
-    def __init__(self, parser):
-        self._parser = parser

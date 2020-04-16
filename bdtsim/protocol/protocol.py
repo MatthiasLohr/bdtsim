@@ -16,22 +16,25 @@
 # limitations under the License.
 
 import os
+from typing import Optional
+from ..contract import Contract
 from ..environment import Environment
 from ..participant import Participant
 from ..protocol_path import ProtocolPath
 
 
 class Protocol(object):
-    def __init__(self, contract_is_reusable=False):
+    def __init__(self, contract_is_reusable: bool = False) -> None:
         self._contract_is_reusable = contract_is_reusable
 
-    def prepare_environment(self, environment: Environment, operator: Participant):
+    def prepare_environment(self, environment: Environment, operator: Participant) -> None:
         pass
 
-    def run(self, protocol_path: ProtocolPath, environment: Environment, seller: Participant, buyer: Participant):
+    def run(self, protocol_path: ProtocolPath, environment: Environment, seller: Participant, buyer: Participant)\
+            -> None:
         raise NotImplementedError()
 
-    def cleanup_environment(self, environment: Environment, operator: Participant):
+    def cleanup_environment(self, environment: Environment, operator: Participant) -> None:
         pass
 
     @property
@@ -39,9 +42,9 @@ class Protocol(object):
         return self._contract_is_reusable
 
     @property
-    def contract(self):
+    def contract(self) -> Optional[Contract]:
         raise NotImplementedError()
 
     @staticmethod
-    def contract_path(file_var, filename):
+    def contract_path(file_var: str, filename: str) -> str:
         return os.path.join(os.path.dirname(file_var), filename)

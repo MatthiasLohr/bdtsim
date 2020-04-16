@@ -1,10 +1,13 @@
 <component name="ProjectDictionaryState">
   <dictionary name="mlohr">
     <words>
+      <w>bdtsim</w>
       <w>blockchain</w>
       <w>coinbase</w>
+      <w>hexbytes</w>
       <w>lohr</w>
       <w>pyevm</w>
+      <w>solc</w>
       <w>subcommand</w>
       <w>subcommands</w>
       <w>subparser</w>
