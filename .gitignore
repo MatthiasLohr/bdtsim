@@ -1,6 +1,7 @@
 /.eggs/
 /.idea/
 /.mypy_cache/
+/build/
 /dist/
 /public/
 /venv/
