@@ -22,7 +22,7 @@ flake8 checks:
 mypy checks:
   stage: test
   before_script:
-    - pip install mypy
+    - pip install . mypy
   script:
     - python -m mypy -p bdtsim
 
