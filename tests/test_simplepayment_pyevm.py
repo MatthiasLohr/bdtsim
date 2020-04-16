@@ -33,7 +33,7 @@ class SimplePaymentPyEVMTests(unittest.TestCase):
 
     def test_simple_payment_pyevm_indirect(self):
         simulation = Simulation(
-            protocol=ProtocolManager.instantiate('SimplePayment-indirect'),
+            protocol=ProtocolManager.instantiate('SimplePayment'),
             environment=EnvironmentManager.instantiate('PyEVM', chain_id=61),
             data_provider=GenericDataProvider()
         )

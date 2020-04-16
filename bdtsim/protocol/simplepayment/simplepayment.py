@@ -50,5 +50,5 @@ class SimplePayment(Protocol):
             logger.debug('Decided to cheat')  # do nothing
 
 
+ProtocolManager.register('SimplePayment', SimplePayment, use_contract=True)
 ProtocolManager.register('SimplePayment-direct', SimplePayment, use_contract=False)
-ProtocolManager.register('SimplePayment-indirect', SimplePayment, use_contract=True)
