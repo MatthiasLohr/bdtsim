@@ -26,10 +26,12 @@ mypy checks:
   script:
     - python -m mypy -p bdtsim
 
-.build sdist package:
+build packages:
   stage: build
+  only:
+    - tags
   script:
-    - python setup.py sdist
+    - python setup.py sdist bdist_wheel
   artifacts:
     paths:
       - dist/*.tar.gz
