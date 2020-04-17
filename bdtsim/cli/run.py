@@ -34,6 +34,8 @@ class RunSubCommand(SubCommand):
         # parser.add_argument('--data-provider', choices=DataProviderManager.data_providers.keys(),
         #                     default='GenericDataProvider')
         parser.add_argument('-c', '--chain-id', type=int, default=1)
+        parser.add_argument('-o', '--output-format', choices=['human-readable', 'json', 'yaml'],
+                            default='human-readable')
         parser.add_argument('--gas-price', type=int, default=None)
         parser.add_argument('--gas-price-factor', type=float, default=1)
         parser.add_argument('--tx-wait-timeout', type=int, default=120)
@@ -84,4 +86,9 @@ class RunSubCommand(SubCommand):
         )
 
         result = simulation.run()
-        print(json.dumps(result, cls=SimulationResultJSONEncoder, indent=2))
+        if args.output_format == 'human-readable':
+            pass  # TODO implement
+        elif args.output_format == 'json':
+            print(json.dumps(result, cls=SimulationResultJSONEncoder, indent=2))
+        elif args.output_format == 'yaml':
+            pass  # TODO implement
