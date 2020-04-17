@@ -21,7 +21,7 @@ from typing import Any, List, Optional, Tuple
 from web3.datastructures import AttributeDict
 from .environment.environment import LogEntry
 from .participant import Participant
-from .protocol_path import ProtocolPath
+from .protocol_path import Decision, ProtocolPath
 
 
 class SimulationResultCollector(object):
@@ -47,6 +47,11 @@ class SimulationResultJSONEncoder(JSONEncoder):
     def default(self, obj: Any) -> Any:
         if isinstance(obj, AttributeDict):
             return dict(obj)
+        elif isinstance(obj, Decision):
+            return {
+                'decision': obj.decision,
+                'account': obj.account
+            }
         elif isinstance(obj, HexBytes):
             return obj.hex()
         elif isinstance(obj, LogEntry):

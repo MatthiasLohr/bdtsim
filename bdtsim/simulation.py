@@ -64,9 +64,10 @@ class Simulation(object):
             logger.debug('Protocol iteration finished')
             result_collector.add_execution_result(protocol_path, self._environment.transaction_log)
             logger.debug('Collecting alternative paths...')
-            for alternative_path in ProtocolPath.get_alternative_paths(protocol_path.new_decisions_list):
-                self._protocol_path_queue.put(ProtocolPath(protocol_path.initial_decisions_list + alternative_path))
-                logger.debug('Added new path %s' % str(protocol_path.initial_decisions_list + alternative_path))
+            alternative_decision_list = protocol_path.get_alternative_decision_list()
+            if alternative_decision_list is not None:
+                self._protocol_path_queue.put(ProtocolPath(alternative_decision_list))
+                logger.debug('Added new path %s' % str(alternative_decision_list))
             logger.debug('Cleaning up environment...')
             self._protocol.cleanup_environment(self._environment, operator)
             self._protocol_path_queue.task_done()

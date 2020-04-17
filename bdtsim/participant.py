@@ -16,11 +16,21 @@
 # limitations under the License.
 
 from eth_typing.evm import ChecksumAddress
+from typing import Any, Optional
 from web3 import Web3
 
 
 class Participant(object):
-    def __init__(self, name: str, wallet_address: str, wallet_private_key: str) -> None:
+    def __init__(self, name: str, wallet_address: Optional[str] = None, wallet_private_key: Optional[str] = None)\
+            -> None:
+        if wallet_address is None and wallet_private_key is None:
+            raise ValueError('You have to provide at least wallet_address OR wallet_private_key')
+        elif wallet_address is not None and wallet_private_key is not None:
+            eth_account = Web3().eth.account.from_key(wallet_private_key)
+            if eth_account.address != wallet_address:
+                raise ValueError('wallet_private_key does not match wallet_address')
+        elif wallet_address is None and wallet_private_key is not None:
+            wallet_address = Web3().eth.account.from_key(wallet_private_key).address
         self._name = name
         self._wallet_address: ChecksumAddress = Web3.toChecksumAddress(wallet_address)
         self._wallet_private_key = wallet_private_key
@@ -34,11 +44,28 @@ class Participant(object):
         return self._wallet_address
 
     @property
-    def wallet_private_key(self) -> str:
+    def wallet_private_key(self) -> Optional[str]:
         return self._wallet_private_key
 
     def __str__(self) -> str:
         return '%s<%s>' % (self.name, self.wallet_address)
+
+    def __repr__(self) -> str:
+        return '<%s.%s name=%s wallet_address=%s has_wallet_private_key=%s>' % (
+            __name__,
+            self.__class__.__name__,
+            self.name,
+            self.wallet_address,
+            str(self.wallet_private_key is not None)
+        )
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, Participant)\
+                and other.wallet_address == self.wallet_address\
+                and other.name == self.name
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
 
 
 operator = Participant(
