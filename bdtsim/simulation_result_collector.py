@@ -70,6 +70,9 @@ class SimulationResultJSONEncoder(JSONEncoder):
         elif isinstance(obj, SimulationResultCollector):
             return {
                 'preparation_result': obj.preparation_result,
-                'execution_results': obj.execution_results
+                'execution_results': [{
+                    'protocol_path': r[0],
+                    'transaction_logs': r[1]
+                } for r in obj.execution_results]
             }
         return JSONEncoder.default(self, obj)
