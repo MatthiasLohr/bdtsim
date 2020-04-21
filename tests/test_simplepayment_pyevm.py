@@ -15,13 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 import unittest
 from bdtsim.data_provider import GenericDataProvider
 from bdtsim.environment import EnvironmentManager
 from bdtsim.protocol import ProtocolManager
 from bdtsim.simulation import Simulation
-from bdtsim.simulation_result_collector import SimulationResultJSONEncoder
 
 
 class SimplePaymentPyEVMTests(unittest.TestCase):
@@ -32,7 +30,7 @@ class SimplePaymentPyEVMTests(unittest.TestCase):
             data_provider=GenericDataProvider()
         )
         result = simulation.run()
-        json.dumps(result, cls=SimulationResultJSONEncoder)
+        self.assertIsNotNone(result)
 
     def test_simple_payment_pyevm_indirect(self):
         simulation = Simulation(
@@ -41,4 +39,4 @@ class SimplePaymentPyEVMTests(unittest.TestCase):
             data_provider=GenericDataProvider()
         )
         result = simulation.run()
-        json.dumps(result, cls=SimulationResultJSONEncoder)
+        self.assertIsNotNone(result)

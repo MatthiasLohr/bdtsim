@@ -17,13 +17,14 @@
 
 import argparse
 import json
+import yaml
 from typing import Dict
 from .command_manager import SubCommand
 from ..data_provider import DataProviderManager
 from ..environment import EnvironmentManager
 from ..protocol import ProtocolManager
+from ..result import ResultSerializer
 from ..simulation import Simulation
-from ..simulation_result_collector import SimulationResultJSONEncoder
 
 
 class RunSubCommand(SubCommand):
@@ -89,6 +90,8 @@ class RunSubCommand(SubCommand):
         if args.output_format == 'human-readable':
             pass  # TODO implement
         elif args.output_format == 'json':
-            print(json.dumps(result, cls=SimulationResultJSONEncoder, indent=2))
+            print(json.dumps(result, cls=ResultSerializer, indent=2))
         elif args.output_format == 'yaml':
-            pass  # TODO implement
+            json_str = json.dumps(result, cls=ResultSerializer, indent=2)
+            json_structure = json.loads(json_str)
+            print(yaml.dump(json_structure))

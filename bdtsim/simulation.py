@@ -22,7 +22,7 @@ from .data_provider import DataProvider
 from .environment import Environment
 from .protocol import Protocol
 from .protocol_path import ProtocolPath
-from .simulation_result_collector import SimulationResultCollector
+from .result import PreparationResult, IterationResult, SimulationResult
 
 logger = logging.getLogger(__name__)
 
@@ -35,22 +35,21 @@ class Simulation(object):
 
         self._protocol_path_queue: "Queue[ProtocolPath]" = Queue()
 
-    def run(self) -> SimulationResultCollector:
-        result_collector = SimulationResultCollector()
-
-        # single initial contract deployment?
-        self._environment.clear_transaction_log()
+    def run(self) -> SimulationResult:
+        # initial contract deployment
+        preparation_result = None
+        self._environment.clear_transaction_logs()
         if self._protocol.contract_is_reusable and self._protocol.contract is not None:
-            self._environment.clear_transaction_log()
+            self._environment.clear_transaction_logs()
             self._environment.deploy_contract(operator, self._protocol.contract)
-            result_collector.set_preparation_result(self._environment.transaction_log[0])
+            preparation_result = PreparationResult(self._environment.transaction_logs)
 
+        iteration_results = []
         self._protocol_path_queue.put(ProtocolPath())
-
         logger.debug('Simulation started')
         while not self._protocol_path_queue.empty():
             protocol_path = self._protocol_path_queue.get(block=False)
-            self._environment.clear_transaction_log()
+            self._environment.clear_transaction_logs()
             logger.debug('Simulation will follow path %s' % str(protocol_path.decisions_list))
 
             # per-iteration contract deployment
@@ -62,7 +61,10 @@ class Simulation(object):
             logger.debug('Starting protocol iteration...')
             self._protocol.run(protocol_path, self._environment, seller, buyer)
             logger.debug('Protocol iteration finished')
-            result_collector.add_execution_result(protocol_path, self._environment.transaction_log)
+            iteration_results.append(IterationResult(
+                protocol_path=protocol_path,
+                transaction_logs=self._environment.transaction_logs
+            ))
             logger.debug('Collecting alternative paths...')
             alternative_decision_list = protocol_path.get_alternative_decision_list()
             if alternative_decision_list is not None:
@@ -72,4 +74,10 @@ class Simulation(object):
             self._protocol.cleanup_environment(self._environment, operator)
             self._protocol_path_queue.task_done()
         logger.debug('Simulation finished')
-        return result_collector
+        return SimulationResult(
+            operator=operator,
+            seller=seller,
+            buyer=buyer,
+            preparation_result=preparation_result,
+            iteration_results=iteration_results
+        )

@@ -36,6 +36,7 @@ setup(
         'hexbytes==0.2.0',
         'py-evm==0.3.0a14',
         'py-solc-x==0.8.1',
+        'PyYAML==5.3.1',
         'web3==5.7.0'
     ],
     python_requires='~=3.7',

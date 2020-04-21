@@ -16,6 +16,7 @@
 # limitations under the License.
 
 import logging
+import time
 from typing import Any, List, Optional
 from web3 import Web3
 from web3.datastructures import AttributeDict
@@ -26,11 +27,13 @@ from ..contract import Contract
 logger = logging.getLogger(__name__)
 
 
-class LogEntry(object):
-    def __init__(self, account: Participant, transaction_receipt: AttributeDict[str, Any]):
+class TransactionLogEntry(object):
+    def __init__(self, account: Participant, transaction_receipt: AttributeDict[str, Any],
+                 timestamp: Optional[float] = None):
         # TODO save contract method and contract method args
         self._account = account
         self._transaction_receipt = transaction_receipt
+        self._timestamp = timestamp
 
     @property
     def account(self) -> Participant:
@@ -39,6 +42,10 @@ class LogEntry(object):
     @property
     def transaction_receipt(self) -> AttributeDict[str, Any]:
         return self._transaction_receipt
+
+    @property
+    def timestamp(self) -> Optional[float]:
+        return self._timestamp
 
 
 class Environment(object):
@@ -54,7 +61,7 @@ class Environment(object):
         self._contract: Optional[Contract] = None
         self._contract_address: Optional[str] = None
 
-        self._transaction_log: List[LogEntry] = []
+        self._transaction_logs: List[TransactionLogEntry] = []
 
     @property
     def chain_id(self) -> int:
@@ -73,11 +80,11 @@ class Environment(object):
         return self._tx_wait_timeout
 
     @property
-    def transaction_log(self) -> List[LogEntry]:
-        return self._transaction_log
+    def transaction_logs(self) -> List[TransactionLogEntry]:
+        return self._transaction_logs
 
-    def clear_transaction_log(self) -> None:
-        self._transaction_log = []
+    def clear_transaction_logs(self) -> None:
+        self._transaction_logs = []
 
     def deploy_contract(self, account: Participant, contract: Contract) -> None:
         web3_contract = self._web3.eth.contract(abi=contract.abi, bytecode=contract.bytecode)
@@ -128,5 +135,5 @@ class Environment(object):
         tx_hash = self._web3.eth.sendRawTransaction(tx_signed.rawTransaction)
         tx_receipt = self._web3.eth.waitForTransactionReceipt(tx_hash, self.tx_wait_timeout)
         logger.debug('Successfully submitted transaction: %s' % str(tx_receipt))
-        self._transaction_log.append(LogEntry(account, tx_receipt))
+        self._transaction_logs.append(TransactionLogEntry(account, tx_receipt, time.time()))
         return tx_receipt
