@@ -7,16 +7,54 @@ public blockchain instance.
 The PyEVM environment provides a complete in-memory blockchain.
 The PyEVM environment is based on the [Python Ethereum Virtual Machine (py-evm) project](https://github.com/ethereum/py-evm).
 
-### Example Execution
+
+### Environment Parameters
+
+No special environment parameters available.
+
+
+### Example Usage
 
 ```
 bdtsim run -c 61 SimplePayment PyEVM
 ```
 
+
 ## Web3HTTP
 
-bdtsim run SimplePayment-indirect Web3HTTP -e endpoint-uri https://ropsten.infura.io/v3/2dd8a2423914474ba5c2e8e72408773f -c 3 --tx-wait-timeout 300
+The Web3HTTP environment allows to use an existing blockchain network where you have access to an HTTP endpoint
+(e.g. using [Infura](https://infura.io/)).
+
+
+### Environment Parameters
+
+  * `endpoint-uri`: HTTP Endpoint URI (e.g. https://ropsten.infura.io/v3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+  
+### Example Usage
+
+```
+bdtsim run SimplePayment Web3HTTP -e endpoint-uri https://ropsten.infura.io/v3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -c 3 --tx-wait-timeout 300
+```
+
 
 ## Web3Websocket
 
+This environment works analogous to the [Wen3HTTP](#web3http) environment, including the environment parameters.
+Use this environment if you want to use WebSockets instead of a HTTP endpoint.
+
+
 ## Web3IPC
+
+This environment allows to connect to a unix domain socket on your local machine.
+
+
+### Environment Parameters
+
+  * `ipc_path`: Path to your unix domain socket of a locally available network client.
+
+
+### Example Usage
+
+```
+bdtsim run SimplePayment Web3IPC -e ipc_path /var/lib/geth/geth.ipc
+```
