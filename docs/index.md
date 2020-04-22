@@ -2,6 +2,11 @@
 
 **BDTsim** is a framework for simulating blockchain based data trading protocols.
 
+![Python Version](https://img.shields.io/pypi/pyversions/bdtsim)
+[![PyPI Version](https://img.shields.io/pypi/v/bdtsim)](https://pypi.org/project/bdtsim/)
+[![Pipeline Status](https://img.shields.io/gitlab/pipeline/MatthiasLohr/bdtsim)](https://gitlab.com/MatthiasLohr/bdtsim/pipelines)
+
+
 ## About BDTsim
 
 BDTsim enables to run different [data trading protocols](protocols.md)
