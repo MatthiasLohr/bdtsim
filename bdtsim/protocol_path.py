@@ -88,3 +88,10 @@ class ProtocolPath(object):
             )]
         else:
             return None
+
+    @property
+    def is_completely_honest(self) -> bool:
+        for d in self.decisions_list:
+            if not d.decision:
+                return False
+        return True

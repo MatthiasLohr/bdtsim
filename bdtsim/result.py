@@ -32,6 +32,14 @@ class PreparationResult(object):
     def transaction_logs(self) -> List[TransactionLogEntry]:
         return self._transaction_logs
 
+    @property
+    def transaction_count(self) -> int:
+        return len(self.transaction_logs)
+
+    @property
+    def transaction_cost_sum(self) -> int:
+        return sum([int(str(entry.transaction_receipt.get('gasUsed'))) for entry in self.transaction_logs])
+
 
 class IterationResult(object):
     def __init__(self, protocol_path: ProtocolPath, transaction_logs: Optional[List[TransactionLogEntry]] = None)\
@@ -46,6 +54,19 @@ class IterationResult(object):
     @property
     def transaction_logs(self) -> List[TransactionLogEntry]:
         return self._transaction_logs
+
+    @property
+    def is_completely_honest(self) -> bool:
+        return self.protocol_path.is_completely_honest
+
+    def transaction_fee_sum_by_participant(self, participant: Participant) -> int:
+        return sum([
+            int(str(log.transaction_receipt.get('gasUsed')))
+            for log in filter(lambda x: x.account == participant, self._transaction_logs)
+        ])
+
+    def transaction_count_by_participant(self, participant: Participant) -> int:
+        return len(list(filter(lambda x: x.account == participant, self._transaction_logs)))
 
 
 class SimulationResult(object):
@@ -66,6 +87,13 @@ class SimulationResult(object):
     @property
     def iteration_results(self) -> List[IterationResult]:
         return self._iteration_results
+
+    @property
+    def completely_honest_iteration_result(self) -> IterationResult:
+        for ir in self.iteration_results:
+            if ir.is_completely_honest:
+                return ir
+        raise RuntimeError('Impossible result: There MUST be a completely honest iteration')
 
 
 class ResultSerializer(JSONEncoder):

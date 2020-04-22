@@ -22,6 +22,7 @@ from typing import Dict
 from .command_manager import SubCommand
 from ..data_provider import DataProviderManager
 from ..environment import EnvironmentManager
+from ..participant import seller, buyer
 from ..protocol import ProtocolManager
 from ..result import ResultSerializer
 from ..simulation import Simulation
@@ -84,12 +85,25 @@ class RunSubCommand(SubCommand):
             data_provider=DataProviderManager.instantiate('GenericDataProvider')  # TODO replace with data_provider
         )
 
-        result = simulation.run()
+        simulation_result = simulation.run()
         if args.output_format == 'human-readable':
-            pass  # TODO implement
+            preparation_result = simulation_result.preparation_result
+            if preparation_result is not None:
+                print('Preparation Costs (gas): %d (%d transaction(s))' % (
+                    preparation_result.transaction_cost_sum,
+                    preparation_result.transaction_count
+                ))
+            honest_iteration = simulation_result.completely_honest_iteration_result
+            for participant in seller, buyer:
+                print('%s transaction fees: %d (%d transaction(s))' % (
+                    participant.name,
+                    honest_iteration.transaction_fee_sum_by_participant(participant),
+                    honest_iteration.transaction_count_by_participant(participant)
+                ))
+                # TODO calculate and show risk
         elif args.output_format == 'json':
-            print(json.dumps(result, cls=ResultSerializer, indent=2))
+            print(json.dumps(simulation_result, cls=ResultSerializer, indent=2))
         elif args.output_format == 'yaml':
-            json_str = json.dumps(result, cls=ResultSerializer, indent=2)
+            json_str = json.dumps(simulation_result, cls=ResultSerializer, indent=2)
             json_structure = json.loads(json_str)
             print(yaml.dump(json_structure))
