@@ -33,7 +33,7 @@ The Web3HTTP environment allows to use an existing blockchain network where you 
 ### Example Usage
 
 ```
-bdtsim run SimplePayment Web3HTTP -e endpoint-uri https://ropsten.infura.io/v3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -c 3 --tx-wait-timeout 300
+bdtsim run -c 3 SimplePayment Web3HTTP -e endpoint-uri https://ropsten.infura.io/v3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 
