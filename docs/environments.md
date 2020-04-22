@@ -39,7 +39,7 @@ bdtsim run -c 3 SimplePayment Web3HTTP -e endpoint-uri https://ropsten.infura.io
 
 ## Web3Websocket
 
-This environment works analogous to the [Wen3HTTP](#web3http) environment, including the environment parameters.
+This environment works analogous to the [Web3HTTP](#web3http) environment, including the environment parameters.
 Use this environment if you want to use WebSockets instead of a HTTP endpoint.
 
 
