@@ -15,21 +15,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Optional, Type
-from web3 import HTTPProvider, WebsocketProvider, IPCProvider
+from typing import Any, Callable, Optional, Type
+from web3 import HTTPProvider, WebsocketProvider, IPCProvider, Web3
 from web3.providers.base import JSONBaseProvider
+from web3.types import TxParams, Wei
+
 from . import Environment, EnvironmentManager
 
 
 class Web3Environment(Environment):
     def __init__(self, web3_provider_class: Type[JSONBaseProvider], chain_id: int, gas_price: Optional[int] = None,
-                 gas_price_factor: float = 1, tx_wait_timeout: int = 120, **kwargs: Any) -> None:
+                 gas_price_strategy: Optional[Callable[[Web3, Optional[TxParams]], Wei]] = None,
+                 tx_wait_timeout: int = 120, **kwargs: Any) -> None:
         # noinspection PyArgumentList
         super(Web3Environment, self).__init__(
             web3_provider_class(**kwargs),  # type: ignore
             chain_id=chain_id,
             gas_price=gas_price,
-            gas_price_factor=gas_price_factor,
+            gas_price_strategy=gas_price_strategy,
             tx_wait_timeout=tx_wait_timeout
         )
 

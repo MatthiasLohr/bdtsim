@@ -19,8 +19,10 @@ import logging
 import time
 from eth_tester import EthereumTester, PyEVMBackend  # type: ignore
 from eth_tester.backends import pyevm  # type: ignore
-from typing import Optional
-from web3 import EthereumTesterProvider
+from typing import Callable, Optional
+from web3 import EthereumTesterProvider, Web3
+from web3.types import TxParams, Wei
+
 from . import Environment, EnvironmentManager
 from ..participant import operator, seller, buyer
 
@@ -28,7 +30,8 @@ logger = logging.getLogger(__name__)
 
 
 class PyEVMEnvironment(Environment):
-    def __init__(self, chain_id: int, gas_price: Optional[int] = None, gas_price_factor: float = 1,
+    def __init__(self, chain_id: int, gas_price: Optional[int] = None,
+                 gas_price_strategy: Optional[Callable[[Web3, Optional[TxParams]], Wei]] = None,
                  tx_wait_timeout: int = 120) -> None:
         if chain_id != 61:
             logger.warning('Ignoring chainId %d since PyEVM always uses chainId 61' % chain_id)
@@ -36,11 +39,14 @@ class PyEVMEnvironment(Environment):
         self._pyevm_instance = self.create_pyevm_instance()
         self._eth_tester_instance = self.create_eth_tester_instance(self._pyevm_instance)
 
+        if gas_price_strategy is None:
+            gas_price_strategy = pyevm_gas_price_strategy
+
         super(PyEVMEnvironment, self).__init__(
             EthereumTesterProvider(self._eth_tester_instance),
             chain_id=61,
             gas_price=gas_price,
-            gas_price_factor=gas_price_factor,
+            gas_price_strategy=gas_price_strategy,
             tx_wait_timeout=tx_wait_timeout
         )
 
@@ -75,6 +81,13 @@ class PyEVMEnvironment(Environment):
             'transaction_root': pyevm.main.BLANK_ROOT_HASH,
             'uncles_hash': pyevm.main.EMPTY_RLP_LIST_HASH
         })
+
+
+def pyevm_gas_price_strategy(web3: Web3, transaction_params: Optional[TxParams]) -> Wei:
+    """
+    https://web3py.readthedocs.io/en/stable/gas_price.html#creating-a-gas-price-strategy
+    """
+    return Wei(1000000000)
 
 
 EnvironmentManager.register('PyEVM', PyEVMEnvironment)

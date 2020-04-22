@@ -38,7 +38,6 @@ class RunSubCommand(SubCommand):
         parser.add_argument('-o', '--output-format', choices=['human-readable', 'json', 'yaml'],
                             default='human-readable')
         parser.add_argument('--gas-price', type=int, default=None)
-        parser.add_argument('--gas-price-factor', type=float, default=1)
         parser.add_argument('--tx-wait-timeout', type=int, default=120)
         parser.add_argument('-p', '--protocol-parameter', nargs=2, action='append', dest='protocol_parameters',
                             default=[])
@@ -69,7 +68,6 @@ class RunSubCommand(SubCommand):
             args.environment,
             chain_id=args.chain_id,
             gas_price=args.gas_price,
-            gas_price_factor=args.gas_price_factor,
             tx_wait_timeout=args.tx_wait_timeout,
             **environment_parameters
         )
