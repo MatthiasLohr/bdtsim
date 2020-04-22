@@ -38,8 +38,8 @@ build packages:
 
 pages:
   stage: build
-  only:
-    - tags
+#  only:
+#    - tags
   before_script:
     - pip install .
     - pip install mkdocs pdoc3
