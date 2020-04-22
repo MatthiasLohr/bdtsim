@@ -7,6 +7,8 @@ stages:
 
 unittests:
   stage: test
+  except:
+    - pages
   before_script:
     - pip install .
   script:
@@ -14,6 +16,8 @@ unittests:
 
 flake8 checks:
   stage: test
+  except:
+    - pages
   before_script:
     - pip install flake8
   script:
@@ -21,6 +25,8 @@ flake8 checks:
 
 mypy checks:
   stage: test
+  except:
+    - pages
   before_script:
     - pip install . mypy
   script:
