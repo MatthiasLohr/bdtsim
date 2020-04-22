@@ -40,9 +40,11 @@ class Simulation(object):
         preparation_result = None
         self._environment.clear_transaction_logs()
         if self._protocol.contract_is_reusable and self._protocol.contract is not None:
+            logger.debug('Initial contract deployment...')
             self._environment.clear_transaction_logs()
             self._environment.deploy_contract(operator, self._protocol.contract)
             preparation_result = PreparationResult(self._environment.transaction_logs)
+            logger.debug('Initial contract deployment finished')
 
         iteration_results = []
         self._protocol_path_queue.put(ProtocolPath())
@@ -54,7 +56,9 @@ class Simulation(object):
 
             # per-iteration contract deployment
             if not self._protocol.contract_is_reusable and self._protocol.contract is not None:
+                logger.debug('Iteration contract deployment...')
                 self._environment.deploy_contract(operator, self._protocol.contract)
+                logger.debug('Iteration contract deployment finished')
 
             logger.debug('Preparing environment...')
             self._protocol.prepare_environment(self._environment, operator)
