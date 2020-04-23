@@ -1,5 +1,11 @@
+# JetBrains PyCharm .gitignore:
+# References:
+# .idea/.gitignore
+# - https://github.com/github/gitignore/blob/master/Global/JetBrains.gitignore
+# - https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
+
+# project specific ignores
 /.eggs/
-/.idea/
 /.mypy_cache/
 /build/
 /dist/
