@@ -39,20 +39,21 @@ build packages:
     - tags
   script:
     - python setup.py sdist bdist_wheel
+    - ls -lah dist/
   artifacts:
     paths:
       - dist/*.tar.gz
       - dist/*.whl
 
-upload to twine:
+upload to PyPI:
   stage: deploy
   only:
     - tags
   before_script:
-    - pip install twine
     - ls -lah dist/
+    - pip install twine
   script:
-    - twine upload --non-interactive -u "__token__" dist/*
+    - twine upload --non-interactive dist/*
 
 pages:
   stage: build
