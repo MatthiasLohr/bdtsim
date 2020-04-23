@@ -41,6 +41,10 @@ setup(
     ],
     python_requires='~=3.7',
     packages=find_packages(exclude=['tests']),
+    package_data={
+        'bdtsim': ['*.sol']
+    },
+    include_package_data=True,
     entry_points={
         'console_scripts': [
             'bdtsim=bdtsim.cli.main:main'
