@@ -38,6 +38,8 @@ build packages:
     - tags
   script:
     - python setup.py sdist bdist_wheel
+    - pip install twine
+    - twine upload -u "__token__" dist/*
   artifacts:
     paths:
       - dist/*.tar.gz
