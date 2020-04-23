@@ -42,6 +42,7 @@ build packages:
   artifacts:
     paths:
       - dist/*.tar.gz
+      - dist/*.whl
 
 upload to twine:
   stage: deploy
