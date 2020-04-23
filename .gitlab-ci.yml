@@ -4,6 +4,7 @@ image: python:3.7
 stages:
   - test
   - build
+  - deploy
 
 unittests:
   stage: test
@@ -38,11 +39,19 @@ build packages:
     - tags
   script:
     - python setup.py sdist bdist_wheel
-    - pip install twine
-    - twine upload -u "__token__" dist/*
   artifacts:
     paths:
       - dist/*.tar.gz
+
+upload to twine:
+  stage: deploy
+  only:
+    - tags
+  before_script:
+    - pip install twine
+    - ls -lah dist/
+  script:
+    - twine upload --non-interactive -u "__token__" dist/*
 
 pages:
   stage: build
