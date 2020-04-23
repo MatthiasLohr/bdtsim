@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.1
+
+  * Fix: Include Solidity Smart Contract files in Python Wheel
+  * Fix: Absolute link in README.md
+
+
 ## v0.1.0
 
   * First release of BDTsim simulation tool
