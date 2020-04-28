@@ -31,3 +31,13 @@ class CommandTest(unittest.TestCase):
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
         self.assertEqual(out.decode('utf-8').strip(), '\n'.join(['FairSwap', 'SimplePayment', 'SimplePayment-direct']))
+
+    def test_run_simplepayment(self):
+        p = subprocess.Popen(['bdtsim run -c 61 SimplePayment PyEVM'], stdout=subprocess.PIPE, shell=True)
+        out, err = p.communicate()
+        self.assertEqual(p.returncode, 0)
+
+    def test_run_simplepayment_direct(self):
+        p = subprocess.Popen(['bdtsim run -c 61 SimplePayment-direct PyEVM'], stdout=subprocess.PIPE, shell=True)
+        out, err = p.communicate()
+        self.assertEqual(p.returncode, 0)
