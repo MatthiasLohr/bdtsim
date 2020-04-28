@@ -30,7 +30,12 @@ class CommandTest(unittest.TestCase):
         p = subprocess.Popen(['bdtsim list-protocols'], stdout=subprocess.PIPE, shell=True)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
-        self.assertEqual(out.decode('utf-8').strip(), '\n'.join(['FairSwap', 'SimplePayment', 'SimplePayment-direct']))
+        self.assertEqual(out.decode('utf-8').strip(), '\n'.join([
+            'FairSwap-FileSale',
+            'FairSwap-RepeatableFileSale',
+            'SimplePayment',
+            'SimplePayment-direct'
+        ]))
 
     def test_run_simplepayment(self):
         p = subprocess.Popen(['bdtsim run -c 61 SimplePayment PyEVM'], stdout=subprocess.PIPE, shell=True)
@@ -39,5 +44,15 @@ class CommandTest(unittest.TestCase):
 
     def test_run_simplepayment_direct(self):
         p = subprocess.Popen(['bdtsim run -c 61 SimplePayment-direct PyEVM'], stdout=subprocess.PIPE, shell=True)
+        out, err = p.communicate()
+        self.assertEqual(p.returncode, 0)
+
+    def test_run_fairswap_file_sale(self):
+        p = subprocess.Popen(['bdtsim run -c 61 FairSwap-FileSale PyEVM'], stdout=subprocess.PIPE, shell=True)
+        out, err = p.communicate()
+        self.assertEqual(p.returncode, 0)
+
+    def test_run_fairswap_repeatable_file_sale(self):
+        p = subprocess.Popen(['bdtsim run -c 61 FairSwap-RepeatableFileSale PyEVM'], stdout=subprocess.PIPE, shell=True)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)

@@ -14,12 +14,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Optional
 
 from bdtsim.protocol import Protocol, ProtocolManager
+from bdtsim.contract import Contract
+from bdtsim.environment import Environment
+from bdtsim.participant import Participant
+from bdtsim.protocol_path import ProtocolPath
 
 
 class FairSwap(Protocol):
-    pass
+    def __init__(self) -> None:
+        super(FairSwap, self).__init__()
+
+    @property
+    def contract(self) -> Optional[Contract]:
+        return None
+
+    def run(self, protocol_path: ProtocolPath, environment: Environment, seller: Participant,
+            buyer: Participant) -> None:
+        pass
 
 
-ProtocolManager.register('FairSwap', FairSwap)
+ProtocolManager.register('FairSwap-FileSale', FairSwap)
+ProtocolManager.register('FairSwap-RepeatableFileSale', FairSwap)
