@@ -39,7 +39,7 @@ setup(
         'PyYAML==5.3.1',
         'web3==5.7.0'
     ],
-    python_requires='~=3.7, ~=3.8',
+    python_requires='>=3.7.*, <4',
     packages=find_packages(exclude=['tests']),
     package_data={
         'bdtsim': ['*.sol']
