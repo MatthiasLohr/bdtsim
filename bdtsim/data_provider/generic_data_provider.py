@@ -15,7 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from . import DataProvider, DataProviderManager
+from .data_provider import DataProvider
+from .data_provider_manager import DataProviderManager
 
 
 class GenericDataProvider(DataProvider):

@@ -17,15 +17,17 @@
 
 import logging
 import time
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, Optional, List
+
 from web3 import Web3
 from web3.datastructures import AttributeDict
 from web3.gas_strategies.time_based import fast_gas_price_strategy
 from web3.providers.base import BaseProvider
-from web3.types import Wei, TxParams
+from web3.types import TxParams, Wei
 
-from ..participant import Participant
-from ..contract import Contract
+from bdtsim.contract import Contract
+from bdtsim.participant import Participant
+
 
 logger = logging.getLogger(__name__)
 

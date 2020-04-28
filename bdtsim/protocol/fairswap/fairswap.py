@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .. import Protocol, ProtocolManager
+from bdtsim.protocol import Protocol, ProtocolManager
 
 
 class FairSwap(Protocol):

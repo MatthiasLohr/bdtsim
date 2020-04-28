@@ -16,8 +16,10 @@
 # limitations under the License.
 
 import logging
-import solcx  # type: ignore
 from typing import Any, Dict, Optional, Tuple
+
+import solcx  # type: ignore
+
 
 SOLC_VERSION = 'v0.6.1'
 

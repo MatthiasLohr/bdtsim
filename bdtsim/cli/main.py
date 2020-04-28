@@ -16,9 +16,10 @@
 # limitations under the License.
 
 from typing import Optional
+
 from .command_manager import CommandManager
-from .list_protocols import ListProtocolsSubCommand
 from .list_environments import ListEnvironmentsSubCommand
+from .list_protocols import ListProtocolsSubCommand
 from .run import RunSubCommand
 
 

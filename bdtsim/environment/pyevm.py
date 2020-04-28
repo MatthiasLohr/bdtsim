@@ -17,14 +17,17 @@
 
 import logging
 import time
+from typing import Callable, Optional
+
 from eth_tester import EthereumTester, PyEVMBackend  # type: ignore
 from eth_tester.backends import pyevm  # type: ignore
-from typing import Callable, Optional
 from web3 import EthereumTesterProvider, Web3
 from web3.types import TxParams, Wei
 
-from . import Environment, EnvironmentManager
-from ..participant import operator, seller, buyer
+from bdtsim.participant import buyer, operator, seller
+from .environment import Environment
+from .environment_manager import EnvironmentManager
+
 
 logger = logging.getLogger(__name__)
 

@@ -17,7 +17,8 @@
 
 import argparse
 from .command_manager import SubCommand
-from ..environment import EnvironmentManager
+
+from bdtsim.environment import EnvironmentManager
 
 
 class ListEnvironmentsSubCommand(SubCommand):

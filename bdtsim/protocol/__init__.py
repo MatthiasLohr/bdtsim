@@ -17,12 +17,12 @@
 
 from .protocol import Protocol
 from .protocol_manager import ProtocolManager
-# from .fairswap import FairSwap
+from .fairswap import FairSwap
 from .simplepayment import SimplePayment
 
 __all__ = [
     'Protocol',
     'ProtocolManager',
-    # 'FairSwap',
+    'FairSwap',
     'SimplePayment'
 ]

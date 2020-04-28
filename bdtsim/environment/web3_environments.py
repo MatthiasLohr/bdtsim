@@ -16,11 +16,13 @@
 # limitations under the License.
 
 from typing import Any, Callable, Optional, Type
-from web3 import HTTPProvider, WebsocketProvider, IPCProvider, Web3
+
+from web3 import HTTPProvider, IPCProvider, Web3, WebsocketProvider
 from web3.providers.base import JSONBaseProvider
 from web3.types import TxParams, Wei
 
-from . import Environment, EnvironmentManager
+from .environment import Environment
+from .environment_manager import EnvironmentManager
 
 
 class Web3Environment(Environment):

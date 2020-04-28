@@ -16,7 +16,8 @@
 # limitations under the License.
 
 import unittest
-from bdtsim.participant import Participant, operator, seller, buyer
+
+from bdtsim.participant import Participant, buyer, operator, seller
 
 
 class ParticipantTest(unittest.TestCase):

@@ -16,7 +16,8 @@
 # limitations under the License.
 
 from typing import Any, Dict, Type
-from . import DataProvider
+
+from .data_provider import DataProvider
 
 
 class DataProviderRegistration(object):

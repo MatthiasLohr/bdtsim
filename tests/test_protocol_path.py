@@ -17,7 +17,7 @@
 
 import unittest
 from bdtsim.participant import seller, buyer
-from bdtsim.protocol_path import ProtocolPath, Decision
+from bdtsim.protocol_path import Decision, ProtocolPath
 
 
 class DecisionTest(unittest.TestCase):

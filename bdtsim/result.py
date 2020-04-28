@@ -15,13 +15,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from hexbytes.main import HexBytes
 from json import JSONEncoder
 from typing import Any, Dict, List, Optional
+
+from hexbytes.main import HexBytes
 from web3.datastructures import AttributeDict
-from .environment.environment import TransactionLogEntry
+
+from bdtsim.environment import TransactionLogEntry
 from .participant import Participant
-from .protocol_path import ProtocolPath, Decision
+from .protocol_path import Decision, ProtocolPath
 
 
 class PreparationResult(object):

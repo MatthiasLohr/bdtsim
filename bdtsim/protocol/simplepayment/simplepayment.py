@@ -17,10 +17,13 @@
 
 import logging
 from typing import Optional
-from .. import Protocol, ProtocolManager
-from ...contract import SolidityContract
-from ... import Environment, Participant
-from ...protocol_path import ProtocolPath
+
+from bdtsim.contract import SolidityContract
+from bdtsim.environment import Environment
+from bdtsim.participant import Participant
+from bdtsim.protocol import Protocol, ProtocolManager
+from bdtsim.protocol_path import ProtocolPath
+
 
 logger = logging.getLogger(__name__)
 

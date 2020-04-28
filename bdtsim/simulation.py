@@ -17,12 +17,14 @@
 
 import logging
 from queue import Queue
-from .participant import operator, seller, buyer
-from .data_provider import DataProvider
-from .environment import Environment
-from .protocol import Protocol
-from .protocol_path import ProtocolPath
-from .result import PreparationResult, IterationResult, SimulationResult
+
+from bdtsim.data_provider import DataProvider
+from bdtsim.environment import Environment
+from bdtsim.participant import buyer, operator, seller
+from bdtsim.protocol import Protocol
+from bdtsim.protocol_path import ProtocolPath
+from .result import IterationResult, SimulationResult, PreparationResult
+
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +35,7 @@ class Simulation(object):
         self._environment = environment
         self._data_provider = data_provider
 
-        self._protocol_path_queue: "Queue[ProtocolPath]" = Queue()
+        self._protocol_path_queue: Queue[ProtocolPath] = Queue()
 
     def run(self) -> SimulationResult:
         # initial contract deployment

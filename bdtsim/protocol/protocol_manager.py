@@ -16,7 +16,8 @@
 # limitations under the License.
 
 from typing import Any, Dict, Type
-from .protocol import Protocol
+
+from bdtsim.protocol import Protocol
 
 
 class ProtocolRegistration(object):

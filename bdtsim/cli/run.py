@@ -19,13 +19,14 @@ import argparse
 import json
 import yaml
 from typing import Dict
+
+from bdtsim.data_provider import DataProviderManager
+from bdtsim.environment import EnvironmentManager
+from bdtsim.participant import buyer, seller
+from bdtsim.protocol import ProtocolManager
+from bdtsim.result import ResultSerializer
+from bdtsim.simulation import Simulation
 from .command_manager import SubCommand
-from ..data_provider import DataProviderManager
-from ..environment import EnvironmentManager
-from ..participant import seller, buyer
-from ..protocol import ProtocolManager
-from ..result import ResultSerializer
-from ..simulation import Simulation
 
 
 class RunSubCommand(SubCommand):

@@ -16,8 +16,9 @@
 # limitations under the License.
 
 import argparse
+
+from bdtsim.protocol import ProtocolManager
 from .command_manager import SubCommand
-from ..protocol import ProtocolManager
 
 
 class ListProtocolsSubCommand(SubCommand):

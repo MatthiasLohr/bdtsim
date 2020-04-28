@@ -17,10 +17,11 @@
 
 import os
 from typing import Optional
-from ..contract import Contract
-from ..environment import Environment
-from ..participant import Participant
-from ..protocol_path import ProtocolPath
+
+from bdtsim.contract import Contract
+from bdtsim.environment import Environment
+from bdtsim.participant import Participant
+from bdtsim.protocol_path import ProtocolPath
 
 
 class Protocol(object):

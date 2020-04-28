@@ -15,8 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from eth_typing.evm import ChecksumAddress
 from typing import Any, Optional
+
+from eth_typing.evm import ChecksumAddress
 from web3 import Web3
 
 

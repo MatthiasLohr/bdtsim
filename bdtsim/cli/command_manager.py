@@ -16,9 +16,10 @@
 # limitations under the License.
 
 import argparse
-import bdtsim
 import logging
 from typing import Dict, Optional, Type
+
+import bdtsim
 
 
 class SubCommand(object):
