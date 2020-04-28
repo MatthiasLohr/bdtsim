@@ -37,7 +37,7 @@ class SimplePayment(Protocol):
     @property
     def contract(self) -> Optional[SolidityContract]:
         if self._use_contract:
-            return SolidityContract(self.contract_path(__file__, 'SimplePayment.sol'), 'SimplePayment')
+            return SolidityContract('SimplePayment', self.contract_path(__file__, 'SimplePayment.sol'))
         else:
             return None
 

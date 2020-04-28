@@ -18,7 +18,7 @@
 import os
 from typing import Optional
 
-from bdtsim.contract import Contract
+from bdtsim.contract import SolidityContract
 from bdtsim.environment import Environment
 from bdtsim.participant import Participant
 from bdtsim.protocol_path import ProtocolPath
@@ -43,7 +43,7 @@ class Protocol(object):
         return self._contract_is_reusable
 
     @property
-    def contract(self) -> Optional[Contract]:
+    def contract(self) -> Optional[SolidityContract]:
         raise NotImplementedError()
 
     @staticmethod

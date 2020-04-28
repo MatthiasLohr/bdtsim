@@ -34,6 +34,7 @@ setup(
     install_requires=[
         'eth-tester==0.4.0b1',
         'hexbytes==0.2.0',
+        'Jinja2==2.11.2',
         'py-evm==0.3.0a14',
         'py-solc-x==0.8.1',
         'PyYAML==5.3.1',

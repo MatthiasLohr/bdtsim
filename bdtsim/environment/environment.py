@@ -25,7 +25,7 @@ from web3.gas_strategies.time_based import fast_gas_price_strategy
 from web3.providers.base import BaseProvider
 from web3.types import TxParams, Wei
 
-from bdtsim.contract import Contract
+from bdtsim.contract import SolidityContract
 from bdtsim.participant import Participant
 
 
@@ -67,7 +67,7 @@ class Environment(object):
             self._web3.eth.setGasPriceStrategy(fast_gas_price_strategy)
         self._tx_wait_timeout = tx_wait_timeout
 
-        self._contract: Optional[Contract] = None
+        self._contract: Optional[SolidityContract] = None
         self._contract_address: Optional[str] = None
 
         self._transaction_logs: List[TransactionLogEntry] = []
@@ -91,7 +91,7 @@ class Environment(object):
     def clear_transaction_logs(self) -> None:
         self._transaction_logs = []
 
-    def deploy_contract(self, account: Participant, contract: Contract) -> None:
+    def deploy_contract(self, account: Participant, contract: SolidityContract) -> None:
         web3_contract = self._web3.eth.contract(abi=contract.abi, bytecode=contract.bytecode)
         tx_receipt = self._send_transaction(account, web3_contract.constructor())
         self._contract_address = tx_receipt['contractAddress']

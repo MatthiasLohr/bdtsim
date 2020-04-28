@@ -51,8 +51,3 @@ class CommandTest(unittest.TestCase):
         p = subprocess.Popen(['bdtsim run -c 61 FairSwap-FileSale PyEVM'], stdout=subprocess.PIPE, shell=True)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
-
-    def test_run_fairswap_repeatable_file_sale(self):
-        p = subprocess.Popen(['bdtsim run -c 61 FairSwap-RepeatableFileSale PyEVM'], stdout=subprocess.PIPE, shell=True)
-        out, err = p.communicate()
-        self.assertEqual(p.returncode, 0)
