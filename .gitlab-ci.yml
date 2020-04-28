@@ -1,15 +1,12 @@
 
-variables:
-  default_python_version: "3.8"
-
-image: python:${default_python_version}
+image: python:3.8
 
 stages:
   - test
   - build
   - deploy
 
-unittests python ${default_python_version}:
+unittests:
   stage: test
   except:
     - pages
@@ -19,10 +16,10 @@ unittests python ${default_python_version}:
     - python -m unittest discover tests
 
 unittests python 3.7:
-  extends: unittests python ${default_python_version}
+  extends: unittests
   image: python:3.7
 
-flake8 checks python ${default_python_version}:
+flake8 checks:
   stage: test
   except:
     - pages
@@ -32,10 +29,10 @@ flake8 checks python ${default_python_version}:
     - python -m flake8
 
 flake8 checks python 3.7:
-  extends: flake8 checks python ${default_python_version}
+  extends: flake8 checks
   image: python:3.7
 
-mypy checks python ${default_python_version}:
+mypy checks:
   stage: test
   except:
     - pages
@@ -45,7 +42,7 @@ mypy checks python ${default_python_version}:
     - python -m mypy -p bdtsim
 
 mypy checks python 3.7:
-  extends: mypy checks python ${default_python_version}
+  extends: mypy checks
   image: python:3.7
 
 build packages:
