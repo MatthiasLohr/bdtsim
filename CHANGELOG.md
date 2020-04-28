@@ -1,5 +1,10 @@
 # Changelog
 
+## unreleased
+
+  * Added support for Python 3.8
+
+
 ## v0.1.1
 
   * Fix: Include Solidity Smart Contract files in Python Wheel
