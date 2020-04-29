@@ -44,18 +44,34 @@ class PreparationResult(object):
 
 
 class IterationResult(object):
-    def __init__(self, protocol_path: ProtocolPath, transaction_logs: Optional[List[TransactionLogEntry]] = None)\
-            -> None:
+    def __init__(self, protocol_path: ProtocolPath,
+                 preparation_transaction_logs: Optional[List[TransactionLogEntry]] = None,
+                 execution_transaction_logs: Optional[List[TransactionLogEntry]] = None,
+                 cleanup_transaction_logs: Optional[List[TransactionLogEntry]] = None) -> None:
         self._protocol_path = protocol_path
-        self._transaction_logs = transaction_logs or []
+        self._preparation_transaction_logs = preparation_transaction_logs or []
+        self._execution_transaction_logs = execution_transaction_logs or []
+        self._cleanup_transaction_logs = cleanup_transaction_logs or []
 
     @property
     def protocol_path(self) -> ProtocolPath:
         return self._protocol_path
 
     @property
+    def preparation_transaction_logs(self) -> List[TransactionLogEntry]:
+        return self._preparation_transaction_logs
+
+    @property
+    def execution_transaction_logs(self) -> List[TransactionLogEntry]:
+        return self._execution_transaction_logs
+
+    @property
+    def cleanup_transaction_logs(self) -> List[TransactionLogEntry]:
+        return self._cleanup_transaction_logs
+
+    @property
     def transaction_logs(self) -> List[TransactionLogEntry]:
-        return self._transaction_logs
+        return self._preparation_transaction_logs + self._execution_transaction_logs + self._cleanup_transaction_logs
 
     @property
     def is_completely_honest(self) -> bool:
@@ -64,11 +80,11 @@ class IterationResult(object):
     def transaction_fee_sum_by_participant(self, participant: Participant) -> int:
         return sum([
             int(str(log.transaction_receipt.get('gasUsed')))
-            for log in filter(lambda x: x.account == participant, self._transaction_logs)
+            for log in filter(lambda x: x.account == participant, self.transaction_logs)
         ])
 
     def transaction_count_by_participant(self, participant: Participant) -> int:
-        return len(list(filter(lambda x: x.account == participant, self._transaction_logs)))
+        return len(list(filter(lambda x: x.account == participant, self.transaction_logs)))
 
 
 class SimulationResult(object):

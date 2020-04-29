@@ -16,7 +16,7 @@
 # limitations under the License.
 
 import os
-from typing import Optional
+from typing import Any, Optional
 
 from bdtsim.contract import Contract
 from bdtsim.environment import Environment
@@ -25,22 +25,24 @@ from bdtsim.protocol_path import ProtocolPath
 
 
 class Protocol(object):
-    def __init__(self, contract_is_reusable: bool = False) -> None:
-        self._contract_is_reusable = contract_is_reusable
-
-    def prepare_environment(self, environment: Environment, operator: Participant) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         pass
 
-    def run(self, protocol_path: ProtocolPath, environment: Environment, seller: Participant, buyer: Participant)\
+    def prepare_simulation(self, environment: Environment, operator: Participant) -> None:
+        pass
+
+    def prepare_iteration(self, environment: Environment, operator: Participant) -> None:
+        pass
+
+    def execute(self, protocol_path: ProtocolPath, environment: Environment, seller: Participant, buyer: Participant)\
             -> None:
         raise NotImplementedError()
 
-    def cleanup_environment(self, environment: Environment, operator: Participant) -> None:
+    def cleanup_iteration(self, environment: Environment, operator: Participant) -> None:
         pass
 
-    @property
-    def contract_is_reusable(self) -> bool:
-        return self._contract_is_reusable
+    def cleanup_simulation(self, environment: Environment, operator: Participant) -> None:
+        pass
 
     @property
     def contract(self) -> Optional[Contract]:

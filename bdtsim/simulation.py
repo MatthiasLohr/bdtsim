@@ -38,48 +38,55 @@ class Simulation(object):
         self._protocol_path_queue: Queue[ProtocolPath] = Queue()
 
     def run(self) -> SimulationResult:
-        # initial contract deployment
-        preparation_result = None
+        logger.debug('Preparing environment for simulation...')
         self._environment.clear_transaction_logs()
-        if self._protocol.contract_is_reusable and self._protocol.contract is not None:
-            logger.debug('Initial contract deployment...')
-            self._environment.clear_transaction_logs()
-            self._environment.deploy_contract(operator, self._protocol.contract)
-            preparation_result = PreparationResult(self._environment.transaction_logs)
-            logger.debug('Initial contract deployment finished')
+        self._protocol.prepare_simulation(self._environment, operator)
+        preparation_result = PreparationResult(self._environment.transaction_logs)
+        logger.debug('Finished preparing the environment for simulation')
 
         iteration_results = []
         self._protocol_path_queue.put(ProtocolPath())
-        logger.debug('Simulation started')
+        logger.debug('Starting simulation loop')
         while not self._protocol_path_queue.empty():
             protocol_path = self._protocol_path_queue.get(block=False)
-            self._environment.clear_transaction_logs()
             logger.debug('Simulation will follow path %s' % str(protocol_path.decisions_list))
 
-            # per-iteration contract deployment
-            if not self._protocol.contract_is_reusable and self._protocol.contract is not None:
-                logger.debug('Iteration contract deployment...')
-                self._environment.deploy_contract(operator, self._protocol.contract)
-                logger.debug('Iteration contract deployment finished')
+            logger.debug('Preparing environment for iteration...')
+            self._environment.clear_transaction_logs()
+            self._protocol.prepare_iteration(self._environment, operator)
+            preparation_transaction_logs = self._environment.transaction_logs
+            logger.debug('Finished preparing the environment for iteration')
 
-            logger.debug('Preparing environment...')
-            self._protocol.prepare_environment(self._environment, operator)
-            logger.debug('Starting protocol iteration...')
-            self._protocol.run(protocol_path, self._environment, seller, buyer)
-            logger.debug('Protocol iteration finished')
+            logger.debug('Starting protocol execution...')
+            self._environment.clear_transaction_logs()
+            self._protocol.execute(protocol_path, self._environment, seller, buyer)
+            execution_transaction_logs = self._environment.transaction_logs
+            logger.debug('Finished protocol execution')
+
+            logger.debug('Starting cleanup for iteration...')
+            self._environment.clear_transaction_logs()
+            self._protocol.cleanup_iteration(self._environment, operator)
+            cleanup_transaction_logs = self._environment.transaction_logs
+            logger.debug('Finished cleaning up the iteration')
+
             iteration_results.append(IterationResult(
                 protocol_path=protocol_path,
-                transaction_logs=self._environment.transaction_logs
+                preparation_transaction_logs=preparation_transaction_logs,
+                execution_transaction_logs=execution_transaction_logs,
+                cleanup_transaction_logs=cleanup_transaction_logs
             ))
+
             logger.debug('Collecting alternative paths...')
             alternative_decision_list = protocol_path.get_alternative_decision_list()
             if alternative_decision_list is not None:
                 self._protocol_path_queue.put(ProtocolPath(alternative_decision_list))
                 logger.debug('Added new path %s' % str(alternative_decision_list))
-            logger.debug('Cleaning up environment...')
-            self._protocol.cleanup_environment(self._environment, operator)
+
             self._protocol_path_queue.task_done()
-        logger.debug('Simulation finished')
+
+        logger.debug('Simulation finished. Cleaning up...')
+        self._protocol.cleanup_simulation(self._environment, operator)
+        logger.debug('Finished cleaning up the simulation')
         return SimulationResult(
             operator=operator,
             seller=seller,
