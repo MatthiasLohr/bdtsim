@@ -10,7 +10,7 @@ unittests:
   stage: test
   rules:
     - if: '$CI_COMMIT_BRANCH != "pages"'
-      when: always
+    - if: $CI_MERGE_REQUEST_ID
   before_script:
     - pip install .
   script:
@@ -24,7 +24,7 @@ flake8 checks:
   stage: test
   rules:
     - if: '$CI_COMMIT_BRANCH != "pages"'
-      when: always
+    - if: $CI_MERGE_REQUEST_ID
   before_script:
     - pip install flake8
   script:
@@ -38,7 +38,7 @@ mypy checks:
   stage: test
   rules:
     - if: '$CI_COMMIT_BRANCH != "pages"'
-      when: always
+    - if: $CI_MERGE_REQUEST_ID
   before_script:
     - pip install . mypy
   script:
@@ -52,7 +52,6 @@ build packages:
   stage: build
   rules:
     - if: '$CI_COMMIT_TAG != null'
-      when: always
   script:
     - python setup.py sdist bdist_wheel
     - ls -lah dist/
@@ -65,7 +64,6 @@ upload to PyPI:
   stage: deploy
   rules:
     - if: '$CI_COMMIT_TAG != null'
-      when: always
   before_script:
     - ls -lah dist/
     - pip install twine
@@ -76,7 +74,6 @@ pages:
   stage: build
   rules:
     - if: '$CI_COMMIT_BRANCH == "pages"'
-      when: always
   before_script:
     - pip install .
     - pip install mkdocs pdoc3
