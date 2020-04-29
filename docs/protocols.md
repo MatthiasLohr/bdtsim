@@ -26,9 +26,11 @@ using a smart contract for transferring the money to the seller:
 bdtsim run -c 61 SimplePayment PyEVM
 ```
 
-
 The following command executes the direct variant of the SimplePayment protocol in the PyEVM environment,
-using a direct money transfer transaction without an intermediary smart contract.
+using a direct money transfer transaction without an intermediary smart contract:
+```
+bdtsim run -c 61 SimplePayment-direct PyEVM
+```
 
 ## FairSwap
 
