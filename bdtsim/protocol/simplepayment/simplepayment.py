@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 class SimplePayment(Protocol):
     def __init__(self, use_contract: bool) -> None:
-        super(SimplePayment, self).__init__(contract_is_reusable=True)
+        super(SimplePayment, self).__init__()
 
         self._use_contract = use_contract
 
@@ -41,7 +41,11 @@ class SimplePayment(Protocol):
         else:
             return None
 
-    def run(self, protocol_path: ProtocolPath, environment: Environment, seller: Participant, buyer: Participant)\
+    def prepare_simulation(self, environment: Environment, operator: Participant) -> None:
+        if self._use_contract and self.contract is not None:
+            environment.deploy_contract(operator, self.contract)
+
+    def execute(self, protocol_path: ProtocolPath, environment: Environment, seller: Participant, buyer: Participant)\
             -> None:
         if protocol_path.decide(buyer):
             logger.debug('Decided to be honest')
