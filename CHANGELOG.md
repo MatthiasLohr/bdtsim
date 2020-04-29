@@ -1,5 +1,10 @@
 # Changelog
 
+## unreleased
+
+  * Docker image creation
+
+
 ## v0.1.2
 
   * Added support for Python 3.8

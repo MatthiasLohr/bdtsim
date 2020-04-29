@@ -1,0 +1,10 @@
+/.eggs/
+/.git/
+/.idea/
+/.mypy_cache/
+/build/
+/docs/
+/public/
+/tests/
+/venv/
+
