@@ -91,9 +91,9 @@ class Environment(object):
     def clear_transaction_logs(self) -> None:
         self._transaction_logs = []
 
-    def deploy_contract(self, account: Participant, contract: SolidityContract) -> None:
+    def deploy_contract(self, account: Participant, contract: SolidityContract, *args: Any, **kwargs: Any) -> None:
         web3_contract = self._web3.eth.contract(abi=contract.abi, bytecode=contract.bytecode)
-        tx_receipt = self._send_transaction(account, web3_contract.constructor())
+        tx_receipt = self._send_transaction(account, web3_contract.constructor(*args, **kwargs))
         self._contract_address = tx_receipt['contractAddress']
         logger.debug('New contract address: %s' % self._contract_address)
         self._contract = contract

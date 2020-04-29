@@ -30,10 +30,12 @@ logger = logging.getLogger(__name__)
 
 
 class Simulation(object):
-    def __init__(self, protocol: Protocol, environment: Environment, data_provider: DataProvider):
+    def __init__(self, protocol: Protocol, environment: Environment, data_provider: DataProvider,
+                 price: int = 1000000000) -> None:
         self._protocol = protocol
         self._environment = environment
         self._data_provider = data_provider
+        self._price = price
 
         self._protocol_path_queue: Queue[ProtocolPath] = Queue()
 
@@ -59,7 +61,7 @@ class Simulation(object):
 
             logger.debug('Starting protocol execution...')
             self._environment.clear_transaction_logs()
-            self._protocol.execute(protocol_path, self._environment, seller, buyer)
+            self._protocol.execute(protocol_path, self._environment, seller, buyer, self._price)
             execution_transaction_logs = self._environment.transaction_logs
             logger.debug('Finished protocol execution')
 

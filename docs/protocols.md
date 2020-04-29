@@ -3,7 +3,7 @@
 These protocols are currently supported (or planned to be supported) by BDTsim:
 
   * [SimplePayment](#simplepayment)
-  * FairSwap ([planned](https://gitlab.com/MatthiasLohr/bdtsim/-/issues/2))
+  * [FairSwap](#fairswap)
   * OptiSwap ([planned](https://gitlab.com/MatthiasLohr/bdtsim/-/issues/5))
   * Delgado-Segura ([planned](https://gitlab.com/MatthiasLohr/bdtsim/-/issues/1))
 
@@ -34,17 +34,28 @@ bdtsim run -c 61 SimplePayment-direct PyEVM
 
 ## FairSwap
 
-*(not implemented yet)*
-
-FairSwap Paper:
+The FairSwap protocol was presented in the following research paper:
 
 > Dziembowski, S., Eckey, L., & Faust, S. (2018).
 > Fairswap: How to fairly exchange digital goods.
 > In Proceedings of the ACM Conference on Computer and Communications Security.
 > [https://doi.org/10.1145/3243734.3243857](https://doi.org/10.1145/3243734.3243857)
 
+It is available within BDTsim with the name `FairSwap-FileSale`.
+
 Original example smart contract repository: [https://github.com/lEthDev/FairSwap](https://github.com/lEthDev/FairSwap).
 Use kindly permitted by Lisa Eckey (16. April 2020).
+
+### Protocol Parameters
+
+  * `depth`
+  * `length`
+  * `n`
+ 
+*TODO: finalize`
+
+
+### Example Protocol Execution
 
 
 ## OptiSwap

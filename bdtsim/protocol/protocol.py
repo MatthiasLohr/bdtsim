@@ -16,9 +16,8 @@
 # limitations under the License.
 
 import os
-from typing import Any, Optional
+from typing import Any
 
-from bdtsim.contract import SolidityContract
 from bdtsim.environment import Environment
 from bdtsim.participant import Participant
 from bdtsim.protocol_path import ProtocolPath
@@ -34,8 +33,8 @@ class Protocol(object):
     def prepare_iteration(self, environment: Environment, operator: Participant) -> None:
         pass
 
-    def execute(self, protocol_path: ProtocolPath, environment: Environment, seller: Participant, buyer: Participant)\
-            -> None:
+    def execute(self, protocol_path: ProtocolPath, environment: Environment, seller: Participant, buyer: Participant,
+                price: int = 1000000000) -> None:
         raise NotImplementedError()
 
     def cleanup_iteration(self, environment: Environment, operator: Participant) -> None:
@@ -43,10 +42,6 @@ class Protocol(object):
 
     def cleanup_simulation(self, environment: Environment, operator: Participant) -> None:
         pass
-
-    @property
-    def contract(self) -> Optional[SolidityContract]:
-        raise NotImplementedError()
 
     @staticmethod
     def contract_path(file_var: str, filename: str) -> str:

@@ -3,6 +3,7 @@
 ## unreleased
 
   * Docker image creation
+  * Support for FairSwap protocol (#2)
 
 
 ## v0.1.2

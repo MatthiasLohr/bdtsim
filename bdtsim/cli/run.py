@@ -39,6 +39,7 @@ class RunSubCommand(SubCommand):
         parser.add_argument('-c', '--chain-id', type=int, default=1)
         parser.add_argument('-o', '--output-format', choices=['human-readable', 'json', 'yaml'],
                             default='human-readable')
+        parser.add_argument('--price', type=int, default=1000000000)
         parser.add_argument('--gas-price', type=int, default=None)
         parser.add_argument('--tx-wait-timeout', type=int, default=120)
         parser.add_argument('-p', '--protocol-parameter', nargs=2, action='append', dest='protocol_parameters',
@@ -83,7 +84,8 @@ class RunSubCommand(SubCommand):
         simulation = Simulation(
             protocol=protocol,
             environment=environment,
-            data_provider=DataProviderManager.instantiate('GenericDataProvider')  # TODO replace with data_provider
+            data_provider=DataProviderManager.instantiate('GenericDataProvider'),  # TODO replace with data_provider
+            price=args.price
         )
 
         simulation_result = simulation.run()

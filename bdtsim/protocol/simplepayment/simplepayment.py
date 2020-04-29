@@ -16,7 +16,6 @@
 # limitations under the License.
 
 import logging
-from typing import Optional
 
 from bdtsim.contract import SolidityContract
 from bdtsim.environment import Environment
@@ -31,28 +30,23 @@ logger = logging.getLogger(__name__)
 class SimplePayment(Protocol):
     def __init__(self, use_contract: bool) -> None:
         super(SimplePayment, self).__init__()
-
         self._use_contract = use_contract
 
-    @property
-    def contract(self) -> Optional[SolidityContract]:
-        if self._use_contract:
-            return SolidityContract('SimplePayment', self.contract_path(__file__, 'SimplePayment.sol'))
-        else:
-            return None
+    def get_contract(self) -> SolidityContract:
+        return SolidityContract('SimplePayment', self.contract_path(__file__, 'SimplePayment.sol'))
 
     def prepare_simulation(self, environment: Environment, operator: Participant) -> None:
-        if self._use_contract and self.contract is not None:
-            environment.deploy_contract(operator, self.contract)
+        if self._use_contract:
+            environment.deploy_contract(operator, self.get_contract())
 
-    def execute(self, protocol_path: ProtocolPath, environment: Environment, seller: Participant, buyer: Participant)\
-            -> None:
+    def execute(self, protocol_path: ProtocolPath, environment: Environment, seller: Participant, buyer: Participant,
+                price: int = 1000000000) -> None:
         if protocol_path.decide(buyer):
             logger.debug('Decided to be honest')
-            if self._use_contract:                                                       # TODO parameterize value
-                environment.send_contract_transaction(buyer, 'pay', seller.wallet_address, value=1000000000)
+            if self._use_contract:
+                environment.send_contract_transaction(buyer, 'pay', seller.wallet_address, value=price)
             else:
-                environment.send_direct_transaction(buyer, seller, 1000000000)  # TODO parameterize value
+                environment.send_direct_transaction(buyer, seller, price)
         else:
             logger.debug('Decided to cheat')  # do nothing
 

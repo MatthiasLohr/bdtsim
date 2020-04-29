@@ -16,7 +16,7 @@
 # limitations under the License.
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import solcx  # type: ignore
 
@@ -27,9 +27,8 @@ logger = logging.getLogger(__name__)
 
 
 class SolidityContract(object):
-    def __init__(self, contract_name: str, contract_file: Optional[str] = None, contract_code: Optional[str] = None,
-                 constructor_args: Optional[List[Any]] = None,
-                 constructor_kwargs: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, contract_name: str, contract_file: Optional[str] = None,
+                 contract_code: Optional[str] = None) -> None:
 
         if contract_file is not None and contract_code is not None:
             raise ValueError('contract_file and contract_code cannot be set at the same time')
@@ -45,8 +44,6 @@ class SolidityContract(object):
 
         self._abi: Optional[Dict[str, Any]] = None
         self._bytecode: Optional[str] = None
-        self._constructor_args = constructor_args or []
-        self._constructor_kwargs = constructor_kwargs or {}
 
     @property
     def abi(self) -> Dict[str, Any]:
@@ -59,14 +56,6 @@ class SolidityContract(object):
         if self._bytecode is None:
             self._abi, self._bytecode = self.compile(self._contract_name, self._contract_code)
         return self._bytecode
-
-    @property
-    def constructor_args(self) -> List[Any]:
-        return self._constructor_args
-
-    @property
-    def constructor_kwargs(self) -> Dict[str, Any]:
-        return self._constructor_kwargs
 
     @staticmethod
     def compile(contract_name: str, contract_code: str, solc_version: str = SOLC_VERSION) -> Tuple[Dict[str, Any], str]:
