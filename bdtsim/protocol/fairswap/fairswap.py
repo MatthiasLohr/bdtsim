@@ -14,9 +14,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional
+from typing import Any, Optional
 
-from eth_utils import keccak
+from eth_utils.crypto import keccak
 from jinja2 import Template
 
 from bdtsim.protocol import Protocol, ProtocolManager
@@ -27,10 +27,10 @@ from bdtsim.protocol_path import ProtocolPath
 
 
 class FairSwap(Protocol):
-    def __init__(self, contract_template_file: str, *args, depth: Optional[int] = 16, length: Optional[int] = 16,
+    def __init__(self, contract_template_file: str, *args: Any, depth: Optional[int] = 16, length: Optional[int] = 16,
                  n: Optional[int] = 16, receiver: Optional[Participant] = None, price: Optional[int] = 1000000000,
                  key_commit: Optional[str] = None, ciphertext_root: Optional[str] = None,
-                 file_root: Optional[str] = None, **kwargs) -> None:
+                 file_root: Optional[str] = None, **kwargs: Any) -> None:
 
         super(FairSwap, self).__init__(*args, **kwargs)
         self._contract_template_file = contract_template_file
