@@ -17,7 +17,7 @@
 
 import logging
 import time
-from typing import Any, Callable, Optional, List
+from typing import Any, Callable, Dict, Optional, List
 
 from web3 import Web3
 from web3.datastructures import AttributeDict
@@ -33,11 +33,12 @@ logger = logging.getLogger(__name__)
 
 
 class TransactionLogEntry(object):
-    def __init__(self, account: Participant, transaction_receipt: AttributeDict[str, Any],
+    def __init__(self, account: Participant, tx_dict: Dict[str, Any], tx_receipt: AttributeDict[str, Any],
                  timestamp: Optional[float] = None):
         # TODO save contract method and contract method args
         self._account = account
-        self._transaction_receipt = transaction_receipt
+        self._transaction_dict = tx_dict
+        self._transaction_receipt = tx_receipt
         self._timestamp = timestamp
 
     @property
@@ -106,12 +107,13 @@ class Environment(object):
         logger.debug('New contract address: %s' % self._contract_address)
         self._contract = contract
 
-    def send_contract_transaction(self, account: Participant, method: str, *args: Any, value: int = 0) -> Any:
+    def send_contract_transaction(self, account: Participant, method: str, *args: Any, value: int = 0,
+                                  **kwargs: Any) -> Any:
         if self._contract is None:
             raise RuntimeError('No contract available!')
         web3_contract = self._web3.eth.contract(address=self._contract_address, abi=self._contract.abi)
         contract_method = getattr(web3_contract.functions, method)
-        factory = contract_method(*args)
+        factory = contract_method(*args, **kwargs)
         self._send_transaction(
             account=account,
             factory=factory,
@@ -132,23 +134,29 @@ class Environment(object):
             'from': account.wallet_address,
             'nonce': self._web3.eth.getTransactionCount(account.wallet_address, 'pending'),
             'value': value,
-            'chainId': self._chain_id
+            'chainId': self._chain_id,
+            'gas': 4000000
         }
         if to is not None:
             tx_dict['to'] = to.wallet_address
+
         if factory is not None:
             tx_dict = factory.buildTransaction(tx_dict)
         else:
             tx_dict['gas'] = 21000
+
         if self._gas_price is not None:
             tx_dict['gasPrice'] = self._gas_price
         else:
             tx_dict['gasPrice'] = self._web3.eth.generateGasPrice(tx_dict)
+
         tx_signed = self._web3.eth.account.sign_transaction(tx_dict, private_key=account.wallet_private_key)
+        logger.debug('Submitting transaction %s...' % str(tx_dict))
         tx_hash = self._web3.eth.sendRawTransaction(tx_signed.rawTransaction)
+        logger.debug('Waiting for transaction receipt (hash is %s)...' % str(tx_hash.hex()))
         tx_receipt = self._web3.eth.waitForTransactionReceipt(tx_hash, self.tx_wait_timeout)
-        logger.debug('Successfully submitted transaction: %s' % str(tx_receipt))
-        self._transaction_logs.append(TransactionLogEntry(account, tx_receipt, time.time()))
+        logger.debug('Got receipt %s' % str(tx_receipt))
+        self._transaction_logs.append(TransactionLogEntry(account, tx_dict, tx_receipt, time.time()))
         return tx_receipt
 
     @property

@@ -70,7 +70,7 @@ contract FileSale {
 
     // function revealKey (key)
     function revealKey(bytes32 _key) allowed(sender, stage.accepted) public {
-        require(keyCommit == keccak256(abi.encodePacked(_key)));
+        require(keyCommit == keccak256(abi.encode(_key)));
         key = _key;
         nextStage();
     }
@@ -94,9 +94,9 @@ contract FileSale {
                               allowed(receiver, stage.keyRevealed) public {
         require (vrfy(_indexOut, _Zout, _proofZout));
         bytes32 Xout = cryptSmall(_indexOut, _Zout);
-        require (vrfy(_indexIn, keccak256(abi.encodePacked(_Zin1)), _proofZin));
-        require (_proofZin[0] == keccak256(abi.encodePacked(_Zin2)));
-        if (Xout != keccak256(abi.encodePacked(cryptLarge(_indexIn, _Zin1), cryptLarge(_indexIn + 1, _Zin2)))) {
+        require (vrfy(_indexIn, keccak256(abi.encode(_Zin1)), _proofZin));
+        require (_proofZin[0] == keccak256(abi.encode(_Zin2)));
+        if (Xout != keccak256(abi.encode(cryptLarge(_indexIn, _Zin1), cryptLarge(_indexIn + 1, _Zin2)))) {
             selfdestruct(receiver);
         }
     }
@@ -109,7 +109,7 @@ contract FileSale {
         bytes32 Xout = cryptSmall(_indexOut, _Zout);
         require (vrfy(_indexIn, _Zin1, _proofZin));
         require (_proofZin[0] == _Zin2);
-        if (Xout != keccak256(abi.encodePacked(cryptSmall(_indexIn, _Zin1), cryptSmall(_indexIn+ 1, _Zin2)))) {
+        if (Xout != keccak256(abi.encode(cryptSmall(_indexIn, _Zin1), cryptSmall(_indexIn+ 1, _Zin2)))) {
             selfdestruct(receiver);
         }
     }
@@ -125,7 +125,7 @@ contract FileSale {
     function cryptLarge(uint _index, bytes32[length] memory _ciphertext) public view returns (bytes32[length] memory) {
         _index = _index * length;
         for (uint i = 0; i < length; i++){
-            _ciphertext[i] = keccak256(abi.encodePacked(_index, key)) ^ _ciphertext[i];
+            _ciphertext[i] = keccak256(abi.encode(_index, key)) ^ _ciphertext[i];
             _index++;
         }
         return _ciphertext;
@@ -133,16 +133,16 @@ contract FileSale {
 
     // function to decrypt hashes of the merkle tree
     function cryptSmall(uint _index, bytes32 _ciphertext) public view returns (bytes32) {
-        return keccak256(abi.encodePacked(n + _index, key)) ^ _ciphertext;
+        return keccak256(abi.encode(n + _index, key)) ^ _ciphertext;
     }
 
     // function to verify Merkle Tree proofs
     function vrfy(uint _index, bytes32 _value, bytes32[depth] memory _proof) public view returns (bool) {
         for (uint8 i = 0; i < 3; i++) {
             if ((_index & 1 << i) >>i == 1)
-                _value = keccak256(abi.encodePacked(_proof[3 - i], _value));
+                _value = keccak256(abi.encode(_proof[3 - i], _value));
             else
-                _value = keccak256(abi.encodePacked(_value, _proof[3 - i]));
+                _value = keccak256(abi.encode(_value, _proof[3 - i]));
         }
         return (_value == chiphertextRoot);
     }

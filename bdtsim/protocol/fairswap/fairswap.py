@@ -15,10 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+import os
 from typing import Optional
 
 from eth_utils.crypto import keccak
 from jinja2 import Template
+from web3 import Web3
 
 from bdtsim.protocol import Protocol, ProtocolManager
 from bdtsim.contract import SolidityContract
@@ -27,9 +30,13 @@ from bdtsim.participant import Participant
 from bdtsim.protocol_path import ProtocolPath
 
 
+logger = logging.getLogger(__name__)
+
+
 class FairSwap(Protocol):
     def __init__(self, contract_template_file: str, depth: Optional[int] = 16, length: Optional[int] = 16,
-                 n: Optional[int] = 16, key_commit: Optional[str] = None, ciphertext_root: Optional[str] = None,
+
+                 n: Optional[int] = 16, key: Optional[bytes] = None, ciphertext_root: Optional[str] = None,
                  file_root: Optional[str] = None) -> None:
 
         super(FairSwap, self).__init__()
@@ -39,7 +46,11 @@ class FairSwap(Protocol):
         self._length = length
         self._n = n
 
-        self._key_commit = key_commit or '0x' + keccak(b'key').hex()
+        if key is not None:
+            self._key = key
+        else:
+            self._key = os.urandom(32)
+
         self._ciphertext_root = ciphertext_root or '0x' + keccak(b'cipher').hex()
         self._file_root = file_root or '0x' + keccak(b'plain').hex()
 
@@ -54,7 +65,7 @@ class FairSwap(Protocol):
             n=self._n,
             receiver=receiver.wallet_address,
             price=price,
-            key_commit=self._key_commit,
+            key_commit=Web3.solidityKeccak(['bytes32'], [self._key]).hex(),
             ciphertext_root=self._ciphertext_root,
             file_root=self._file_root
         )
@@ -62,10 +73,24 @@ class FairSwap(Protocol):
 
     def execute(self, protocol_path: ProtocolPath, environment: Environment, seller: Participant, buyer: Participant,
                 price: int = 1000000000) -> None:
+        logger.debug('Deploying contract...')
         environment.deploy_contract(seller, self.get_contract(
             receiver=buyer,
             price=price
         ))
+
+        if protocol_path.decide(buyer):
+            logger.debug('Buyer: Sending acceptance notification...')
+            environment.send_contract_transaction(buyer, 'accept', value=price)
+            if protocol_path.decide(seller):
+                logger.debug('Seller: revealing (correct) key')
+                environment.send_contract_transaction(seller, 'revealKey', self._key)
+            else:
+                logger.debug('Seller: revealing (wrong) key')
+                wrong_key = os.urandom(32)
+                environment.send_contract_transaction(seller, 'revealKey', wrong_key)
+        else:
+            pass
 
 
 ProtocolManager.register('FairSwap-FileSale', FairSwap, 'FairFileSale.tpl.sol')

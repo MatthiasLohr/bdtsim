@@ -117,6 +117,6 @@ class ProtocolPath(object):
         return '<%s.%s: [%s]+[%s]>' % (
             __name__,
             ProtocolPath.__name__,
-            ','.join(str_initial),
-            ','.join(str_new),
+            ', '.join(str_initial),
+            ', '.join(str_new),
         )
