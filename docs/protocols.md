@@ -23,13 +23,13 @@ On the other hand it serves as a simple protocol for internal tests of the frame
 The following command executes the indirect variant of the SimplePayment protocol in the PyEVM environment,
 using a smart contract for transferring the money to the seller:
 ```
-bdtsim run -c 61 SimplePayment PyEVM
+bdtsim run SimplePayment PyEVM
 ```
 
 The following command executes the direct variant of the SimplePayment protocol in the PyEVM environment,
 using a direct money transfer transaction without an intermediary smart contract:
 ```
-bdtsim run -c 61 SimplePayment-direct PyEVM
+bdtsim run SimplePayment-direct PyEVM
 ```
 
 ## FairSwap

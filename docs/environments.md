@@ -33,19 +33,19 @@ The Web3HTTP environment allows to use an existing blockchain network where you 
 #### Ethereum Mainnet
 
 ```
-bdtsim run -c 1 SimplePayment Web3HTTP -e endpoint-uri https://mainnet.infura.io/v3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+bdtsim run SimplePayment Web3HTTP -e endpoint-uri https://mainnet.infura.io/v3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 #### Ropsten Testnet
 
 ```
-bdtsim run -c 3 SimplePayment Web3HTTP -e endpoint-uri https://ropsten.infura.io/v3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+bdtsim run SimplePayment Web3HTTP -e endpoint-uri https://ropsten.infura.io/v3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 #### Goerli Testnet
 
 ```
-bdtsim run -c 5 SimplePayment Web3HTTP -e endpoint-uri https://rpc.slock.it/goerli -e inject-poa-middleware True
+bdtsim run SimplePayment Web3HTTP -e endpoint-uri https://rpc.slock.it/goerli -e inject-poa-middleware True
 ```
 
 ## Web3Websocket
