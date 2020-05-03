@@ -33,10 +33,10 @@ logger = logging.getLogger(__name__)
 
 
 class PyEVMEnvironment(Environment):
-    def __init__(self, chain_id: int, gas_price: Optional[int] = None,
+    def __init__(self, chain_id: Optional[int] = None, gas_price: Optional[int] = None,
                  gas_price_strategy: Optional[Callable[[Web3, Optional[TxParams]], Wei]] = None,
                  tx_wait_timeout: int = 120) -> None:
-        if chain_id != 61:
+        if chain_id is not None and chain_id != 61:
             logger.warning('Ignoring chainId %d since PyEVM always uses chainId 61' % chain_id)
 
         self._pyevm_instance = self.create_pyevm_instance()
@@ -47,7 +47,7 @@ class PyEVMEnvironment(Environment):
 
         super(PyEVMEnvironment, self).__init__(
             EthereumTesterProvider(self._eth_tester_instance),
-            chain_id=61,
+            chain_id=chain_id,
             gas_price=gas_price,
             gas_price_strategy=gas_price_strategy,
             tx_wait_timeout=tx_wait_timeout

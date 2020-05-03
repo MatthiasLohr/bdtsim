@@ -27,9 +27,11 @@ from .environment_manager import EnvironmentManager
 
 
 class Web3Environment(Environment):
-    def __init__(self, web3_provider_class: Type[JSONBaseProvider], chain_id: int, gas_price: Optional[int] = None,
+    def __init__(self, web3_provider_class: Type[JSONBaseProvider], chain_id: Optional[int] = None,
+                 gas_price: Optional[int] = None,
                  gas_price_strategy: Optional[Callable[[Web3, Optional[TxParams]], Wei]] = None,
                  tx_wait_timeout: int = 120, inject_poa_middleware: bool = False, **kwargs: Any) -> None:
+
         # noinspection PyArgumentList
         super(Web3Environment, self).__init__(
             web3_provider_class(**kwargs),  # type: ignore
