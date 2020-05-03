@@ -95,3 +95,6 @@ pages:
     paths:
       - public
     expire_in: 1h
+
+include:
+  - template: Dependency-Scanning.gitlab-ci.yml
