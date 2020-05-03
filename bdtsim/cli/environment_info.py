@@ -18,8 +18,6 @@
 import argparse
 from typing import Dict
 
-from web3.types import SyncStatus
-
 from bdtsim.environment import EnvironmentManager
 from .command_manager import SubCommand
 
