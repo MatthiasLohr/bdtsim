@@ -45,7 +45,7 @@ class EnvironmentInfoSubCommand(SubCommand):
         syncing = environment.web3.eth.syncing
         if not syncing:
             print('Sync Status: not syncing')
-        elif isinstance(syncing, SyncStatus):
+        elif not isinstance(syncing, bool):
             print('Sync Status: syncing (%d/%d)' % (syncing.currentBlock, syncing.highestBlock))
 
         print('Chain ID: %s' % str(environment.web3.eth.chainId))
