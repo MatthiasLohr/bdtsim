@@ -51,7 +51,7 @@ class Simulation(object):
         logger.debug('Starting simulation loop')
         while not self._protocol_path_queue.empty():
             protocol_path = self._protocol_path_queue.get(block=False)
-            logger.debug('Simulation will follow path %s' % str(protocol_path.decisions_list))
+            logger.debug('Simulation will follow path %s' % str(protocol_path))
 
             logger.debug('Preparing environment for iteration...')
             self._environment.clear_transaction_logs()
