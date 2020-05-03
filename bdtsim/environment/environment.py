@@ -54,12 +54,17 @@ class TransactionLogEntry(object):
 
 
 class Environment(object):
-    def __init__(self, web3_provider: BaseProvider, chain_id: int, gas_price: Optional[int] = None,
+    def __init__(self, web3_provider: BaseProvider, chain_id: Optional[int] = None, gas_price: Optional[int] = None,
                  gas_price_strategy: Optional[Callable[[Web3, Optional[TxParams]], Wei]] = None,
                  tx_wait_timeout: int = 120) -> None:
         self._web3 = Web3(web3_provider)
 
-        self._chain_id = chain_id
+        if chain_id is None:
+            self._chain_id = self._web3.eth.chainId
+            logger.debug('Auto-detected chain id %d' % self._chain_id)
+        else:
+            self._chain_id = chain_id
+
         self._gas_price = gas_price
         if gas_price_strategy is not None:
             self._web3.eth.setGasPriceStrategy(gas_price_strategy)

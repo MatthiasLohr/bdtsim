@@ -36,7 +36,7 @@ class RunSubCommand(SubCommand):
         parser.add_argument('environment', choices=EnvironmentManager.environments.keys())
         # parser.add_argument('--data-provider', choices=DataProviderManager.data_providers.keys(),
         #                     default='GenericDataProvider')
-        parser.add_argument('-c', '--chain-id', type=int, default=1)
+        parser.add_argument('-c', '--chain-id', type=int, default=None)
         parser.add_argument('-o', '--output-format', choices=['human-readable', 'json', 'yaml'],
                             default='human-readable')
         parser.add_argument('--price', type=int, default=1000000000)
