@@ -21,13 +21,13 @@ import unittest
 
 class CommandTest(unittest.TestCase):
     def test_list_environments(self):
-        p = subprocess.Popen(['bdtsim list-environments'], stdout=subprocess.PIPE, shell=True)
+        p = subprocess.Popen(['bdtsim', 'list-environments'], stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
         self.assertEqual(out.decode('utf-8').strip(), '\n'.join(['PyEVM', 'Web3HTTP', 'Web3Websocket', 'Web3IPC']))
 
     def test_list_protocols(self):
-        p = subprocess.Popen(['bdtsim list-protocols'], stdout=subprocess.PIPE, shell=True)
+        p = subprocess.Popen(['bdtsim', 'list-protocols'], stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
         self.assertEqual(out.decode('utf-8').strip(), '\n'.join([
@@ -37,16 +37,16 @@ class CommandTest(unittest.TestCase):
         ]))
 
     def test_run_simplepayment(self):
-        p = subprocess.Popen(['bdtsim run -c 61 SimplePayment PyEVM'], stdout=subprocess.PIPE, shell=True)
+        p = subprocess.Popen(['bdtsim', 'run', 'SimplePayment', 'PyEVM'], stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
 
     def test_run_simplepayment_direct(self):
-        p = subprocess.Popen(['bdtsim run -c 61 SimplePayment-direct PyEVM'], stdout=subprocess.PIPE, shell=True)
+        p = subprocess.Popen(['bdtsim', 'run', 'SimplePayment-direct', 'PyEVM'], stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
 
     def test_run_fairswap_file_sale(self):
-        p = subprocess.Popen(['bdtsim run -c 61 FairSwap-FileSale PyEVM'], stdout=subprocess.PIPE, shell=True)
+        p = subprocess.Popen(['bdtsim', 'run', 'FairSwap-FileSale', 'PyEVM'], stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
