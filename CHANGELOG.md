@@ -5,6 +5,7 @@
   * Docker image creation
   * Support for FairSwap protocol (#2)
   * Support for Goerli Testnet (#10)
+  * Added sub-command `environment-info`
 
 
 ## v0.1.2

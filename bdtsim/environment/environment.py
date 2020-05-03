@@ -61,7 +61,10 @@ class Environment(object):
 
         if chain_id is None:
             self._chain_id = self._web3.eth.chainId
-            logger.debug('Auto-detected chain id %d' % self._chain_id)
+            if self._chain_id is not None:
+                logger.debug('Auto-detected chain id %d' % self._chain_id)
+            else:
+                logger.warning('Failed auto-detecting chain id')
         else:
             self._chain_id = chain_id
 
@@ -147,3 +150,7 @@ class Environment(object):
         logger.debug('Successfully submitted transaction: %s' % str(tx_receipt))
         self._transaction_logs.append(TransactionLogEntry(account, tx_receipt, time.time()))
         return tx_receipt
+
+    @property
+    def web3(self) -> Web3:
+        return self._web3
