@@ -4,6 +4,7 @@
 
   * Docker image creation
   * Support for FairSwap protocol (#2)
+  * Support for Goerli Testnet (#10)
 
 
 ## v0.1.2

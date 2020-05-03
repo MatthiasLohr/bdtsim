@@ -18,6 +18,7 @@
 from typing import Any, Callable, Optional, Type
 
 from web3 import HTTPProvider, IPCProvider, Web3, WebsocketProvider
+from web3.middleware.geth_poa import geth_poa_middleware
 from web3.providers.base import JSONBaseProvider
 from web3.types import TxParams, Wei
 
@@ -28,7 +29,7 @@ from .environment_manager import EnvironmentManager
 class Web3Environment(Environment):
     def __init__(self, web3_provider_class: Type[JSONBaseProvider], chain_id: int, gas_price: Optional[int] = None,
                  gas_price_strategy: Optional[Callable[[Web3, Optional[TxParams]], Wei]] = None,
-                 tx_wait_timeout: int = 120, **kwargs: Any) -> None:
+                 tx_wait_timeout: int = 120, inject_poa_middleware: bool = False, **kwargs: Any) -> None:
         # noinspection PyArgumentList
         super(Web3Environment, self).__init__(
             web3_provider_class(**kwargs),  # type: ignore
@@ -37,6 +38,9 @@ class Web3Environment(Environment):
             gas_price_strategy=gas_price_strategy,
             tx_wait_timeout=tx_wait_timeout
         )
+
+        if inject_poa_middleware:
+            self._web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
     def set_up(self) -> None:
         pass

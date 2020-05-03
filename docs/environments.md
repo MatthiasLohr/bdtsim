@@ -7,18 +7,15 @@ public blockchain instance.
 The PyEVM environment provides a complete in-memory blockchain.
 The PyEVM environment is based on the [Python Ethereum Virtual Machine (py-evm) project](https://github.com/ethereum/py-evm).
 
-
 ### Environment Parameters
 
 No special environment parameters available.
-
 
 ### Example Usage
 
 ```
 bdtsim run -c 61 SimplePayment PyEVM
 ```
-
 
 ## Web3HTTP
 
@@ -29,13 +26,27 @@ The Web3HTTP environment allows to use an existing blockchain network where you 
 ### Environment Parameters
 
   * `endpoint-uri`: HTTP Endpoint URI (e.g. https://ropsten.infura.io/v3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+  * `inject-poa-middleware`: When connecting to an POA network, you have to use this middleware. Value should be `True`.
   
 ### Example Usage
+
+#### Ethereum Mainnet
+
+```
+bdtsim run -c 1 SimplePayment Web3HTTP -e endpoint-uri https://mainnet.infura.io/v3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+#### Ropsten Testnet
 
 ```
 bdtsim run -c 3 SimplePayment Web3HTTP -e endpoint-uri https://ropsten.infura.io/v3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
+#### Goerli Testnet
+
+```
+bdtsim run -c 5 SimplePayment Web3HTTP -e endpoint-uri https://rpc.slock.it/goerli -e inject-poa-middleware True
+```
 
 ## Web3Websocket
 
@@ -51,6 +62,7 @@ This environment allows to connect to a unix domain socket on your local machine
 ### Environment Parameters
 
   * `ipc_path`: Path to your unix domain socket of a locally available network client.
+  * `inject-poa-middleware`: When connecting to an POA network, you have to use this middleware. Value should be `True`.
 
 
 ### Example Usage

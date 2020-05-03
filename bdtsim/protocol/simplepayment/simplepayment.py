@@ -37,6 +37,7 @@ class SimplePayment(Protocol):
 
     def prepare_simulation(self, environment: Environment, operator: Participant) -> None:
         if self._use_contract:
+            logger.debug('Deploying contract...')
             environment.deploy_contract(operator, self.get_contract())
 
     def execute(self, protocol_path: ProtocolPath, environment: Environment, seller: Participant, buyer: Participant,
