@@ -79,10 +79,10 @@ class Simulation(object):
             ))
 
             logger.debug('Collecting alternative paths...')
-            alternative_decision_list = protocol_path.get_alternative_decision_list()
-            if alternative_decision_list is not None:
-                self._protocol_path_queue.put(ProtocolPath(alternative_decision_list))
-                logger.debug('Added new path %s' % str(alternative_decision_list))
+
+            for alternative_path in protocol_path.get_alternatives():
+                self._protocol_path_queue.put(alternative_path)
+                logger.debug('Added new path %s' % str(alternative_path))
 
             self._protocol_path_queue.task_done()
 

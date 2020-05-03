@@ -32,37 +32,15 @@ class DecisionTest(unittest.TestCase):
 
 
 class ProtocolPathTest(unittest.TestCase):
-    def test_get_alternative_decision_list(self):
-        # two rounds with empty paths
-        for protocol_path in ProtocolPath(), ProtocolPath([]):
-            self.assertEqual(None, protocol_path.get_alternative_decision_list())
-
-            result = protocol_path.decide(seller)
-            self.assertEqual([Decision(not result, seller)], protocol_path.get_alternative_decision_list())
-
-            protocol_path.decide(buyer)
-            self.assertEqual([Decision(not result, seller)], protocol_path.get_alternative_decision_list())
-
-        # new round with pre-defined path
-        protocol_path = ProtocolPath([Decision(True, seller), Decision(False, buyer)])
-        protocol_path.decide(seller)
-
-        # in the predefined list, the 2nd decision is from buyer, so seller can't decide here
-        self.assertRaises(ValueError, protocol_path.decide, seller)
-
-        protocol_path.decide(buyer)
-
-        # Now comes a new decision
-        result = protocol_path.decide(seller)
+    def test_get_alternatives(self):
+        test_path = ProtocolPath()
+        test_path.decide(seller)
         self.assertEqual([
-            Decision(True, seller),
-            Decision(False, buyer),
-            Decision(not result, seller)
-        ], protocol_path.get_alternative_decision_list())
+            ProtocolPath([Decision(False, seller)])
+        ], test_path.get_alternatives())
 
-        protocol_path.decide(buyer)
+        test_path.decide(buyer)
         self.assertEqual([
-            Decision(True, seller),
-            Decision(False, buyer),
-            Decision(not result, seller)
-        ], protocol_path.get_alternative_decision_list())
+            ProtocolPath([Decision(False, seller)]),
+            ProtocolPath([Decision(True, seller), Decision(False, buyer)])
+        ], test_path.get_alternatives())

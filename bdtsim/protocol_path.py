@@ -52,6 +52,12 @@ class Decision(object):
     def __repr__(self) -> str:
         return '<%s.%s %s, account: %s>' % (__name__, self.__class__.__name__, str(self.decision), repr(self.account))
 
+    def __str__(self) -> str:
+        tmp = 'Y' if self.decision else 'N'
+        if self.account is not None:
+            tmp += '/' + self.account.name
+        return tmp
+
 
 class ProtocolPath(object):
     def __init__(self, decisions_list: Optional[List[Decision]] = None):
@@ -81,14 +87,14 @@ class ProtocolPath(object):
     def decisions_list(self) -> List[Decision]:
         return self.initial_decisions_list + self.new_decisions_list
 
-    def get_alternative_decision_list(self) -> Optional[List[Decision]]:
-        if len(self._new_decisions_list) > 0:
-            return self.initial_decisions_list + [Decision(
-                decision=not self._new_decisions_list[0].decision,
-                account=self._new_decisions_list[0].account
-            )]
-        else:
-            return None
+    def get_alternatives(self) -> List['ProtocolPath']:
+        alternatives = []
+        for i in range(len(self._new_decisions_list)):
+            head = self._new_decisions_list[i]
+            alternatives.append(ProtocolPath(
+                self._new_decisions_list[:i] + [Decision(not head.decision, head.account)]
+            ))
+        return alternatives
 
     @property
     def is_completely_honest(self) -> bool:
@@ -96,3 +102,21 @@ class ProtocolPath(object):
             if not d.decision:
                 return False
         return True
+
+    def __eq__(self, other: Any) -> bool:
+        return (isinstance(other, ProtocolPath) and
+                self._initial_decisions_list == other._initial_decisions_list and
+                self._new_decisions_list == other._new_decisions_list)
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
+    def __repr__(self) -> str:
+        str_initial = map(lambda d: str(d), self._initial_decisions_list)
+        str_new = map(lambda d: str(d), self._new_decisions_list)
+        return '<%s.%s: [%s]+[%s]>' % (
+            __name__,
+            ProtocolPath.__name__,
+            ','.join(str_initial),
+            ','.join(str_new),
+        )
