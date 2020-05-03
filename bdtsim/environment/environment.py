@@ -61,6 +61,8 @@ class Environment(object):
 
         if chain_id is None:
             self._chain_id = self._web3.eth.chainId
+            if self._chain_id is None:
+                raise RuntimeError('Could not auto-detect chain id')
             logger.debug('Auto-detected chain id %d' % self._chain_id)
         else:
             self._chain_id = chain_id
