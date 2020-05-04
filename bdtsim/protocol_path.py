@@ -22,6 +22,7 @@ from .participant import Participant
 
 
 class Decision(object):
+    HONEST_VARIANTS_DEFAULT = [1]
     """A single decision within a `ProtocolPath`.
 
     Decisions are represented by integers (starting with 1).
@@ -72,6 +73,14 @@ class Decision(object):
     @property
     def description(self) -> Optional[str]:
         return self._description
+
+    def is_honest(self, honest_variants: Optional[List[int]] = None) -> bool:
+        if honest_variants is None:
+            honest_variants = self.HONEST_VARIANTS_DEFAULT
+        return self.variant in honest_variants
+
+    def is_variant(self, variant: int) -> bool:
+        return self.variant == variant
 
     def __eq__(self, other: Any) -> bool:
         """Supports equality checks with other Decision instances and int(egers).
@@ -174,17 +183,21 @@ class ProtocolPath(object):
                 ))
         return alternatives
 
-    def all_participants_were_honest(self) -> bool:
+    def all_participants_were_honest(self, honest_variants: Optional[List[int]] = None) -> bool:
+        if honest_variants is None:
+            honest_variants = Decision.HONEST_VARIANTS_DEFAULT
         for decision in self.decisions:
-            if decision != 1:
+            if decision.variant not in honest_variants:
                 return False
         return True
 
-    def participant_was_honest(self, account: Participant) -> bool:
+    def participant_was_honest(self, account: Participant, honest_variants: Optional[List[int]] = None) -> bool:
+        if honest_variants is None:
+            honest_variants = Decision.HONEST_VARIANTS_DEFAULT
         for decision in self.decisions:
             if decision.account != account:
                 continue
-            if decision != 1:
+            if decision.variant not in honest_variants:
                 return False
         return True
 
