@@ -61,9 +61,10 @@ class Participant(object):
         )
 
     def __eq__(self, other: Any) -> bool:
-        return isinstance(other, Participant)\
-                and other.wallet_address == self.wallet_address\
-                and other.name == self.name
+        if isinstance(other, Participant):
+            return self.wallet_address == other.wallet_address and self.name == other.name
+        else:
+            raise NotImplementedError()
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)

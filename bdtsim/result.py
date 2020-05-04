@@ -73,9 +73,8 @@ class IterationResult(object):
     def transaction_logs(self) -> List[TransactionLogEntry]:
         return self._preparation_transaction_logs + self._execution_transaction_logs + self._cleanup_transaction_logs
 
-    @property
-    def is_completely_honest(self) -> bool:
-        return self.protocol_path.is_completely_honest
+    def all_participants_were_honest(self) -> bool:
+        return self.protocol_path.all_participants_were_honest()
 
     def transaction_fee_sum_by_participant(self, participant: Participant) -> int:
         return sum([
@@ -109,7 +108,7 @@ class SimulationResult(object):
     @property
     def completely_honest_iteration_result(self) -> IterationResult:
         for ir in self.iteration_results:
-            if ir.is_completely_honest:
+            if ir.all_participants_were_honest():
                 return ir
         raise RuntimeError('Impossible result: There MUST be a completely honest iteration')
 
@@ -121,7 +120,7 @@ class ResultSerializer(JSONEncoder):
         elif isinstance(obj, Decision):
             return {
                 'account': obj.account,
-                'decision': obj.decision,
+                'variant': obj.variant,
                 'timestamp': obj.timestamp
             }
         elif isinstance(obj, HexBytes):
@@ -141,7 +140,7 @@ class ResultSerializer(JSONEncoder):
                 'transaction_logs': obj.transaction_logs
             }
         elif isinstance(obj, ProtocolPath):
-            return obj.decisions_list
+            return obj.decisions
         elif isinstance(obj, SimulationResult):
             return {
                 'preparation_result': obj.preparation_result,
