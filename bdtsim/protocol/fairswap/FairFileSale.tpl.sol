@@ -36,9 +36,9 @@ contract FileSale {
     address payable public receiver = {{ receiver }};
     uint price = {{ price }};
 
-    bytes32 public keyCommit = {{ key_commit }};
-    bytes32 public chiphertextRoot = {{ ciphertext_root }};
-    bytes32 public fileRoot = {{ file_root }};
+    bytes32 public keyCommit = {{ key_commitment }};
+    bytes32 public chiphertextRoot = {{ ciphertext_root_hash }};
+    bytes32 public fileRoot = {{ file_root_hash }};
 
     bytes32 public key;
 
