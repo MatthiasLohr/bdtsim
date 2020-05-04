@@ -73,24 +73,36 @@ class FairSwap(Protocol):
 
     def execute(self, protocol_path: ProtocolPath, environment: Environment, seller: Participant, buyer: Participant,
                 price: int = 1000000000) -> None:
-        logger.debug('Deploying contract...')
-        environment.deploy_contract(seller, self.get_contract(
-            receiver=buyer,
-            price=price
-        ))
 
-        if protocol_path.decide(buyer):
-            logger.debug('Buyer: Sending acceptance notification...')
-            environment.send_contract_transaction(buyer, 'accept', value=price)
-            if protocol_path.decide(seller):
-                logger.debug('Seller: revealing (correct) key')
-                environment.send_contract_transaction(seller, 'revealKey', self._key)
-            else:
-                logger.debug('Seller: revealing (wrong) key')
-                wrong_key = os.urandom(32)
-                environment.send_contract_transaction(seller, 'revealKey', wrong_key)
+        logger.debug('Protocol Start')
+
+        # seller deploys contract containing commitment hashes
+        if protocol_path.decide(seller, description='Contract Deployment').is_honest():
+            logger.debug('Seller: Initializing contract with CORRECT data')
+            # TODO implement
         else:
-            pass
+            logger.debug('Seller: Initializing contract with INCORRECT data')
+            # TODO implement
+
+        # buyer accepts contract
+        if protocol_path.decide(buyer, description='Acceptance').is_honest():
+            logger.debug('Buyer: Accepting transfer')
+            # TODO implement
+            key_revelation_decision = protocol_path.decide(seller, variants=3, description='Key Revelation')
+            if key_revelation_decision.is_honest():
+                logger.debug('Seller: Sending correct key')
+                pass  # TODO implement
+            elif key_revelation_decision.is_variant(2):
+                logger.debug('Seller: Sending wrong key')
+                pass  # TODO implement
+            elif key_revelation_decision.is_variant(3):
+                logger.debug('Seller: Sending no key')
+                pass  # TODO implement
+        else:
+            logger.debug('Buyer: Not accepting transfer')
+            # not doing anything - protocol ends
+
+        logger.debug('Protocol End')
 
 
 ProtocolManager.register('FairSwap-FileSale', FairSwap, 'FairFileSale.tpl.sol')
