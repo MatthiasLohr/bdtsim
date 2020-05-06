@@ -7,6 +7,7 @@
       <w>coinbase</w>
       <w>hexbytes</w>
       <w>lohr</w>
+      <w>ndigits</w>
       <w>pyevm</w>
       <w>segura</w>
       <w>simplepayment</w>
