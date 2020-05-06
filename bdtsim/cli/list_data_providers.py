@@ -17,11 +17,11 @@
 
 import argparse
 
-from bdtsim.environment import EnvironmentManager
+from bdtsim.data_provider import DataProviderManager
 from .command_manager import SubCommand
 
 
-class ListEnvironmentsSubCommand(SubCommand):
+class ListDataProvidersSubCommand(SubCommand):
     def __call__(self, args: argparse.Namespace) -> None:
-        for name in EnvironmentManager.environments.keys():
+        for name in DataProviderManager.data_providers.keys():
             print(name)

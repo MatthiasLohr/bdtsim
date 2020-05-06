@@ -6,6 +6,8 @@
   * Support for FairSwap protocol (#2)
   * Support for Goerli Testnet (#10)
   * Added sub-command `environment-info`
+  * Enabled DataProvider support
+    * added `list-data-providers` command
 
 
 ## v0.1.2
