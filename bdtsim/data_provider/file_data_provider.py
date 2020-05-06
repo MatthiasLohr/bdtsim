@@ -17,12 +17,13 @@
 
 from .data_provider import DataProvider
 from .data_provider_manager import DataProviderManager
-from .random_data_provider import RandomDataProvider
-from .file_data_provider import FileDataProvider
 
-__all__ = [
-    'DataProvider',
-    'DataProviderManager',
-    'RandomDataProvider',
-    'FileDataProvider'
-]
+
+class FileDataProvider(DataProvider):
+    def __init__(self, filename: str) -> None:
+        super(FileDataProvider, self).__init__()
+        self._filename = filename
+        # TODO implement
+
+
+DataProviderManager.register('FileDataProvider', FileDataProvider)

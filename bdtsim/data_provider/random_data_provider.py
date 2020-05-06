@@ -15,12 +15,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import io
+
 from .data_provider import DataProvider
 from .data_provider_manager import DataProviderManager
 
 
-class GenericDataProvider(DataProvider):
-    pass
+class RandomDataProvider(DataProvider):
+    def __init__(self, size: int = 1000000, seed: int = 42) -> None:
+        super(RandomDataProvider, self).__init__()
+        self._size = size
+        # TODO implement
 
 
-DataProviderManager.register('GenericDataProvider', GenericDataProvider)
+DataProviderManager.register('RandomDataProvider', RandomDataProvider)

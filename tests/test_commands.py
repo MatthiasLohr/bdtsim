@@ -36,6 +36,15 @@ class CommandTest(unittest.TestCase):
             'SimplePayment-direct'
         ]))
 
+    def test_list_data_providers(self):
+        p = subprocess.Popen(['bdtsim', 'list-data-providers'], stdout=subprocess.PIPE)
+        out, err = p.communicate()
+        self.assertEqual(p.returncode, 0)
+        self.assertEqual(out.decode('utf-8').strip(), '\n'.join([
+            'RandomDataProvider',
+            'FileDataProvider'
+        ]))
+
     def test_run_simplepayment(self):
         p = subprocess.Popen(['bdtsim', 'run', 'SimplePayment', 'PyEVM'], stdout=subprocess.PIPE)
         out, err = p.communicate()
