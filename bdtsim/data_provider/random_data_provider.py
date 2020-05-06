@@ -15,7 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import io
+import random
+from io import BytesIO
+from typing import BinaryIO, Optional
 
 from .data_provider import DataProvider
 from .data_provider_manager import DataProviderManager
@@ -25,7 +27,19 @@ class RandomDataProvider(DataProvider):
     def __init__(self, size: int = 1000000, seed: int = 42) -> None:
         super(RandomDataProvider, self).__init__()
         self._size = size
-        # TODO implement
+        self._seed = seed
+        self._mem_file: Optional[BytesIO] = None
+
+    @property
+    def data_size(self) -> int:
+        return self._size
+
+    @property
+    def file_pointer(self) -> BinaryIO:
+        if self._mem_file is None:
+            random.seed(self._seed)
+            self._mem_file = BytesIO(bytearray(random.getrandbits(8) for _ in range(self._size)))
+        return self._mem_file
 
 
 DataProviderManager.register('RandomDataProvider', RandomDataProvider)
