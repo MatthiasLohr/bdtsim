@@ -61,7 +61,14 @@ class Simulation(object):
 
             logger.debug('Starting protocol execution...')
             self._environment.clear_transaction_logs()
-            self._protocol.execute(protocol_path, self._environment, seller, buyer, self._price)
+            self._protocol.execute(
+                protocol_path=protocol_path,
+                environment=self._environment,
+                data_provider=self._data_provider,
+                seller=seller,
+                buyer=buyer,
+                price=self._price
+            )
             execution_transaction_logs = self._environment.transaction_logs
             logger.debug('Finished protocol execution')
 

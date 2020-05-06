@@ -18,6 +18,7 @@
 import os
 from typing import Any
 
+from bdtsim.data_provider import DataProvider
 from bdtsim.environment import Environment
 from bdtsim.participant import Participant
 from bdtsim.protocol_path import ProtocolPath
@@ -33,8 +34,8 @@ class Protocol(object):
     def prepare_iteration(self, environment: Environment, operator: Participant) -> None:
         pass
 
-    def execute(self, protocol_path: ProtocolPath, environment: Environment, seller: Participant, buyer: Participant,
-                price: int = 1000000000) -> None:
+    def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
+                seller: Participant, buyer: Participant, price: int = 1000000000) -> None:
         raise NotImplementedError()
 
     def cleanup_iteration(self, environment: Environment, operator: Participant) -> None:

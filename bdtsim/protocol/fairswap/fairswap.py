@@ -24,6 +24,7 @@ from web3 import Web3
 
 from bdtsim.protocol import Protocol, ProtocolManager
 from bdtsim.contract import SolidityContract
+from bdtsim.data_provider import DataProvider
 from bdtsim.environment import Environment
 from bdtsim.participant import Participant
 from bdtsim.protocol_path import ProtocolPath
@@ -97,8 +98,8 @@ class FairSwap(Protocol):
         )
         return SolidityContract('FileSale', contract_code=contract_rendered)
 
-    def execute(self, protocol_path: ProtocolPath, environment: Environment, seller: Participant, buyer: Participant,
-                price: int = 1000000000) -> None:
+    def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
+                seller: Participant, buyer: Participant, price: int = 1000000000) -> None:
 
         logger.debug('Protocol Start')
 
@@ -146,7 +147,7 @@ class FairSwap(Protocol):
             logger.debug('Buyer: Accepting transfer')
             environment.send_contract_transaction(buyer, 'accept', value=price)
 
-            # seller reveals key (wrong key blocked by smart contract)
+            # seller reveals key (wrong key blocked by smart contract, so not implemented here)
             if protocol_path.decide(seller, description='Key Revelation').is_honest():
                 logger.debug('Seller: Sending correct key')
                 pass  # TODO implement
