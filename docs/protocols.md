@@ -48,15 +48,16 @@ Use kindly permitted by Lisa Eckey (16. April 2020).
 
 ### Protocol Parameters
 
-  * `depth`
-  * `length`
-  * `n`
+  * `n`: Number of slices in which the data is to be split
+  * `key` (bytes32): Key to be used for encryption
+  * `fake_file_root_hash` (bytes32): fake (wrong) file root hash, used when cheating
+  * `fake_ciphertext_root_hash` (bytes32): fake (wrong) ciphertext root hash, used when cheating
  
-*TODO: finalize`
-
-
 ### Example Protocol Execution
 
+```
+bdtsim -l DEBUG run FairSwap-FileSale PyEVM -p n 8
+```
 
 ## OptiSwap
 

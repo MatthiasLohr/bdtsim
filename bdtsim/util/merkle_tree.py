@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
 import hashlib
 import math
 from typing import BinaryIO, Callable, List, Union
@@ -27,9 +28,18 @@ class MerkleTreeNode(object):
     def digest(self, hash_alg: Union[str, Callable[[bytes], bytes]]) -> bytes:
         return get_digest(hash_alg, b''.join([c.digest(hash_alg) for c in self._children]))
 
+    def digests_dfs(self, hash_alg: Union[str, Callable[[bytes], bytes]]) -> List[bytes]:
+        return list(itertools.chain.from_iterable([
+            c.digests_dfs(hash_alg) for c in self.children
+        ])) + [self.digest(hash_alg)]
+
     @property
     def children(self) -> List['MerkleTreeNode']:
         return self._children
+
+    @property
+    def leaves(self) -> List[bytes]:
+        return list(itertools.chain.from_iterable([c.leaves for c in self.children]))
 
 
 class MerkleTreeLeaf(MerkleTreeNode):
@@ -44,6 +54,10 @@ class MerkleTreeLeaf(MerkleTreeNode):
     def data(self) -> bytes:
         return self._data
 
+    @property
+    def leaves(self) -> List[bytes]:
+        return [self.data]
+
 
 def get_digest(hash_alg: Union[str, Callable[[bytes], bytes]], data: bytes) -> bytes:
     if isinstance(hash_alg, str):
@@ -56,12 +70,20 @@ def get_digest(hash_alg: Union[str, Callable[[bytes], bytes]], data: bytes) -> b
         raise NotImplementedError('This type of hash algorithm is not supported: %s' % type(hash_alg))
 
 
+def from_nodes(nodes: List[MerkleTreeNode]) -> MerkleTreeNode:
+    while len(nodes) > 1:
+        nodes = [MerkleTreeNode(*nodes[i:i + 2]) for i in range(0, len(nodes), 2)]
+    return nodes[0]
+
+
 def from_file(file_pointer: BinaryIO, slice_count: int) -> MerkleTreeNode:
     file_pointer.seek(0, 2)
     total_size = file_pointer.tell()
     slice_size = math.ceil(total_size / slice_count)
     file_pointer.seek(0)
     nodes: List[MerkleTreeNode] = [MerkleTreeLeaf(file_pointer.read(slice_size)) for _ in range(slice_count)]
-    while len(nodes) > 1:
-        nodes = [MerkleTreeNode(*nodes[i:i + 2]) for i in range(0, len(nodes), 2)]
-    return nodes[0]
+    return from_nodes(nodes)
+
+
+def from_bytes_list(bytes_list: List[bytes]) -> MerkleTreeNode:
+    return from_nodes([MerkleTreeLeaf(e) for e in bytes_list])
