@@ -1,6 +1,6 @@
 # Blockchain Data Trading Simulator (BDTsim)
 
-**BDTsim** is a framework for simulating blockchain based data trading protocols.
+![BDTsim Logo](img/bdtsim_logo_64.png) **BDTsim** is a framework for simulating blockchain based data trading protocols.
 
 ![Python Version](https://img.shields.io/pypi/pyversions/bdtsim)
 [![PyPI Version](https://img.shields.io/pypi/v/bdtsim)](https://pypi.org/project/bdtsim/)
@@ -45,3 +45,5 @@ This project is published under the Apache License, Version 2.0.
 See [LICENSE.md](https://gitlab.com/MatthiasLohr/bdtsim/-/blob/master/LICENSE.md) for more information.
 
 Copyright &copy; by [Matthias Lohr](https://mlohr.com/) <mail@mlohr.com>
+
+The BDTsim logo was created and provided by Zeyd Boukhers.

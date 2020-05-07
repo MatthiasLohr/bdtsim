@@ -4,6 +4,7 @@ site_author: Matthias Lohr
 copyright: Copyright &copy; 2020 Matthias Lohr
 theme: readthedocs
 repo_url: https://gitlab.com/MatthiasLohr/bdtsim
+site_favicon: favicon.ico
 
 nav:
   - Home: index.md
