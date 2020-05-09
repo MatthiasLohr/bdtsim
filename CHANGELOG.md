@@ -10,6 +10,7 @@
     * added `list-data-providers` command
   * Improved output format support
     * added `list-output-formats` command
+    * support for Graphviz dot output (#12)
 
 
 ## v0.1.2
