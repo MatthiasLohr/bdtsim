@@ -15,14 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .environment import Environment
-from .environment_manager import EnvironmentManager
-from .pyevm import PyEVMEnvironment
-from .web3_environments import Web3Environment
 
-__all__ = [
-    'Environment',
-    'EnvironmentManager',
-    'PyEVMEnvironment',
-    'Web3Environment'
-]
+def xor_crypt(data: bytes, key: bytes) -> bytes:
+    result = bytearray()
+    for i in range(0, len(data), len(key)):
+        for x, y in zip(data[i:i + len(key)], key):
+            result.append(x ^ y)
+    return bytes(result)

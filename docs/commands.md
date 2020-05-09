@@ -16,6 +16,16 @@ The printed values can be used as protocol argument for the [run](#run) command.
 `bdtsim list-environments` prints a list of supported environments in which simulations can be carried out.
 The printed values can be used as environment argument for the [run](#run) command.
 
+## list-data-providers
+
+`bdtsim list-data-providers` prints a list of supported data providers to be used in simulation.
+The printed values can be used as data provider argument for the [run](#run) command.
+
+## list-output-formats
+
+`bdtsim list-output-formats` prints a list of supported output formats for the simulation results.
+The printed values can be used as output format argument for the [run](#run) command.
+
 ## environment-info
 
 `bdtsim environment-info <environment>` prints some information about the provided environment.

@@ -15,9 +15,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any
+from typing import Any, BinaryIO
 
 
 class DataProvider(object):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         pass
+
+    @property
+    def data_size(self) -> int:
+        raise NotImplementedError()
+
+    @property
+    def file_pointer(self) -> BinaryIO:
+        raise NotImplementedError()

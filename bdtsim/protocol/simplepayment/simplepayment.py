@@ -18,6 +18,7 @@
 import logging
 
 from bdtsim.contract import SolidityContract
+from bdtsim.data_provider import DataProvider
 from bdtsim.environment import Environment
 from bdtsim.participant import Participant
 from bdtsim.protocol import Protocol, ProtocolManager
@@ -40,9 +41,9 @@ class SimplePayment(Protocol):
             logger.debug('Deploying contract...')
             environment.deploy_contract(operator, self.get_contract())
 
-    def execute(self, protocol_path: ProtocolPath, environment: Environment, seller: Participant, buyer: Participant,
-                price: int = 1000000000) -> None:
-        if protocol_path.decide(buyer):
+    def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
+                seller: Participant, buyer: Participant, price: int = 1000000000) -> None:
+        if protocol_path.decide(buyer).is_honest():
             logger.debug('Decided to be honest')
             if self._use_contract:
                 environment.send_contract_transaction(buyer, 'pay', seller.wallet_address, value=price)

@@ -16,24 +16,51 @@
 # limitations under the License.
 
 import time
-from typing import Any, List, Optional
+from typing import Any, Callable, List, Optional
 
 from .participant import Participant
 
 
 class Decision(object):
-    def __init__(self, decision: bool, account: Participant, timestamp: Optional[float] = None) -> None:
-        self._decision = decision
-        self._account = account
-        self._timestamp = timestamp
+    HONEST_VARIANTS_DEFAULT = [1]
+    """A single decision within a `ProtocolPath`.
 
-    @property
-    def decision(self) -> bool:
-        return self._decision
+    Decisions are represented by integers (starting with 1).
+    By convention, 1 means "honest"/"most honest" decision, all other values (2, 3, ...) represent a dishonest/cheating
+    decision.
+    """
+
+    def __init__(self, account: Participant, variant: int, variants: int = 2,
+                 timestamp: Optional[float] = None, description: Optional[str] = None) -> None:
+        """
+        Args:
+            account (Participant): Who is deciding about the next step
+            variant (int): Variant chosen in this decision
+            variants (int): Number of variants possible for this decision
+            description (str): Description of this decision variant (not considered for equality)
+        """
+        if variants < 2:
+            raise ValueError('Only two or more variants are possible')
+        if variant < 1 or variant > variants:
+            raise ValueError('Only %d variants allowed, variant %d not supported' % (variants, variant))
+
+        self._account = account
+        self._variant = variant
+        self._variants = variants
+        self._timestamp = timestamp
+        self._description = description
 
     @property
     def account(self) -> Participant:
         return self._account
+
+    @property
+    def variant(self) -> int:
+        return self._variant
+
+    @property
+    def variants(self) -> int:
+        return self._variants
 
     @property
     def timestamp(self) -> Optional[float]:
@@ -43,80 +70,166 @@ class Decision(object):
     def timestamp(self, timestamp: float) -> None:
         self._timestamp = timestamp
 
+    @property
+    def description(self) -> Optional[str]:
+        return self._description
+
+    def is_honest(self, honest_variants: Optional[List[int]] = None) -> bool:
+        if honest_variants is None:
+            honest_variants = self.HONEST_VARIANTS_DEFAULT
+        return self.variant in honest_variants
+
+    def is_variant(self, variant: int) -> bool:
+        return self.variant == variant
+
     def __eq__(self, other: Any) -> bool:
-        return isinstance(other, Decision) and other.decision == self.decision and other.account == self.account
+        """Supports equality checks with other Decision instances and int(egers).
+
+        When an int is provided, the int value is compared to the `variant` field.
+
+        Args:
+            other: (Decision, int): Object to compare to
+
+        Returns:
+            bool: Equality
+        """
+        if isinstance(other, Decision):
+            return self.account == other.account and self.variant == other.variant and self.variants == other.variants
+        elif isinstance(other, int):
+            if other < 1:
+                raise ValueError('Since we are comparing Decision variants only positive integers are allowed')
+            return other == self.variant
+        else:
+            raise NotImplementedError()
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
 
+    def __hash__(self) -> int:
+        return hash((self._account, self._variant, self._variants))
+
     def __repr__(self) -> str:
-        return '<%s.%s %s, account: %s>' % (__name__, self.__class__.__name__, str(self.decision), repr(self.account))
+        return '' % (
+
+        )
 
     def __str__(self) -> str:
-        tmp = 'Y' if self.decision else 'N'
-        if self.account is not None:
-            tmp += '/' + self.account.name
-        return tmp
+        return '%d/%d(%s)' % (
+            self.variant,
+            self.variants,
+            self.account.name
+        )
 
 
 class ProtocolPath(object):
-    def __init__(self, decisions_list: Optional[List[Decision]] = None):
-        self._initial_decisions_list: List[Decision] = decisions_list or []
-        self._new_decisions_list: List[Decision] = []
+    """One possible path through a protocol iteration."""
+
+    def __init__(self, initial_decisions: Optional[List[Decision]] = None) -> None:
+        self._initial_decisions: List[Decision] = initial_decisions or []
+        self._new_decisions: List[Decision] = []
         self._decisions_index: int = 0
+        self._decision_callback: Optional[Callable[[Decision], None]] = None
 
-    def decide(self, account: Participant) -> bool:
-        if len(self.decisions_list) == self._decisions_index:
-            self._new_decisions_list.append(Decision(True, account, None))
-        decision = self.decisions_list[self._decisions_index]
-        decision.timestamp = time.time()
+    def decide(self, account: Participant, variants: int = 2, description: Optional[str] = None) -> Decision:
+        if len(self.decisions) == self._decisions_index:
+            # we have no decision yet, creating a new one
+            self._new_decisions.append(Decision(
+                account=account,
+                variant=1,
+                variants=variants,
+                timestamp=time.time(),
+                description=description
+            ))
+
+        decision = self.decisions[self._decisions_index]
+
+        # if there is a pre-defined decision, set timestamp when it was used (now)
+        if decision.timestamp is None:
+            decision.timestamp = time.time()
+
+        # do some decision validity checks
         if decision.account != account:
-            raise ValueError('Predefined decision is not originating from current decider')
+            raise ValueError('Account provided does not match pre-defined decision account %s' % str(decision.account))
+        if decision.variants != variants:
+            raise ValueError('Number of possible variants provided does not match pre-defined decision variants (%d)'
+                             % decision.variants)
+
         self._decisions_index += 1
-        return decision.decision
+        if self._decision_callback is not None:
+            self._decision_callback(decision)
+        return decision
 
     @property
-    def initial_decisions_list(self) -> List[Decision]:
-        return self._initial_decisions_list
+    def initial_decisions(self) -> List[Decision]:
+        return self._initial_decisions
 
     @property
-    def new_decisions_list(self) -> List[Decision]:
-        return self._new_decisions_list
+    def new_decisions(self) -> List[Decision]:
+        return self._new_decisions
 
     @property
-    def decisions_list(self) -> List[Decision]:
-        return self.initial_decisions_list + self.new_decisions_list
+    def decisions(self) -> List[Decision]:
+        return self.initial_decisions + self.new_decisions
+
+    @property
+    def decision_callback(self) -> Optional[Callable[[Decision], None]]:
+        return self._decision_callback
+
+    @decision_callback.setter
+    def decision_callback(self, callback: Optional[Callable[[Decision], None]]) -> None:
+        self._decision_callback = callback
 
     def get_alternatives(self) -> List['ProtocolPath']:
         alternatives = []
-        for i in range(len(self._new_decisions_list)):
-            head = self._new_decisions_list[i]
-            alternatives.append(ProtocolPath(
-                self._new_decisions_list[:i] + [Decision(not head.decision, head.account)]
-            ))
+        for new_decision_index in range(len(self.new_decisions)):
+            decision_head = self.new_decisions[new_decision_index]
+            for variant in range(1, decision_head.variants + 1):
+                if decision_head.variant == variant:
+                    continue
+                alternatives.append(ProtocolPath(
+                    self.initial_decisions + self.new_decisions[:new_decision_index] + [Decision(
+                        account=decision_head.account,
+                        variant=variant,
+                        variants=decision_head.variants,
+                        timestamp=None,
+                        description=decision_head.description
+                    )]
+                ))
         return alternatives
 
-    @property
-    def is_completely_honest(self) -> bool:
-        for d in self.decisions_list:
-            if not d.decision:
+    def all_participants_were_honest(self, honest_variants: Optional[List[int]] = None) -> bool:
+        if honest_variants is None:
+            honest_variants = Decision.HONEST_VARIANTS_DEFAULT
+        for decision in self.decisions:
+            if decision.variant not in honest_variants:
+                return False
+        return True
+
+    def participant_was_honest(self, account: Participant, honest_variants: Optional[List[int]] = None) -> bool:
+        if honest_variants is None:
+            honest_variants = Decision.HONEST_VARIANTS_DEFAULT
+        for decision in self.decisions:
+            if decision.account != account:
+                continue
+            if decision.variant not in honest_variants:
                 return False
         return True
 
     def __eq__(self, other: Any) -> bool:
-        return (isinstance(other, ProtocolPath) and
-                self._initial_decisions_list == other._initial_decisions_list and
-                self._new_decisions_list == other._new_decisions_list)
+        if isinstance(other, ProtocolPath):
+            return self.initial_decisions == other.initial_decisions and self.new_decisions == other.new_decisions
+        else:
+            raise NotImplementedError()
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
 
     def __repr__(self) -> str:
-        str_initial = map(lambda d: str(d), self._initial_decisions_list)
-        str_new = map(lambda d: str(d), self._new_decisions_list)
+        initial_decisions_str = map(lambda d: str(d), self.initial_decisions)
+        new_decisions_str = map(lambda d: str(d), self.new_decisions)
         return '<%s.%s: [%s]+[%s]>' % (
             __name__,
             ProtocolPath.__name__,
-            ','.join(str_initial),
-            ','.join(str_new),
+            ', '.join(initial_decisions_str),
+            ', '.join(new_decisions_str),
         )

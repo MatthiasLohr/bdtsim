@@ -15,14 +15,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .environment import Environment
-from .environment_manager import EnvironmentManager
-from .pyevm import PyEVMEnvironment
-from .web3_environments import Web3Environment
+from .graphviz_dot import GraphvizDotOutputFormat
+from .human_readable import HumanReadableOutputFormat
+from .json import JSONOutputFormat
+from .output_format import OutputFormat
+from .output_format_manager import OutputFormatManager
+from .result_collector import ResultCollector
+from .simulation_result import SimulationResult
+from .yaml import YAMLOutputFormat
+
 
 __all__ = [
-    'Environment',
-    'EnvironmentManager',
-    'PyEVMEnvironment',
-    'Web3Environment'
+    'GraphvizDotOutputFormat',
+    'HumanReadableOutputFormat',
+    'JSONOutputFormat',
+    'OutputFormat',
+    'OutputFormatManager',
+    'ResultCollector',
+    'SimulationResult',
+    'YAMLOutputFormat'
 ]

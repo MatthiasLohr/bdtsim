@@ -16,9 +16,9 @@
 # limitations under the License.
 
 import argparse
-from .command_manager import SubCommand
 
 from bdtsim.environment import EnvironmentManager
+from .command_manager import SubCommand
 
 
 class ListEnvironmentsSubCommand(SubCommand):

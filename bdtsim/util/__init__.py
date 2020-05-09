@@ -15,14 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .environment import Environment
-from .environment_manager import EnvironmentManager
-from .pyevm import PyEVMEnvironment
-from .web3_environments import Web3Environment
+from . import merkle_tree
+
 
 __all__ = [
-    'Environment',
-    'EnvironmentManager',
-    'PyEVMEnvironment',
-    'Web3Environment'
+    'merkle_tree'
 ]

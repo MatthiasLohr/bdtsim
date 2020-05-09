@@ -23,13 +23,13 @@ On the other hand it serves as a simple protocol for internal tests of the frame
 The following command executes the indirect variant of the SimplePayment protocol in the PyEVM environment,
 using a smart contract for transferring the money to the seller:
 ```
-bdtsim run -c 61 SimplePayment PyEVM
+bdtsim run SimplePayment PyEVM
 ```
 
 The following command executes the direct variant of the SimplePayment protocol in the PyEVM environment,
 using a direct money transfer transaction without an intermediary smart contract:
 ```
-bdtsim run -c 61 SimplePayment-direct PyEVM
+bdtsim run SimplePayment-direct PyEVM
 ```
 
 ## FairSwap
@@ -48,15 +48,16 @@ Use kindly permitted by Lisa Eckey (16. April 2020).
 
 ### Protocol Parameters
 
-  * `depth`
-  * `length`
-  * `n`
+  * `n`: Number of slices in which the data is to be split
+  * `key` (bytes32): Key to be used for encryption
+  * `fake_file_root_hash` (bytes32): fake (wrong) file root hash, used when cheating
+  * `fake_ciphertext_root_hash` (bytes32): fake (wrong) ciphertext root hash, used when cheating
  
-*TODO: finalize`
-
-
 ### Example Protocol Execution
 
+```
+bdtsim -l DEBUG run FairSwap-FileSale PyEVM -p n 8
+```
 
 ## OptiSwap
 

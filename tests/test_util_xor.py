@@ -15,14 +15,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .environment import Environment
-from .environment_manager import EnvironmentManager
-from .pyevm import PyEVMEnvironment
-from .web3_environments import Web3Environment
+import os
+import unittest
 
-__all__ = [
-    'Environment',
-    'EnvironmentManager',
-    'PyEVMEnvironment',
-    'Web3Environment'
-]
+from bdtsim.util.xor import xor_crypt
+
+
+class UtilXorTest(unittest.TestCase):
+    def test_xor_crypt(self):
+        data = os.urandom(71)
+        key = os.urandom(13)
+
+        self.assertEqual(data, xor_crypt(xor_crypt(data, key), key))
