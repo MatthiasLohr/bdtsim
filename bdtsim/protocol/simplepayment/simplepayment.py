@@ -43,7 +43,7 @@ class SimplePayment(Protocol):
 
     def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
                 seller: Participant, buyer: Participant, price: int = 1000000000) -> None:
-        if protocol_path.decide(buyer).is_honest():
+        if protocol_path.decide(buyer, description='Payment', variants=['paying', 'not paying']).is_honest():
             logger.debug('Decided to be honest')
             if self._use_contract:
                 environment.send_contract_transaction(buyer, 'pay', seller.wallet_address, value=price)

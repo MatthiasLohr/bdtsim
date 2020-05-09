@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from typing import List, Optional
 from uuid import uuid4
 
 from graphviz import Digraph  # type: ignore
@@ -23,7 +23,7 @@ from graphviz import Digraph  # type: ignore
 from bdtsim.protocol_path import Decision
 from .output_format import OutputFormat
 from .output_format_manager import OutputFormatManager
-from .simulation_result import SimulationResult, ResultNode
+from .simulation_result import SimulationResult, ResultNode, TransactionLogEntry
 
 
 class GraphvizDotOutputFormat(OutputFormat):
@@ -46,11 +46,28 @@ class GraphvizDotOutputFormat(OutputFormat):
             ('fontname', 'Arial')
         ])
 
+        self._add_preparation_node(graph, simulation_result.preparation_transactions)
+        self._add_cleanup_node(graph, simulation_result.cleanup_transactions)
+
         start_node_uuid = self._uuid()
         self._add_start_node(graph, start_node_uuid)
         self._walk_nodes(graph, simulation_result.execution_result_root, start_node_uuid, None)
 
         return graph
+
+    def _add_preparation_node(self, graph: Digraph, transactions: List[TransactionLogEntry]) -> None:
+        self._add_transaction_summaring_node(graph, 'Preparation', transactions)
+
+    def _add_cleanup_node(self, graph: Digraph, transactions: List[TransactionLogEntry]) -> None:
+        self._add_transaction_summaring_node(graph, 'Cleanup', transactions)
+
+    @staticmethod
+    def _add_transaction_summaring_node(graph: Digraph, title: str, transactions: List[TransactionLogEntry]) -> None:
+        if len(transactions) > 0:
+            label = '%s' % (
+                title
+            )
+            graph.node(title, label, shape='box')
 
     @staticmethod
     def _add_start_node(graph: Digraph, uuid: str) -> None:
@@ -66,7 +83,7 @@ class GraphvizDotOutputFormat(OutputFormat):
 
     @staticmethod
     def _add_decision_edge(graph: Digraph, parent_uuid: str, child_uuid: str, decision: Decision) -> None:
-        label = '%d/%d' % (decision.variant, decision.variants)
+        label = '%s' % decision.variant
         graph.edge(parent_uuid, child_uuid, label=label)
 
     @staticmethod

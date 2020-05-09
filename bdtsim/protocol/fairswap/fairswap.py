@@ -111,22 +111,25 @@ class FairSwap(Protocol):
         communicated_ciphertext_root_hash = None
 
         # Seller: Deploy contract with file/ciphertext root hashes and key commitment
-        deployment_decision = protocol_path.decide(seller, variants=4, description='Contract Deployment')
-        if deployment_decision.is_honest():
+        deployment_decision = protocol_path.decide(seller, description='Contract Deployment', variants=[
+            'correct', 'incorrect file root hash', 'incorrect ciphertext root hash',
+            'incorrect file/ciphertext root hash'
+        ])
+        if deployment_decision == 'correct':
             logger.debug('Seller: Preparing contract with correct hashes')
             communicated_file_root_hash = file_merkle_tree.digest(keccak)
             communicated_ciphertext_root_hash = ciphertext_merkle_tree.digest(keccak)
-        elif deployment_decision.is_variant(2):
+        elif deployment_decision == 'incorrect file root hash':
             logger.debug('Seller: Preparing contract with incorrect file root hash')
             communicated_file_root_hash = self.generate_bytes(length=32, seed=1338,
                                                               avoid=file_merkle_tree.digest(keccak))
             communicated_ciphertext_root_hash = ciphertext_merkle_tree.digest(keccak)
-        elif deployment_decision.is_variant(3):
+        elif deployment_decision == 'incorrect ciphertext root hash':
             logger.debug('Seller: Preparing contract with incorrect ciphertext root hash')
             communicated_file_root_hash = file_merkle_tree.digest(keccak)
             communicated_ciphertext_root_hash = self.generate_bytes(length=32, seed=1339,
                                                                     avoid=ciphertext_merkle_tree.digest(keccak))
-        elif deployment_decision.is_variant(4):
+        elif deployment_decision == 'incorrect file/ciphertext root hash':
             logger.debug('Seller: Preparing contract with incorrect file and incorrect ciphertext root hash')
             communicated_file_root_hash = self.generate_bytes(length=32, seed=1338,
                                                               avoid=file_merkle_tree.digest(keccak))
@@ -147,12 +150,13 @@ class FairSwap(Protocol):
         ))
 
         # buyer accepts contract
-        if protocol_path.decide(buyer, description='Acceptance').is_honest():
+        if protocol_path.decide(buyer, description='Accept Transfer', variants=['yes', 'no']).is_honest():
             logger.debug('Buyer: Accepting transfer')
             environment.send_contract_transaction(buyer, 'accept', value=price)
 
             # seller reveals key (wrong key blocked by smart contract, so not implemented here)
-            if protocol_path.decide(seller, description='Key Revelation').is_honest():
+            if protocol_path.decide(seller, description='Key Revelation',
+                                    variants=['correct key', 'no key']).is_honest():
                 logger.debug('Seller: Sending correct key')
                 environment.send_contract_transaction(seller, 'revealKey', self._key)
                 # TODO check if seller was honest and send complain

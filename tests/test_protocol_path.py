@@ -23,48 +23,53 @@ from bdtsim.protocol_path import Decision, ProtocolPath
 class DecisionTest(unittest.TestCase):
     def test_init(self):
         # should pass:
-        Decision(seller, 1, 2)
+        Decision(seller, 'yes', ['yes', 'no'])
 
-        self.assertRaises(ValueError, Decision, seller, 1, 1)
-        self.assertRaises(ValueError, Decision, seller, 2, 1)
-        self.assertRaises(ValueError, Decision, seller, -1, -2)
+        self.assertRaises(ValueError, Decision, seller, 'yes', ['yes'])
+        self.assertRaises(ValueError, Decision, seller, 'no', ['yes'])
 
     def test_equals(self):
-        self.assertEqual(1, Decision(seller, 1, 3))
-        self.assertEqual(Decision(seller, 1, 3), 1)
-        self.assertEqual(Decision(seller, 1, 3), Decision(seller, 1, 3))
+        self.assertEqual('yes', Decision(seller, 'yes', ['yes', 'no', 'maybe']))
+        self.assertEqual(Decision(seller, 'yes', ['yes', 'no', 'maybe']), 'yes')
+        self.assertEqual(Decision(seller, 'yes', ['yes', 'no', 'maybe']),
+                         Decision(seller, 'yes', ['yes', 'no', 'maybe']))
 
-        self.assertNotEqual(Decision(seller, 1, 3), Decision(buyer, 1, 3))
-        self.assertNotEqual(Decision(seller, 1, 3), Decision(seller, 2, 3))
-        self.assertNotEqual(Decision(seller, 1, 3), Decision(seller, 1, 4))
+        self.assertNotEqual(Decision(seller, 'yes', ['yes', 'no', 'maybe']),
+                            Decision(buyer, 'yes', ['yes', 'no', 'maybe']))
+        self.assertNotEqual(Decision(seller, 'yes', ['yes', 'no', 'maybe']),
+                            Decision(seller, 'no', ['yes', 'no', 'maybe']))
+        self.assertNotEqual(Decision(seller, 'yes', ['yes', 'no', 'maybe']),
+                            Decision(seller, 'yes', ['yes', 'no', 'maybe', 'never']))
 
 
 class ProtocolPathTest(unittest.TestCase):
     def test_get_alternatives2(self):
         path = ProtocolPath()
-        path.decide(seller)
+        path.decide(seller, '', ['yes', 'no'])
         self.assertEqual([
-            ProtocolPath([Decision(seller, 2)])
+            ProtocolPath([Decision(seller, 'no', ['yes', 'no'])])
         ], path.get_alternatives())
 
-        path.decide(buyer)
+        path.decide(buyer, '', ['yes', 'no'])
         self.assertEqual([
-            ProtocolPath([Decision(seller, 2)]),
-            ProtocolPath([Decision(seller, 1), Decision(buyer, 2)])
+            ProtocolPath([Decision(seller, 'no', ['yes', 'no'])]),
+            ProtocolPath([Decision(seller, 'yes', ['yes', 'no']), Decision(buyer, 'no', ['yes', 'no'])])
         ], path.get_alternatives())
 
     def test_get_alternatives3(self):
         path = ProtocolPath()
-        path.decide(seller, 3)
+        path.decide(seller, '', ['yes', 'no', 'maybe'])
         self.assertEqual([
-            ProtocolPath([Decision(seller, 2, 3)]),
-            ProtocolPath([Decision(seller, 3, 3)])
+            ProtocolPath([Decision(seller, 'no', ['yes', 'no', 'maybe'])]),
+            ProtocolPath([Decision(seller, 'maybe', ['yes', 'no', 'maybe'])])
         ], path.get_alternatives())
 
-        path.decide(buyer, 3)
+        path.decide(buyer, '', ['yes', 'no', 'maybe'])
         self.assertEqual([
-            ProtocolPath([Decision(seller, 2, 3)]),
-            ProtocolPath([Decision(seller, 3, 3)]),
-            ProtocolPath([Decision(seller, 1, 3), Decision(buyer, 2, 3)]),
-            ProtocolPath([Decision(seller, 1, 3), Decision(buyer, 3, 3)])
+            ProtocolPath([Decision(seller, 'no', ['yes', 'no', 'maybe'])]),
+            ProtocolPath([Decision(seller, 'maybe', ['yes', 'no', 'maybe'])]),
+            ProtocolPath([Decision(seller, 'yes', ['yes', 'no', 'maybe']),
+                          Decision(buyer, 'no', ['yes', 'no', 'maybe'])]),
+            ProtocolPath([Decision(seller, 'yes', ['yes', 'no', 'maybe']),
+                          Decision(buyer, 'maybe', ['yes', 'no', 'maybe'])])
         ], path.get_alternatives())
