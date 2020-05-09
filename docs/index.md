@@ -26,7 +26,8 @@ Read more about:
   * [Commands](commands.md)
   * [Protocols](protocols.md)
   * [Environments](environments.md)
-  * [Data Providers](dataproviders.md)
+  * [Data Providers](data_providers.md)
+  * [Output Formats](output_formats.md)
 
 
 ## Affiliations

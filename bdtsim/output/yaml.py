@@ -15,14 +15,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .environment import Environment
-from .environment_manager import EnvironmentManager
-from .pyevm import PyEVMEnvironment
-from .web3_environments import Web3Environment
+from .output_format import OutputFormat
+from .output_format_manager import OutputFormatManager
+from .simulation_result import SimulationResult
 
-__all__ = [
-    'Environment',
-    'EnvironmentManager',
-    'PyEVMEnvironment',
-    'Web3Environment'
-]
+
+class YAMLOutputFormat(OutputFormat):
+    def __init__(self) -> None:
+        super(YAMLOutputFormat, self).__init__()
+
+    def render(self, simulation_result: SimulationResult) -> None:
+        raise NotImplementedError()  # TODO implement
+
+
+OutputFormatManager.register('yaml', YAMLOutputFormat)

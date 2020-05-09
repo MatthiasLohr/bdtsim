@@ -33,6 +33,7 @@ setup(
     license='Apache License 2.0',
     install_requires=[
         'eth-tester==0.4.0b1',
+        'graphviz==0.14',
         'hexbytes==0.2.0',
         'Jinja2==2.11.2',
         'py-evm==0.3.0a14',

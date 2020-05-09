@@ -16,7 +16,7 @@
 # limitations under the License.
 
 import time
-from typing import Any, List, Optional
+from typing import Any, Callable, List, Optional
 
 from .participant import Participant
 
@@ -105,6 +105,9 @@ class Decision(object):
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
 
+    def __hash__(self) -> int:
+        return hash((self._account, self._variant, self._variants))
+
     def __repr__(self) -> str:
         return '' % (
 
@@ -125,6 +128,7 @@ class ProtocolPath(object):
         self._initial_decisions: List[Decision] = initial_decisions or []
         self._new_decisions: List[Decision] = []
         self._decisions_index: int = 0
+        self._decision_callback: Optional[Callable[[Decision], None]] = None
 
     def decide(self, account: Participant, variants: int = 2, description: Optional[str] = None) -> Decision:
         if len(self.decisions) == self._decisions_index:
@@ -151,6 +155,8 @@ class ProtocolPath(object):
                              % decision.variants)
 
         self._decisions_index += 1
+        if self._decision_callback is not None:
+            self._decision_callback(decision)
         return decision
 
     @property
@@ -164,6 +170,14 @@ class ProtocolPath(object):
     @property
     def decisions(self) -> List[Decision]:
         return self.initial_decisions + self.new_decisions
+
+    @property
+    def decision_callback(self) -> Optional[Callable[[Decision], None]]:
+        return self._decision_callback
+
+    @decision_callback.setter
+    def decision_callback(self, callback: Optional[Callable[[Decision], None]]) -> None:
+        self._decision_callback = callback
 
     def get_alternatives(self) -> List['ProtocolPath']:
         alternatives = []

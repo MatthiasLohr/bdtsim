@@ -16,15 +16,12 @@
 # limitations under the License.
 
 import argparse
-import json
-import yaml
 from typing import Dict
 
 from bdtsim.data_provider import DataProviderManager
 from bdtsim.environment import EnvironmentManager
-from bdtsim.participant import buyer, seller
 from bdtsim.protocol import ProtocolManager
-from bdtsim.result import ResultSerializer
+from bdtsim.output import OutputFormatManager
 from bdtsim.simulation import Simulation
 from .command_manager import SubCommand
 
@@ -37,7 +34,7 @@ class RunSubCommand(SubCommand):
         parser.add_argument('--data-provider', choices=DataProviderManager.data_providers.keys(),
                             default='RandomDataProvider')
         parser.add_argument('-c', '--chain-id', type=int, default=None)
-        parser.add_argument('-o', '--output-format', choices=['human-readable', 'json', 'yaml'],
+        parser.add_argument('-f', '--output-format', choices=OutputFormatManager.output_formats.keys(),
                             default='human-readable')
         parser.add_argument('--price', type=int, default=1000000000)
         parser.add_argument('--gas-price', type=int, default=None)
@@ -48,19 +45,23 @@ class RunSubCommand(SubCommand):
                             default=[])
         parser.add_argument('-d', '--data-provider-parameter', nargs=2, action='append',
                             dest='data_provider_parameters', default=[])
+        parser.add_argument('-o', '--output-format-parameter', nargs=2, action='append',
+                            dest='output_format_parameters', default=[])
 
     def __call__(self, args: argparse.Namespace) -> None:
         protocol_parameters: Dict[str, str] = {}
-        for key, value in args.protocol_parameters:
-            protocol_parameters[key.replace('-', '_')] = value
-
         environment_parameters: Dict[str, str] = {}
-        for key, value in args.environment_parameters:
-            environment_parameters[key.replace('-', '_')] = value
-
         data_provider_parameters: Dict[str, str] = {}
-        for key, value in args.data_provider_parameters:
-            data_provider_parameters[key.replace('-', '_')] = value
+        output_format_parameters: Dict[str, str] = {}
+
+        for arg, dest in [
+            (args.protocol_parameters, protocol_parameters),
+            (args.environment_parameters, environment_parameters),
+            (args.data_provider_parameters, data_provider_parameters),
+            (args.output_format_parameters, output_format_parameters),
+        ]:
+            for key, value in arg:
+                dest[key.replace('-', '_')] = value
 
         protocol = ProtocolManager.instantiate(
             args.protocol,
@@ -88,24 +89,10 @@ class RunSubCommand(SubCommand):
         )
 
         simulation_result = simulation.run()
-        if args.output_format == 'human-readable':
-            preparation_result = simulation_result.preparation_result
-            if preparation_result is not None:
-                print('Preparation Costs (gas): %d (%d transaction(s))' % (
-                    preparation_result.transaction_cost_sum,
-                    preparation_result.transaction_count
-                ))
-            honest_iteration = simulation_result.completely_honest_iteration_result
-            for participant in seller, buyer:
-                print('%s transaction fees: %d (%d transaction(s))' % (
-                    participant.name,
-                    honest_iteration.transaction_fee_sum_by_participant(participant),
-                    honest_iteration.transaction_count_by_participant(participant)
-                ))
-                # TODO calculate and show risk
-        elif args.output_format == 'json':
-            print(json.dumps(simulation_result, cls=ResultSerializer, indent=2))
-        elif args.output_format == 'yaml':
-            json_str = json.dumps(simulation_result, cls=ResultSerializer, indent=2)
-            json_structure = json.loads(json_str)
-            print(yaml.dump(json_structure))
+
+        output_format = OutputFormatManager.instantiate(
+            args.output_format,
+            **output_format_parameters
+        )
+
+        output_format.render(simulation_result)

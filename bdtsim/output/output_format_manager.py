@@ -17,29 +17,29 @@
 
 from typing import Any, Dict, Type
 
-from .data_provider import DataProvider
+from .output_format import OutputFormat
 
 
-class DataProviderRegistration(object):
-    def __init__(self, cls: Type[DataProvider], *args: Any, **kwargs: Any) -> None:
+class OutputFormatRegistration(object):
+    def __init__(self, cls: Type[OutputFormat], *args: Any, **kwargs: Any) -> None:
         self.cls = cls
         self.args = args
         self.kwargs = kwargs
 
 
-class DataProviderManager(object):
-    data_providers: Dict[str, DataProviderRegistration] = {}
+class OutputFormatManager(object):
+    output_formats: Dict[str, OutputFormatRegistration] = {}
 
     def __init__(self) -> None:
         raise NotImplementedError('This class is not to be instantiated')
 
     @staticmethod
-    def register(name: str, cls: Type[DataProvider], *args: Any, **kwargs: Any) -> None:
-        if not issubclass(cls, DataProvider):
+    def register(name: str, cls: Type[OutputFormat], *args: Any, **kwargs: Any) -> None:
+        if not issubclass(cls, OutputFormat):
             raise ValueError('Provided class is not a subclass of DataProvider')
-        DataProviderManager.data_providers[name] = DataProviderRegistration(cls, *args, **kwargs)
+        OutputFormatManager.output_formats[name] = OutputFormatRegistration(cls, *args, **kwargs)
 
     @staticmethod
-    def instantiate(name: str, **kwargs: Any) -> DataProvider:
-        data_provider = DataProviderManager.data_providers[name]
-        return data_provider.cls(*data_provider.args, **{**data_provider.kwargs, **kwargs})
+    def instantiate(name: str, **kwargs: Any) -> OutputFormat:
+        output_format = OutputFormatManager.output_formats[name]
+        return output_format.cls(*output_format.args, **{**output_format.kwargs, **kwargs})

@@ -12,7 +12,8 @@ nav:
   - Commands: commands.md
   - Protocols: protocols.md
   - Environments: environments.md
-  - Data Providers: dataproviders.md
+  - Data Providers: data_providers.md
+  - Output Formats: output_formats.md
   - Development: development.md
   - API Documentation: https://matthiaslohr.gitlab.io/bdtsim/api/bdtsim/
 

@@ -154,7 +154,8 @@ class FairSwap(Protocol):
             # seller reveals key (wrong key blocked by smart contract, so not implemented here)
             if protocol_path.decide(seller, description='Key Revelation').is_honest():
                 logger.debug('Seller: Sending correct key')
-                pass  # TODO implement
+                environment.send_contract_transaction(seller, 'revealKey', self._key)
+                # TODO check if seller was honest and send complain
             else:
                 logger.debug('Seller: Sending no key')
                 # seller does nothing, buyer waits for timeout for refund
@@ -187,8 +188,8 @@ class FairSwap(Protocol):
 
     @staticmethod
     def encrypt_merkle_tree(plain: merkle_tree.MerkleTreeNode, key: bytes) -> merkle_tree.MerkleTreeNode:
-        leaves_encrypted = [xor_crypt(l, key) for l in plain.leaves]
-        digests_encrypted = [xor_crypt(d, key) for d in plain.digests_dfs(keccak)]
+        leaves_encrypted = [xor_crypt(leaf, key) for leaf in plain.leaves]
+        digests_encrypted = [xor_crypt(digest, key) for digest in plain.digests_dfs(keccak)]
         return merkle_tree.from_bytes_list(leaves_encrypted + digests_encrypted)
 
 

@@ -21,6 +21,7 @@ from .command_manager import CommandManager
 from .environment_info import EnvironmentInfoSubCommand
 from .list_environments import ListEnvironmentsSubCommand
 from .list_protocols import ListProtocolsSubCommand
+from .list_output_formats import ListOutputFormatsSubCommand
 from .list_data_providers import ListDataProvidersSubCommand
 from .run import RunSubCommand
 
@@ -30,6 +31,7 @@ def main() -> Optional[int]:
     command_manager.register_subcommand('list-protocols', ListProtocolsSubCommand)
     command_manager.register_subcommand('list-environments', ListEnvironmentsSubCommand)
     command_manager.register_subcommand('list-data-providers', ListDataProvidersSubCommand)
+    command_manager.register_subcommand('list-output-formats', ListOutputFormatsSubCommand)
     command_manager.register_subcommand('environment-info', EnvironmentInfoSubCommand)
     command_manager.register_subcommand('run', RunSubCommand)
     return command_manager.run()

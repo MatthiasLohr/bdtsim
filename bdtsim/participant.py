@@ -69,6 +69,9 @@ class Participant(object):
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
 
+    def __hash__(self) -> int:
+        return hash((self.wallet_address, self.name))
+
 
 operator = Participant(
     name='Operator',
