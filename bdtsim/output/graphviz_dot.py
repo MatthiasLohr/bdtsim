@@ -43,10 +43,18 @@ class GraphvizDotOutputFormat(OutputFormat):
             print(graph.source)
 
     def _generate_graph(self, simulation_result: SimulationResult) -> Digraph:
-        graph = Digraph(graph_attr=[
-            ('rankdir', 'LR'),
-            ('fontname', 'Arial')
-        ])
+        graph = Digraph(
+            graph_attr=[
+                ('rankdir', 'LR'),
+                ('fontname', 'helvetica')
+            ],
+            node_attr=[
+                ('fontname', 'helvetica')
+            ],
+            edge_attr=[
+                ('fontname', 'helvetica')
+            ]
+        )
 
         self._add_preparation_node(graph, simulation_result.preparation_transactions)
         self._add_cleanup_node(graph, simulation_result.cleanup_transactions)
