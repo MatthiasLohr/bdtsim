@@ -16,7 +16,7 @@
 # limitations under the License.
 
 import unittest
-from bdtsim.participant import seller, buyer
+from bdtsim.account import seller, buyer
 from bdtsim.protocol_path import Decision, ProtocolPath
 
 

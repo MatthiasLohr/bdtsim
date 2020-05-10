@@ -24,8 +24,8 @@ from web3.gas_strategies.time_based import fast_gas_price_strategy
 from web3.providers.base import BaseProvider
 from web3.types import TxParams, Wei
 
+from bdtsim.account import Account
 from bdtsim.contract import SolidityContract
-from bdtsim.participant import Participant
 
 
 logger = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ class Environment(object):
         self._contract: Optional[SolidityContract] = None
         self._contract_address: Optional[str] = None
 
-        self._transaction_callback: Optional[Callable[[Participant, Dict[str, Any], Dict[str, Any]], None]] = None
+        self._transaction_callback: Optional[Callable[[Account, Dict[str, Any], Dict[str, Any]], None]] = None
 
     @property
     def chain_id(self) -> int:
@@ -70,14 +70,14 @@ class Environment(object):
     def tx_wait_timeout(self) -> int:
         return self._tx_wait_timeout
 
-    def deploy_contract(self, account: Participant, contract: SolidityContract, *args: Any, **kwargs: Any) -> None:
+    def deploy_contract(self, account: Account, contract: SolidityContract, *args: Any, **kwargs: Any) -> None:
         web3_contract = self._web3.eth.contract(abi=contract.abi, bytecode=contract.bytecode)
         tx_receipt = self._send_transaction(account, web3_contract.constructor(*args, **kwargs))
         self._contract_address = tx_receipt['contractAddress']
         logger.debug('New contract address: %s' % self._contract_address)
         self._contract = contract
 
-    def send_contract_transaction(self, account: Participant, method: str, *args: Any, value: int = 0,
+    def send_contract_transaction(self, account: Account, method: str, *args: Any, value: int = 0,
                                   **kwargs: Any) -> Any:
         if self._contract is None:
             raise RuntimeError('No contract available!')
@@ -91,14 +91,14 @@ class Environment(object):
         )
         # TODO implement contract return value
 
-    def send_direct_transaction(self, account: Participant, to: Participant, value: int = 0) -> None:
+    def send_direct_transaction(self, account: Account, to: Account, value: int = 0) -> None:
         self._send_transaction(
             account=account,
             to=to,
             value=value
         )
 
-    def _send_transaction(self, account: Participant, factory: Optional[Any] = None, to: Optional[Participant] = None,
+    def _send_transaction(self, account: Account, factory: Optional[Any] = None, to: Optional[Account] = None,
                           value: int = 0) -> AttributeDict[str, Any]:
         tx_dict = {
             'from': account.wallet_address,
@@ -134,10 +134,10 @@ class Environment(object):
         return self._web3
 
     @property
-    def transaction_callback(self) -> Optional[Callable[[Participant, Dict[str, Any], Dict[str, Any]], None]]:
+    def transaction_callback(self) -> Optional[Callable[[Account, Dict[str, Any], Dict[str, Any]], None]]:
         return self._transaction_callback
 
     @transaction_callback.setter
     def transaction_callback(self,
-                             callback: Optional[Callable[[Participant, Dict[str, Any], Dict[str, Any]], None]]) -> None:
+                             callback: Optional[Callable[[Account, Dict[str, Any], Dict[str, Any]], None]]) -> None:
         self._transaction_callback = callback

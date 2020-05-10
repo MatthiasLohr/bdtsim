@@ -15,6 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+import yaml
+
+from .json import JSONEncoder
 from .output_format import OutputFormat
 from .output_format_manager import OutputFormatManager
 from .simulation_result import SimulationResult
@@ -25,7 +29,7 @@ class YAMLOutputFormat(OutputFormat):
         super(YAMLOutputFormat, self).__init__()
 
     def render(self, simulation_result: SimulationResult) -> None:
-        raise NotImplementedError()  # TODO implement
+        print(yaml.dump(json.loads(json.dumps(simulation_result, cls=JSONEncoder))))
 
 
 OutputFormatManager.register('yaml', YAMLOutputFormat)

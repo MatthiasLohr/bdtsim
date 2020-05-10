@@ -19,8 +19,8 @@ import logging
 from types import TracebackType
 from typing import Any, Dict, List, Optional, Type
 
+from bdtsim.account import Account
 from bdtsim.environment import Environment
-from bdtsim.participant import Participant
 from bdtsim.protocol_path import ProtocolPath, Decision
 from .simulation_result import SimulationResult, TransactionLogEntry, ResultNode
 
@@ -33,7 +33,7 @@ class SimpleTransactionMonitor(object):
         self._environment = environment
         self._transactions_target = transactions_target
 
-    def _transaction_callback(self, account: Participant, tx_dict: Dict[str, Any], tx_receipt: Dict[str, Any]) -> None:
+    def _transaction_callback(self, account: Account, tx_dict: Dict[str, Any], tx_receipt: Dict[str, Any]) -> None:
         self._transactions_target.append(TransactionLogEntry(account, tx_dict, tx_receipt))
 
     def __enter__(self) -> None:
@@ -60,7 +60,7 @@ class ExecutionTransactionMonitor(object):
         self._current_execution_result_node.transactions.append(self._current_transactions)
         self._current_execution_result_node = self._current_execution_result_node.child(decision)
 
-    def _transaction_callback(self, account: Participant, tx_dict: Dict[str, Any], tx_receipt: Dict[str, Any]) -> None:
+    def _transaction_callback(self, account: Account, tx_dict: Dict[str, Any], tx_receipt: Dict[str, Any]) -> None:
         self._current_transactions.append(TransactionLogEntry(account, tx_dict, tx_receipt))
 
     def __enter__(self) -> None:

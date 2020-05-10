@@ -18,7 +18,7 @@
 import time
 from typing import Any, Callable, List, Optional
 
-from .participant import Participant
+from .account import Account
 
 
 class Decision(object):
@@ -29,11 +29,11 @@ class Decision(object):
     decision.
     """
 
-    def __init__(self, account: Participant, variant: str, variants: List[str], timestamp: Optional[float] = None,
+    def __init__(self, account: Account, variant: str, variants: List[str], timestamp: Optional[float] = None,
                  description: Optional[str] = None) -> None:
         """
         Args:
-            account (Participant): Who is deciding about the next step
+            account (Account): Who is deciding about the next step
             variant (str): Variant chosen in this decision
             variants (List[str]): Possible variants
             description (str): Description of this decision variant (not considered for equality)
@@ -50,7 +50,7 @@ class Decision(object):
         self._description = description
 
     @property
-    def account(self) -> Participant:
+    def account(self) -> Account:
         return self._account
 
     @property
@@ -130,7 +130,7 @@ class ProtocolPath(object):
         self._decisions_index: int = 0
         self._decision_callback: Optional[Callable[[Decision], None]] = None
 
-    def decide(self, account: Participant, description: str, variants: List[str]) -> Decision:
+    def decide(self, account: Account, description: str, variants: List[str]) -> Decision:
         if len(self.decisions) == self._decisions_index:
             # we have no decision yet, creating a new one
             self._new_decisions.append(Decision(
@@ -208,7 +208,7 @@ class ProtocolPath(object):
                     return False
             return True
 
-    def participant_was_honest(self, account: Participant, honest_variants: Optional[List[str]] = None) -> bool:
+    def participant_was_honest(self, account: Account, honest_variants: Optional[List[str]] = None) -> bool:
         if honest_variants is None:
             for decision in self.decisions:
                 if decision.account != account:

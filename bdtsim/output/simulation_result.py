@@ -17,15 +17,56 @@
 
 from typing import Any, Dict, List, Optional
 
-from bdtsim.participant import Participant
+from bdtsim.account import Account
 from bdtsim.protocol_path import Decision
 
 
 class TransactionLogEntry(object):
-    def __init__(self, account: Participant, tx_dict: Dict[str, Any], tx_receipt: Dict[str, Any]) -> None:
-        self._account = account
-        self._tx_dict = tx_dict
-        self._tx_receipt = tx_receipt
+    def __init__(self, account: Account, tx_dict: Dict[str, Any], tx_receipt: Dict[str, Any]) -> None:
+        self.account = account
+        self.tx_dict = tx_dict
+        self.tx_receipt = tx_receipt
+
+
+class TransactionLogAggregation(object):
+    class Result(object):
+        def __init__(self, account: Account, tx_fees: int, tx_count: int):
+            self.account = account
+            self.tx_fees = tx_fees
+            self.tx_count = tx_count
+
+    def __init__(self, tx_logs: List[TransactionLogEntry]):
+        self._tx_logs = tx_logs
+
+        self._aggregation_results: Optional[List['TransactionLogAggregation.Result']] = None
+
+    @property
+    def transactions(self) -> List[TransactionLogEntry]:
+        return self._tx_logs
+
+    @property
+    def aggregation_results(self) -> List['TransactionLogAggregation.Result']:
+        if self._aggregation_results is None:
+            tx_fees: Dict[Account, List[int]] = {}
+
+            for tx in self._tx_logs:
+                slot = tx_fees.get(tx.account)
+                if slot is None:
+                    tx_fees.update({tx.account: [tx.tx_receipt['gasUsed']]})
+                else:
+                    slot.append(tx.tx_receipt['gasUsed'])
+
+            self._aggregation_results = [
+                TransactionLogAggregation.Result(account, sum(slot), len(slot)) for account, slot in tx_fees.items()
+            ]
+
+        return self._aggregation_results
+
+    def get_aggregation_for_account(self, account: Account) -> Optional['TransactionLogAggregation.Result']:
+        for result in self.aggregation_results:
+            if result.account == account:
+                return result
+        return None
 
 
 class ResultNode(object):

@@ -21,7 +21,7 @@ from eth_typing.evm import ChecksumAddress
 from web3 import Web3
 
 
-class Participant(object):
+class Account(object):
     def __init__(self, name: str, wallet_address: Optional[str] = None, wallet_private_key: Optional[str] = None)\
             -> None:
         if wallet_address is None and wallet_private_key is None:
@@ -61,7 +61,7 @@ class Participant(object):
         )
 
     def __eq__(self, other: Any) -> bool:
-        if isinstance(other, Participant):
+        if isinstance(other, Account):
             return self.wallet_address == other.wallet_address and self.name == other.name
         else:
             raise NotImplementedError()
@@ -73,19 +73,19 @@ class Participant(object):
         return hash((self.wallet_address, self.name))
 
 
-operator = Participant(
+operator = Account(
     name='Operator',
     wallet_address='0x3ed8424aaE568b3f374e94a139D755982800a4a2',
     wallet_private_key='0xe67518b4d5255ec708d2bf9cd4222adda89fcc07037c614d7787a694fbb47692'
 )
 
-seller = Participant(
+seller = Account(
     name='Seller',
     wallet_address='0x5Afa5874959ff249103c2043fB45d68B2768Fef8',
     wallet_private_key='0x3df2d74ceb3c58a8fdb1f0ecf45e2ceb10511469d9c20691333d666fa557899a'
 )
 
-buyer = Participant(
+buyer = Account(
     name='Buyer',
     wallet_address='0x00c382926f098566EA6F1707296eC342E7C8A5DC',
     wallet_private_key='0x7d96e8fbe712cf25f141adb6bc5e3244d7a19d9c406ab6ed6a097585d01b93ac'

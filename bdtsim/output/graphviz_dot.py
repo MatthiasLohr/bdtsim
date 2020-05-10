@@ -15,15 +15,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from statistics import mean
 from typing import List, Optional
 from uuid import uuid4
 
 from graphviz import Digraph  # type: ignore
 
+from bdtsim.account import Account
 from bdtsim.protocol_path import Decision
 from .output_format import OutputFormat
 from .output_format_manager import OutputFormatManager
-from .simulation_result import SimulationResult, ResultNode, TransactionLogEntry
+from .simulation_result import SimulationResult, ResultNode, TransactionLogEntry, TransactionLogAggregation
 
 
 class GraphvizDotOutputFormat(OutputFormat):
@@ -55,19 +57,22 @@ class GraphvizDotOutputFormat(OutputFormat):
 
         return graph
 
-    def _add_preparation_node(self, graph: Digraph, transactions: List[TransactionLogEntry]) -> None:
-        self._add_transaction_summaring_node(graph, 'Preparation', transactions)
+    def _add_preparation_node(self, graph: Digraph, tx_logs: List[TransactionLogEntry]) -> None:
+        self._add_transaction_summaring_node(graph, 'Preparation', tx_logs)
 
-    def _add_cleanup_node(self, graph: Digraph, transactions: List[TransactionLogEntry]) -> None:
-        self._add_transaction_summaring_node(graph, 'Cleanup', transactions)
+    def _add_cleanup_node(self, graph: Digraph, tx_logs: List[TransactionLogEntry]) -> None:
+        self._add_transaction_summaring_node(graph, 'Cleanup', tx_logs)
 
     @staticmethod
-    def _add_transaction_summaring_node(graph: Digraph, title: str, transactions: List[TransactionLogEntry]) -> None:
-        if len(transactions) > 0:
-            label = '%s' % (
-                title
-            )
-            graph.node(title, label, shape='box')
+    def _add_transaction_summaring_node(graph: Digraph, title: str, tx_logs: List[TransactionLogEntry]) -> None:
+        if len(tx_logs) == 0:
+            return
+
+        label = title
+
+        for line in TransactionLogAggregation(tx_logs).aggregation_results:
+            label += '\n%s: %d (%d)' % (line.account.name, line.tx_fees, line.tx_count)
+        graph.node(title, label, shape='box')
 
     @staticmethod
     def _add_start_node(graph: Digraph, uuid: str) -> None:
@@ -77,14 +82,43 @@ class GraphvizDotOutputFormat(OutputFormat):
     def _add_decision_node(graph: Digraph, uuid: str, label: str) -> None:
         graph.node(uuid, label=label, shape='diamond')
 
-    @staticmethod
-    def _add_start_edge(graph: Digraph, parent_uuid: str, child_uuid: str) -> None:
-        graph.edge(parent_uuid, child_uuid)
+    def _add_start_edge(self, graph: Digraph, parent_uuid: str, child_uuid: str,
+                        transactions: List[List[TransactionLogEntry]]) -> None:
+        graph.edge(parent_uuid, child_uuid, self._get_label_for_transactions(transactions).strip())
+
+    def _add_decision_edge(self, graph: Digraph, parent_uuid: str, child_uuid: str, decision: Decision,
+                           transactions: List[List[TransactionLogEntry]]) -> None:
+        label = '%s' % decision.variant
+        label += '\n' + self._get_label_for_transactions(transactions).strip()
+        graph.edge(parent_uuid, child_uuid, label=label)
 
     @staticmethod
-    def _add_decision_edge(graph: Digraph, parent_uuid: str, child_uuid: str, decision: Decision) -> None:
-        label = '%s' % decision.variant
-        graph.edge(parent_uuid, child_uuid, label=label)
+    def _get_label_for_transactions(tx_log_collection: List[List[TransactionLogEntry]]) -> str:
+        aggregations = [TransactionLogAggregation(tx_logs) for tx_logs in tx_log_collection]
+        accounts: List[Account] = []
+        for aggregation in aggregations:
+            for aggregation_result in aggregation.aggregation_results:
+                if aggregation_result.account not in accounts:
+                    accounts.append(aggregation_result.account)
+
+        result = ''
+        for account in accounts:
+            account_aggregations = []
+            for aggregation in aggregations:
+                account_aggregation = aggregation.get_aggregation_for_account(account)
+                if account_aggregation is not None:
+                    account_aggregations.append(account_aggregation)
+
+            result += '\n%s: %d/%d/%d (%d/%d/%d)' % (
+                account.name,
+                min([a.tx_fees for a in account_aggregations]),
+                mean([a.tx_fees for a in account_aggregations]),
+                max([a.tx_fees for a in account_aggregations]),
+                min([a.tx_count for a in account_aggregations]),
+                mean([a.tx_count for a in account_aggregations]),
+                max([a.tx_count for a in account_aggregations]),
+            )
+        return result
 
     @staticmethod
     def _add_end_node(graph: Digraph, uuid: str) -> None:
@@ -115,9 +149,9 @@ class GraphvizDotOutputFormat(OutputFormat):
             self._add_end_node(graph, current_node_uuid)
 
         if incoming_decision is not None:
-            self._add_decision_edge(graph, parent_uuid, current_node_uuid, incoming_decision)
+            self._add_decision_edge(graph, parent_uuid, current_node_uuid, incoming_decision, current_node.transactions)
         else:
-            self._add_start_edge(graph, parent_uuid, current_node_uuid)
+            self._add_start_edge(graph, parent_uuid, current_node_uuid, current_node.transactions)
 
         for decision, child_node in current_node.children.items():
             self._walk_nodes(graph, child_node, current_node_uuid, decision)

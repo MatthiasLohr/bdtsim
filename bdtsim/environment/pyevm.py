@@ -24,7 +24,7 @@ from eth_tester.backends import pyevm  # type: ignore
 from web3 import EthereumTesterProvider, Web3
 from web3.types import TxParams, Wei
 
-from bdtsim.participant import buyer, operator, seller
+from bdtsim.account import buyer, operator, seller
 from .environment import Environment
 from .environment_manager import EnvironmentManager
 

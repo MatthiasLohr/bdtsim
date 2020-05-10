@@ -18,9 +18,9 @@
 import logging
 from queue import Queue
 
+from bdtsim.account import buyer, operator, seller
 from bdtsim.data_provider import DataProvider
 from bdtsim.environment import Environment
-from bdtsim.participant import buyer, operator, seller
 from bdtsim.protocol import Protocol
 from bdtsim.protocol_path import ProtocolPath
 from bdtsim.output import SimulationResult, ResultCollector

@@ -17,27 +17,27 @@
 
 import unittest
 
-from bdtsim.participant import Participant, buyer, operator, seller
+from bdtsim.account import Account, buyer, operator, seller
 
 
-class ParticipantTest(unittest.TestCase):
+class AccountTest(unittest.TestCase):
     def test_instantiation(self):
-        self.assertRaises(ValueError, Participant, 'john')
+        self.assertRaises(ValueError, Account, 'john')
 
-        self.assertRaises(ValueError, Participant, 'john', 'a', 'b')
+        self.assertRaises(ValueError, Account, 'john', 'a', 'b')
 
-        self.assertEqual(operator, Participant(operator.name, wallet_private_key=operator.wallet_private_key))
-        self.assertEqual(seller, Participant(seller.name, wallet_private_key=seller.wallet_private_key))
-        self.assertEqual(buyer, Participant(buyer.name, wallet_private_key=buyer.wallet_private_key))
+        self.assertEqual(operator, Account(operator.name, wallet_private_key=operator.wallet_private_key))
+        self.assertEqual(seller, Account(seller.name, wallet_private_key=seller.wallet_private_key))
+        self.assertEqual(buyer, Account(buyer.name, wallet_private_key=buyer.wallet_private_key))
 
     def test_equals(self):
         self.assertEqual(operator, operator)
         self.assertEqual(seller, seller)
         self.assertEqual(buyer, buyer)
 
-        self.assertEqual(operator, Participant(operator.name, operator.wallet_address, operator.wallet_private_key))
-        self.assertEqual(seller, Participant(seller.name, seller.wallet_address, seller.wallet_private_key))
-        self.assertEqual(buyer, Participant(buyer.name, buyer.wallet_address, buyer.wallet_private_key))
+        self.assertEqual(operator, Account(operator.name, operator.wallet_address, operator.wallet_private_key))
+        self.assertEqual(seller, Account(seller.name, seller.wallet_address, seller.wallet_private_key))
+        self.assertEqual(buyer, Account(buyer.name, buyer.wallet_address, buyer.wallet_private_key))
 
         self.assertNotEqual(operator, seller)
         self.assertNotEqual(seller, buyer)

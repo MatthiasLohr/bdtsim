@@ -29,7 +29,7 @@ from bdtsim.protocol import Protocol, ProtocolManager
 from bdtsim.contract import SolidityContract
 from bdtsim.data_provider import DataProvider
 from bdtsim.environment import Environment
-from bdtsim.participant import Participant
+from bdtsim.account import Account
 from bdtsim.protocol_path import ProtocolPath
 from bdtsim.util import merkle_tree
 from bdtsim.util.xor import xor_crypt
@@ -60,11 +60,11 @@ class FairSwap(Protocol):
         self._fake_file_root_hash = fake_file_root_hash
         self._fake_ciphertext_root_hash = fake_ciphertext_root_hash
 
-    def get_contract(self, receiver: Participant, price: int, length: int, file_root_hash: bytes,
+    def get_contract(self, receiver: Account, price: int, length: int, file_root_hash: bytes,
                      ciphertext_root_hash: bytes) -> SolidityContract:
         """
         Args:
-            receiver (Participant: Who wants to receive the data and therefore has to pay
+            receiver (Account: Who wants to receive the data and therefore has to pay
             price (int): price for the data purchase
             length (int): Length of one data slice
             file_root_hash (bytes):
@@ -93,7 +93,7 @@ class FairSwap(Protocol):
         return SolidityContract('FileSale', contract_code=contract_rendered)
 
     def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
-                seller: Participant, buyer: Participant, price: int = 1000000000) -> None:
+                seller: Account, buyer: Account, price: int = 1000000000) -> None:
 
         if data_provider.data_size % self._n:
             raise RuntimeError('Can not divide data of length %d equally in %d slices' % (
