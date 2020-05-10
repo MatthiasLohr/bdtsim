@@ -57,7 +57,8 @@ class ExecutionTransactionMonitor(object):
     def _decision_callback(self, decision: Decision) -> None:
         if self._current_execution_result_node is None:
             raise RuntimeError()
-        self._current_execution_result_node.transactions.append(self._current_transactions)
+        self._current_execution_result_node.transactions.append(self._current_transactions.copy())
+        self._current_transactions = []
         self._current_execution_result_node = self._current_execution_result_node.child(decision)
 
     def _transaction_callback(self, account: Account, tx_dict: Dict[str, Any], tx_receipt: Dict[str, Any]) -> None:
@@ -70,6 +71,9 @@ class ExecutionTransactionMonitor(object):
 
     def __exit__(self, exception_type: Optional[Type[BaseException]], exception: Optional[BaseException],
                  traceback: Optional[TracebackType]) -> None:
+        if self._current_execution_result_node is None:
+            raise RuntimeError()
+        self._current_execution_result_node.transactions.append(self._current_transactions.copy())
         self._protocol_path.decision_callback = None
         self._environment.transaction_callback = None
 
