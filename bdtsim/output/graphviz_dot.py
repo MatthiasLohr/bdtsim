@@ -27,6 +27,9 @@ from .simulation_result import SimulationResult, ResultNode, TransactionLogList,
 
 
 class GraphvizDotOutputFormat(OutputFormat):
+    COLOR_HONEST = '#00CC00'
+    COLOR_CHEATING = '#FF0000'
+
     def __init__(self, output_filename: Optional[str] = None, view: bool = False, cleanup: bool = False,
                  output_format: str = 'pdf', graphviz_renderer: Optional[str] = None,
                  graphviz_formatter: Optional[str] = None) -> None:
@@ -120,7 +123,12 @@ class GraphvizDotOutputFormat(OutputFormat):
                            tx_collection: TransactionLogCollection) -> None:
         label = '%s' % decision.variant
         label += '\n' + self._get_label_for_tx_collection(tx_collection).strip()
-        graph.edge(parent_uuid, child_uuid, label=label)
+        graph.edge(
+            tail_name=parent_uuid,
+            head_name=child_uuid,
+            label=label,
+            color=self._color_by_honesty(decision.is_honest())
+        )
 
     @staticmethod
     def _get_label_for_tx_collection(tx_collection: TransactionLogCollection) -> str:
@@ -161,6 +169,10 @@ class GraphvizDotOutputFormat(OutputFormat):
     @staticmethod
     def _uuid() -> str:
         return str(uuid4())
+
+    @staticmethod
+    def _color_by_honesty(honest: bool) -> str:
+        return GraphvizDotOutputFormat.COLOR_HONEST if honest else GraphvizDotOutputFormat.COLOR_CHEATING
 
 
 OutputFormatManager.register('dot', GraphvizDotOutputFormat)
