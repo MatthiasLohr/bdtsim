@@ -22,7 +22,8 @@ from bdtsim.account import Account
 from bdtsim.protocol_path import Decision
 from .output_format import OutputFormat
 from .output_format_manager import OutputFormatManager
-from .simulation_result import SimulationResult, TransactionLogAggregation, TransactionLogEntry, ResultNode
+from .simulation_result import SimulationResult, TransactionLogEntry, TransactionLogList, TransactionLogCollection,\
+    ResultNode
 
 
 class JSONOutputFormat(OutputFormat):
@@ -52,33 +53,52 @@ class JSONEncoder(json.JSONEncoder):
             }
         elif isinstance(obj, ResultNode):
             return {
-                'transactions': obj.transactions,
+                'transactions': obj.tx_collection,
                 'children': [{
                     'decision': decision,
-                    'child_node': node
-                } for decision, node in obj.children.items()]
+                    'execution_results': child
+                } for decision, child in obj.children.items()]
             }
         elif isinstance(obj, SimulationResult):
             return {
-                'preparation_results': TransactionLogAggregation(obj.preparation_transactions),
+                'preparation_results': obj.preparation_transactions,
                 'execution_results': obj.execution_result_root,
-                'cleanup_results': TransactionLogAggregation(obj.cleanup_transactions),
+                'cleanup_results': obj.cleanup_transactions
             }
-        elif isinstance(obj, TransactionLogAggregation):
+        elif isinstance(obj, TransactionLogCollection):
             return {
-                'aggregation': obj.aggregation_results,
-                'transactions': obj.transactions
+                'transaction_lists': obj.tx_log_lists,
+                'aggregation': obj.aggregation
             }
-        elif isinstance(obj, TransactionLogAggregation.Result):
-            return {
-                'account': obj.account,
-                'tx_fees': obj.tx_fees,
-                'tx_count': obj.tx_count
-            }
+        elif isinstance(obj, TransactionLogCollection.Aggregation):
+            return list(obj.entries.values())
         elif isinstance(obj, TransactionLogEntry):
             return {
                 'tx': obj.tx_dict,
                 'receipt': obj.tx_receipt
+            }
+        elif isinstance(obj, TransactionLogCollection.Aggregation.Entry):
+            return {
+                'account': obj.account,
+                'tx_fees_min': obj.tx_fees_min,
+                'tx_fees_man': obj.tx_fees_max,
+                'tx_fees_mean': obj.tx_fees_mean,
+                'tx_count_min': obj.tx_count_min,
+                'tx_count_man': obj.tx_count_max,
+                'tx_count_mean': obj.tx_count_mean
+            }
+        elif isinstance(obj, TransactionLogList):
+            return {
+                'transactions': obj.tx_log_list,
+                'aggregation': obj.aggregation
+            }
+        elif isinstance(obj, TransactionLogList.Aggregation):
+            return list(obj.entries.values())
+        elif isinstance(obj, TransactionLogList.Aggregation.Entry):
+            return {
+                'account': obj.account,
+                'tx_fees': obj.tx_fees,
+                'tx_count': obj.tx_count
             }
         else:
             return super(JSONEncoder, self).default(obj)

@@ -17,19 +17,19 @@
 
 import logging
 from types import TracebackType
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Dict, Optional, Type
 
 from bdtsim.account import Account
 from bdtsim.environment import Environment
 from bdtsim.protocol_path import ProtocolPath, Decision
-from .simulation_result import SimulationResult, TransactionLogEntry, ResultNode
+from .simulation_result import SimulationResult, ResultNode, TransactionLogEntry, TransactionLogList
 
 
 logger = logging.getLogger(__name__)
 
 
 class SimpleTransactionMonitor(object):
-    def __init__(self, environment: Environment, transactions_target: List[TransactionLogEntry]) -> None:
+    def __init__(self, environment: Environment, transactions_target: TransactionLogList) -> None:
         self._environment = environment
         self._transactions_target = transactions_target
 
@@ -52,13 +52,13 @@ class ExecutionTransactionMonitor(object):
         self._execution_result_root = execution_result_root
 
         self._current_execution_result_node: Optional[ResultNode] = None
-        self._current_transactions: List[TransactionLogEntry] = []
+        self._current_transactions: TransactionLogList = TransactionLogList()
 
     def _decision_callback(self, decision: Decision) -> None:
         if self._current_execution_result_node is None:
             raise RuntimeError()
-        self._current_execution_result_node.transactions.append(self._current_transactions.copy())
-        self._current_transactions = []
+        self._current_execution_result_node.tx_collection.append(self._current_transactions)
+        self._current_transactions = TransactionLogList()
         self._current_execution_result_node = self._current_execution_result_node.child(decision)
 
     def _transaction_callback(self, account: Account, tx_dict: Dict[str, Any], tx_receipt: Dict[str, Any]) -> None:
@@ -73,7 +73,7 @@ class ExecutionTransactionMonitor(object):
                  traceback: Optional[TracebackType]) -> None:
         if self._current_execution_result_node is None:
             raise RuntimeError()
-        self._current_execution_result_node.transactions.append(self._current_transactions.copy())
+        self._current_execution_result_node.tx_collection.append(self._current_transactions)
         self._protocol_path.decision_callback = None
         self._environment.transaction_callback = None
 

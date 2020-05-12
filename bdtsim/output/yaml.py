@@ -29,7 +29,8 @@ class YAMLOutputFormat(OutputFormat):
         super(YAMLOutputFormat, self).__init__()
 
     def render(self, simulation_result: SimulationResult) -> None:
-        print(yaml.dump(json.loads(json.dumps(simulation_result, cls=JSONEncoder))))
+        json_str = json.dumps(simulation_result, cls=JSONEncoder)
+        print(yaml.dump(json.loads(json_str)))
 
 
 OutputFormatManager.register('yaml', YAMLOutputFormat)
