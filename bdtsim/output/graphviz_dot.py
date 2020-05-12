@@ -27,16 +27,39 @@ from .simulation_result import SimulationResult, ResultNode, TransactionLogList,
 
 
 class GraphvizDotOutputFormat(OutputFormat):
-    def __init__(self, output_file: Optional[str] = None, view: Optional[bool] = False) -> None:
+    def __init__(self, output_filename: Optional[str] = None, view: bool = False, cleanup: bool = False,
+                 output_format: str = 'pdf', graphviz_renderer: Optional[str] = None,
+                 graphviz_formatter: Optional[str] = None) -> None:
+        """Create a [dot graph](https://www.graphviz.org/) for simulation result presentation.
+
+        Args:
+            output_filename (str): If provided, save dot graph to this file instead of printing to stdout
+            view (bool): Open the rendered result with the default application (defaults to False).
+            cleanup (bool): Delete the source file after rendering (defaults to False).
+            output_format: The output format used for rendering (``'pdf'``, ``'png'``, etc., defaults to ``'pdf'``).
+            graphviz_renderer: The output renderer used for rendering (``'cairo'``, ``'gd'``, ...).
+            graphviz_formatter: The output formatter used for rendering (``'cairo'``, ``'gd'``, ...).
+        """
         super(GraphvizDotOutputFormat, self).__init__()
-        self._output_file = output_file
+        self._output_filename = output_filename
         self._view = view
+        self._cleanup = cleanup
+        self._output_format = output_format
+        self._graphviz_renderer = graphviz_renderer
+        self._graphviz_formatter = graphviz_formatter
 
     def render(self, simulation_result: SimulationResult) -> None:
         graph = self._generate_graph(simulation_result)
 
-        if self._output_file is not None:
-            graph.render('/tmp/bdtsim-output.svg', view=self._view)
+        if self._output_filename is not None:
+            graph.render(
+                filename=self._output_filename,
+                view=self._view,
+                cleanup=self._cleanup,
+                format=self._output_format,
+                renderer=self._graphviz_renderer,
+                formatter=self._graphviz_formatter
+            )
         else:
             print(graph.source)
 
