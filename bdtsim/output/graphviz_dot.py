@@ -134,16 +134,25 @@ class GraphvizDotOutputFormat(OutputFormat):
     def _get_label_for_tx_collection(tx_collection: TransactionLogCollection) -> str:
         return '\n'.join([str(entry) for entry in tx_collection.aggregation.entries.values()])
 
-    @staticmethod
-    def _add_end_node(graph: Digraph, uuid: str, node: ResultNode) -> None:
+    def _add_end_node(self, graph: Digraph, uuid: str, node: ResultNode) -> None:
         aggregation_summary = TransactionLogCollection.Aggregation(TransactionLogCollection())
         next_node: Optional[ResultNode] = node
         while next_node is not None:
             aggregation_summary += next_node.tx_collection.aggregation
             next_node = next_node.parent
 
-        label = '\n'.join([str(entry) for entry in aggregation_summary.entries.values()])
-        graph.node(uuid, label=label, shape='box')
+        label_lines = []
+        for entry in aggregation_summary.entries.values():
+            label_lines.append('<font color="%s">%s</font>' % (
+                self._color_by_honesty(node.account_was_completely_host(entry.account)),
+                str(entry)
+            ))
+
+        graph.node(
+            name=uuid,
+            label='<Total:<br align="left" />%s<br align="left" />>' % '<br align="left" />'.join(label_lines),
+            shape='box'
+        )
 
     def _walk_nodes(self, graph: Digraph, current_node: ResultNode, parent_uuid: str,
                     incoming_decision: Optional[Decision]) -> None:

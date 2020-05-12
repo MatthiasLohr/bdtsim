@@ -175,6 +175,16 @@ class ResultNode(object):
             self.children.update({decision: child})
         return child
 
+    def account_was_completely_host(self, account: Account) -> bool:
+        if self.parent is not None:
+            incoming_decision = list(self.parent.children.keys())[list(self.parent.children.values()).index(self)]
+            if incoming_decision.account == account and not incoming_decision.is_honest():
+                return False
+            else:
+                return self.parent.account_was_completely_host(account)
+        else:
+            return True
+
 
 class SimulationResult(object):
     def __init__(self) -> None:
