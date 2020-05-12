@@ -109,12 +109,16 @@ class Decision(object):
         return hash((self._account, self._variant, tuple(self._variants)))
 
     def __repr__(self) -> str:
-        return '' % (
-
+        return '<%s.%s by %s: %s (%s)>' % (
+            __name__,
+            Decision.__name__,
+            self.account.name,
+            self.variant,
+            ', '.join(self.variants)
         )
 
     def __str__(self) -> str:
-        return '%s:%s (%s)' % (
+        return '%s: %s (%s)' % (
             self.account.name,
             self.variant,
             ', '.join(self.variants)
