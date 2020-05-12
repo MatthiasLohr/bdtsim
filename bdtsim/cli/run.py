@@ -88,11 +88,10 @@ class RunSubCommand(SubCommand):
             price=args.price
         )
 
-        simulation_result = simulation.run()
-
         output_format = OutputFormatManager.instantiate(
             args.output_format,
             **output_format_parameters
         )
 
+        simulation_result = simulation.run()
         output_format.render(simulation_result)
