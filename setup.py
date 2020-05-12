@@ -36,10 +36,10 @@ setup(
         'graphviz==0.14',
         'hexbytes==0.2.0',
         'Jinja2==2.11.2',
-        'py-evm==0.3.0a14',
-        'py-solc-x==0.8.1',
+        'py-evm==0.3.0a15',
+        'py-solc-x==0.8.2',
         'PyYAML==5.3.1',
-        'web3==5.7.0'
+        'web3==5.9.0'
     ],
     python_requires='>=3.7.*, <4',
     packages=find_packages(exclude=['tests']),
