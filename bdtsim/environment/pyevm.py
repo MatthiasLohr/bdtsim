@@ -49,8 +49,7 @@ class PyEVMEnvironment(Environment):
             EthereumTesterProvider(self._eth_tester_instance),
             chain_id=chain_id,
             gas_price=gas_price,
-            gas_price_strategy=gas_price_strategy,
-            tx_wait_timeout=tx_wait_timeout
+            gas_price_strategy=gas_price_strategy
         )
 
         for account_index, recipient in [(0, operator), (1, seller), (2, buyer)]:

@@ -38,7 +38,6 @@ class RunSubCommand(SubCommand):
                             default='human-readable')
         parser.add_argument('--price', type=int, default=1000000000)
         parser.add_argument('--gas-price', type=int, default=None)
-        parser.add_argument('--tx-wait-timeout', type=int, default=120)
         parser.add_argument('-p', '--protocol-parameter', nargs=2, action='append', dest='protocol_parameters',
                             default=[])
         parser.add_argument('-e', '--environment-parameter', nargs=2, action='append', dest='environment_parameters',
@@ -72,7 +71,6 @@ class RunSubCommand(SubCommand):
             args.environment,
             chain_id=args.chain_id,
             gas_price=args.gas_price,
-            tx_wait_timeout=args.tx_wait_timeout,
             **environment_parameters
         )
 

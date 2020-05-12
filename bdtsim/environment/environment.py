@@ -20,6 +20,7 @@ from typing import Any, Callable, Dict, Optional
 
 from web3 import Web3
 from web3.datastructures import AttributeDict
+from web3.exceptions import TimeExhausted
 from web3.gas_strategies.time_based import fast_gas_price_strategy
 from web3.providers.base import BaseProvider
 from web3.types import TxParams, Wei
@@ -33,8 +34,7 @@ logger = logging.getLogger(__name__)
 
 class Environment(object):
     def __init__(self, web3_provider: BaseProvider, chain_id: Optional[int] = None, gas_price: Optional[int] = None,
-                 gas_price_strategy: Optional[Callable[[Web3, Optional[TxParams]], Wei]] = None,
-                 tx_wait_timeout: int = 120) -> None:
+                 gas_price_strategy: Optional[Callable[[Web3, Optional[TxParams]], Wei]] = None) -> None:
         self._web3 = Web3(web3_provider)
 
         if chain_id is None:
@@ -51,7 +51,6 @@ class Environment(object):
             self._web3.eth.setGasPriceStrategy(gas_price_strategy)
         else:
             self._web3.eth.setGasPriceStrategy(fast_gas_price_strategy)
-        self._tx_wait_timeout = tx_wait_timeout
 
         self._contract: Optional[SolidityContract] = None
         self._contract_address: Optional[str] = None
@@ -66,19 +65,20 @@ class Environment(object):
     def gas_price(self) -> Optional[int]:
         return self._gas_price
 
-    @property
-    def tx_wait_timeout(self) -> int:
-        return self._tx_wait_timeout
-
-    def deploy_contract(self, account: Account, contract: SolidityContract, *args: Any, **kwargs: Any) -> None:
+    def deploy_contract(self, account: Account, contract: SolidityContract, allow_failure: bool = False,
+                        *args: Any, **kwargs: Any) -> None:
         web3_contract = self._web3.eth.contract(abi=contract.abi, bytecode=contract.bytecode)
-        tx_receipt = self._send_transaction(account, web3_contract.constructor(*args, **kwargs))
+        tx_receipt = self._send_transaction(
+            account=account,
+            factory=web3_contract.constructor(*args, **kwargs),
+            allow_failure=allow_failure
+        )
         self._contract_address = tx_receipt['contractAddress']
         logger.debug('New contract address: %s' % self._contract_address)
         self._contract = contract
 
     def send_contract_transaction(self, account: Account, method: str, *args: Any, value: int = 0,
-                                  **kwargs: Any) -> Any:
+                                  allow_failure: bool = False, **kwargs: Any) -> Any:
         if self._contract is None:
             raise RuntimeError('No contract available!')
         web3_contract = self._web3.eth.contract(address=self._contract_address, abi=self._contract.abi)
@@ -87,19 +87,22 @@ class Environment(object):
         self._send_transaction(
             account=account,
             factory=factory,
-            value=value
+            value=value,
+            allow_failure=allow_failure
         )
         # TODO implement contract return value
 
-    def send_direct_transaction(self, account: Account, to: Account, value: int = 0) -> None:
+    def send_direct_transaction(self, account: Account, to: Account, value: int = 0,
+                                allow_failure: bool = False) -> None:
         self._send_transaction(
             account=account,
             to=to,
-            value=value
+            value=value,
+            allow_failure=allow_failure
         )
 
     def _send_transaction(self, account: Account, factory: Optional[Any] = None, to: Optional[Account] = None,
-                          value: int = 0) -> AttributeDict[str, Any]:
+                          value: int = 0, allow_failure: bool = False) -> AttributeDict[str, Any]:
         tx_dict = {
             'from': account.wallet_address,
             'nonce': self._web3.eth.getTransactionCount(account.wallet_address, 'pending'),
@@ -120,10 +123,21 @@ class Environment(object):
         else:
             tx_dict['gasPrice'] = self._web3.eth.generateGasPrice(tx_dict)
         tx_signed = self._web3.eth.account.sign_transaction(tx_dict, private_key=account.wallet_private_key)
+
         logger.debug('Submitting transaction %s...' % str(tx_dict))
         tx_hash = self._web3.eth.sendRawTransaction(tx_signed.rawTransaction)
-        logger.debug('Waiting for transaction receipt (hash is %s)...' % str(tx_hash.hex()))
-        tx_receipt = self._web3.eth.waitForTransactionReceipt(tx_hash, self.tx_wait_timeout)
+
+        tx_receipt = None
+        while tx_receipt is None:
+            logger.debug('Waiting for transaction receipt (hash is %s)...' % str(tx_hash.hex()))
+            try:
+                tx_receipt = self._web3.eth.waitForTransactionReceipt(tx_hash, timeout=10)
+            except TimeExhausted:
+                pass
+
+        if not allow_failure and not tx_receipt['status']:
+            raise RuntimeError('Transaction execution not successful')
+
         logger.debug('Got receipt %s' % str(tx_receipt))
         if self.transaction_callback is not None:
             self.transaction_callback(account, tx_dict, dict(tx_receipt))
