@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from typing import List, Optional
 from uuid import uuid4
 
 from graphviz import Digraph  # type: ignore
@@ -109,7 +109,7 @@ class GraphvizDotOutputFormat(OutputFormat):
 
     @staticmethod
     def _add_start_node(graph: Digraph, uuid: str) -> None:
-        graph.node(uuid, label='Start')
+        graph.node(uuid, label='<<b>Start</b>>')
 
     @staticmethod
     def _add_decision_node(graph: Digraph, uuid: str, label: str) -> None:
@@ -117,22 +117,25 @@ class GraphvizDotOutputFormat(OutputFormat):
 
     def _add_start_edge(self, graph: Digraph, parent_uuid: str, child_uuid: str,
                         tx_collection: TransactionLogCollection) -> None:
-        graph.edge(parent_uuid, child_uuid, self._get_label_for_tx_collection(tx_collection).strip())
-
-    def _add_decision_edge(self, graph: Digraph, parent_uuid: str, child_uuid: str, decision: Decision,
-                           tx_collection: TransactionLogCollection) -> None:
-        label = '%s' % decision.variant
-        label += '\n' + self._get_label_for_tx_collection(tx_collection).strip()
         graph.edge(
             tail_name=parent_uuid,
             head_name=child_uuid,
-            label=label,
+            label=''.join(self._get_label_lines_for_tx_collection(tx_collection))
+        )
+
+    def _add_decision_edge(self, graph: Digraph, parent_uuid: str, child_uuid: str, decision: Decision,
+                           tx_collection: TransactionLogCollection) -> None:
+        label_lines = self._get_label_lines_for_tx_collection(tx_collection)
+        graph.edge(
+            tail_name=parent_uuid,
+            head_name=child_uuid,
+            label='<<b>%s</b><br />%s>' % (decision.variant, ''.join(['%s<br />' % str(line) for line in label_lines])),
             color=self._color_by_honesty(decision.is_honest())
         )
 
     @staticmethod
-    def _get_label_for_tx_collection(tx_collection: TransactionLogCollection) -> str:
-        return '\n'.join([str(entry) for entry in tx_collection.aggregation.entries.values()])
+    def _get_label_lines_for_tx_collection(tx_collection: TransactionLogCollection) -> List[str]:
+        return [str(entry) for entry in tx_collection.aggregation.entries.values()]
 
     def _add_end_node(self, graph: Digraph, uuid: str, node: ResultNode) -> None:
         aggregation_summary = TransactionLogCollection.Aggregation(TransactionLogCollection())
@@ -150,7 +153,7 @@ class GraphvizDotOutputFormat(OutputFormat):
 
         graph.node(
             name=uuid,
-            label='<Total:<br align="left" />%s<br align="left" />>' % '<br align="left" />'.join(label_lines),
+            label='<<b>Total</b><br align="left" />%s<br align="left" />>' % '<br align="left" />'.join(label_lines),
             shape='box'
         )
 
@@ -161,7 +164,7 @@ class GraphvizDotOutputFormat(OutputFormat):
         if len(current_node.children) > 0:
             # Decision Node
             first_decision = list(current_node.children.keys())[0]
-            current_node_label = '%s:\n%s' % (first_decision.account.name, first_decision.description)
+            current_node_label = '<%s<br /><b>%s</b>>' % (first_decision.account.name, first_decision.description)
             self._add_decision_node(graph, current_node_uuid, current_node_label)
         else:
             self._add_end_node(graph, current_node_uuid, current_node)
