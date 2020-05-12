@@ -29,23 +29,30 @@ class Decision(object):
     decision.
     """
 
-    def __init__(self, account: Account, variant: str, variants: List[str], timestamp: Optional[float] = None,
-                 description: Optional[str] = None) -> None:
+    def __init__(self, account: Account, variant: str, variants: List[str], honest_variants: Optional[List[str]] = None,
+                 description: Optional[str] = None, timestamp: Optional[float] = None) -> None:
         """
         Args:
             account (Account): Who is deciding about the next step
             variant (str): Variant chosen in this decision
             variants (List[str]): Possible variants
+            honest_variants (List[str]): List of variants to be considered as honest
             description (str): Description of this decision variant (not considered for equality)
+            timestamp (float): When the decision has taken place
         """
         if len(variants) < 2:
             raise ValueError('You have to provide at least 2 variants for a decision')
         if variant not in variants:
             raise ValueError('%s not in list of possible variants (%s)' % (variant, ', '.join(variants)))
+        if honest_variants is not None:
+            for honest_variant in honest_variants:
+                if honest_variant not in variants:
+                    raise ValueError('Honest variants have to be part of possible variants list')
 
         self._account = account
         self._variant = variant
         self._variants = variants
+        self._honest_variants: List[str] = honest_variants or [variants[0]]
         self._timestamp = timestamp
         self._description = description
 
@@ -62,6 +69,10 @@ class Decision(object):
         return self._variants
 
     @property
+    def honest_variants(self) -> List[str]:
+        return self._honest_variants
+
+    @property
     def timestamp(self) -> Optional[float]:
         return self._timestamp
 
@@ -73,11 +84,8 @@ class Decision(object):
     def description(self) -> Optional[str]:
         return self._description
 
-    def is_honest(self, honest_variants: Optional[List[str]] = None) -> bool:
-        if honest_variants is None:
-            return self.variants.index(self.variant) == 0
-        else:
-            return self.variant in honest_variants
+    def is_honest(self) -> bool:
+        return self.variant in self._honest_variants
 
     def is_variant(self, variant: str) -> bool:
         return self.variant == variant
@@ -94,7 +102,10 @@ class Decision(object):
             bool: Equality
         """
         if isinstance(other, Decision):
-            return self.account == other.account and self.variant == other.variant and self.variants == other.variants
+            return (self.account == other.account
+                    and self.variant == other.variant
+                    and self.variants == other.variants
+                    and self._honest_variants == other._honest_variants)
         elif isinstance(other, str):
             if other not in self.variants:
                 raise ValueError('%s is not an allowed variant (%s)' % (other, ', '.join(self.variants)))
@@ -194,6 +205,7 @@ class ProtocolPath(object):
                         account=decision_head.account,
                         variant=variant,
                         variants=decision_head.variants,
+                        honest_variants=decision_head._honest_variants,
                         timestamp=None,
                         description=decision_head.description
                     )]
