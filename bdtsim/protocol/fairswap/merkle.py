@@ -17,7 +17,7 @@
 
 import itertools
 import math
-from typing import List, Tuple
+from typing import Any, List, Tuple
 
 from eth_utils.crypto import keccak
 
@@ -48,7 +48,7 @@ class MerkleTreeNode(object):
     def digests_pack(self) -> List[bytes]:
         return [digest for digest, level in sorted(self._digests_pack(0), key=lambda d: d[1], reverse=True)]
 
-    def _digests_pack(self, level) -> List[Tuple[bytes, int]]:
+    def _digests_pack(self, level: int) -> List[Tuple[bytes, int]]:
         return list(itertools.chain.from_iterable([
             c._digests_pack(level + 1) for c in self.children
         ])) + [(self.digest, level)]
@@ -63,13 +63,13 @@ class MerkleTreeNode(object):
             self.digest.hex()
         )
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         if isinstance(other, MerkleTreeNode):
             return self.digest == other.digest
         else:
             return NotImplemented
 
-    def __ne__(self, other) -> bool:
+    def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
 
 
@@ -94,7 +94,7 @@ class MerkleTreeLeaf(MerkleTreeNode):
     def digests_pack(self) -> List[bytes]:
         return []
 
-    def _digests_pack(self, level) -> List[Tuple[bytes, int]]:
+    def _digests_pack(self, level: int) -> List[Tuple[bytes, int]]:
         return []
 
     def __bytes__(self) -> bytes:
@@ -107,20 +107,20 @@ class MerkleTreeLeaf(MerkleTreeNode):
             str(self.data)
         )
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         if isinstance(other, MerkleTreeLeaf):
             return self.data == other.data
         else:
             return NotImplemented
 
-    def __ne__(self, other) -> bool:
+    def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
 
 
 def from_leaves(leaves: List[MerkleTreeLeaf]) -> MerkleTreeNode:
     if len(leaves) == 0:
         raise ValueError('Cannot create tree from empty list')
-    nodes = leaves
+    nodes: List[MerkleTreeNode] = list(leaves)
     while len(nodes) > 1:
         nodes = [MerkleTreeNode(*nodes[i:i + 2]) for i in range(0, len(nodes), 2)]
     return nodes[0]

@@ -24,9 +24,9 @@ pragma solidity ^0.6.1;
 
 contract FileSale {
 
-    uint constant depth = {{ depth }};
-    uint constant length = {{ length }};
-    uint constant n = {{ n }};
+    uint constant depth = {{ merkle_tree_depth }};
+    uint constant length = {{ slice_length }};
+    uint constant n = {{ slices_count }};
 
     enum stage {created, initialized, accepted, keyRevealed, finished}
     stage public phase = stage.created;

@@ -121,7 +121,7 @@ class GraphvizDotOutputFormat(OutputFormat):
             tail_name=parent_uuid,
             head_name=child_uuid,
             label='<%s>' % ''.join(
-                ['%s<br />' % str(l) for l in self._get_label_lines_for_tx_collection(tx_collection)]
+                ['%s<br />' % str(label_line) for label_line in self._get_label_lines_for_tx_collection(tx_collection)]
             )
         )
 

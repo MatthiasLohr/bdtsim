@@ -16,6 +16,7 @@
 # limitations under the License.
 
 import math
+from typing import List
 
 from bdtsim.util.xor import xor_crypt
 from . import merkle
@@ -36,9 +37,9 @@ def decrypt_merkle_tree(root: merkle.MerkleTreeNode, key: bytes) -> merkle.Merkl
     if not math.log2(len(data_decrypted) + 1).is_integer():
         raise ValueError('Number of leaves + 1 must be power of 2')
     leaf_data = data_decrypted[:int((len(data_decrypted) + 1) / 2)]
-    digests = data_decrypted[int((len(data_decrypted) + 1 ) / 2):]
+    digests = data_decrypted[int((len(data_decrypted) + 1) / 2):]
 
-    nodes = [merkle.MerkleTreeLeaf(d) for d in leaf_data]
+    nodes: List[merkle.MerkleTreeNode] = [merkle.MerkleTreeLeaf(d) for d in leaf_data]
     while len(nodes) > 1:
         nodes = [merkle.MerkleTreeNode(*nodes[i:i + 2]) for i in range(0, len(nodes), 2)]
         for node in nodes:

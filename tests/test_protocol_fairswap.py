@@ -41,5 +41,5 @@ class FairSwapProtocolEncryptionTest(unittest.TestCase):
         tree = merkle.from_bytes(b'aabbccddeeffgghh', 8)
         key = b'13374242'
         tree_enc = encryption.encrypt_merkle_tree(tree, key)
-        tree_dec = encryption.decrypt_merkle_tree(tree_enc,key)
+        tree_dec = encryption.decrypt_merkle_tree(tree_enc, key)
         self.assertEqual(tree, tree_dec)

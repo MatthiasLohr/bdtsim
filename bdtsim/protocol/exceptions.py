@@ -15,16 +15,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .protocol import Protocol
-from .protocol_manager import ProtocolManager
-from .exceptions import ProtocolError, ProtocolInitializationError, ProtocolExecutionError
-from .fairswap import FairSwap
-from .simplepayment import SimplePayment
 
-__all__ = [
-    'Protocol',
-    'ProtocolManager',
-    'ProtocolError', 'ProtocolInitializationError', 'ProtocolExecutionError',
-    'FairSwap',
-    'SimplePayment'
-]
+class ProtocolError(Exception):
+    pass
+
+
+class ProtocolInitializationError(ProtocolError):
+    pass
+
+
+class ProtocolExecutionError(ProtocolError):
+    pass
