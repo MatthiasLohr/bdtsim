@@ -120,7 +120,9 @@ class GraphvizDotOutputFormat(OutputFormat):
         graph.edge(
             tail_name=parent_uuid,
             head_name=child_uuid,
-            label=''.join(self._get_label_lines_for_tx_collection(tx_collection))
+            label='<%s>' % ''.join(
+                ['%s<br />' % str(l) for l in self._get_label_lines_for_tx_collection(tx_collection)]
+            )
         )
 
     def _add_decision_edge(self, graph: Digraph, parent_uuid: str, child_uuid: str, decision: Decision,
