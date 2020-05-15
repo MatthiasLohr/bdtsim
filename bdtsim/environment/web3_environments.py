@@ -30,15 +30,14 @@ class Web3Environment(Environment):
     def __init__(self, web3_provider_class: Type[JSONBaseProvider], chain_id: Optional[int] = None,
                  gas_price: Optional[int] = None,
                  gas_price_strategy: Optional[Callable[[Web3, Optional[TxParams]], Wei]] = None,
-                 tx_wait_timeout: int = 120, inject_poa_middleware: bool = False, **kwargs: Any) -> None:
+                 inject_poa_middleware: bool = False, **kwargs: Any) -> None:
 
         # noinspection PyArgumentList
         super(Web3Environment, self).__init__(
             web3_provider_class(**kwargs),  # type: ignore
             chain_id=chain_id,
             gas_price=gas_price,
-            gas_price_strategy=gas_price_strategy,
-            tx_wait_timeout=tx_wait_timeout
+            gas_price_strategy=gas_price_strategy
         )
 
         if inject_poa_middleware:
