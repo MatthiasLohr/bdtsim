@@ -59,6 +59,7 @@ class Simulation(object):
                 self._protocol.prepare_iteration(self._environment, operator)
                 logger.debug('Finished preparing the environment for iteration')
 
+                self._data_provider.file_pointer.seek(0, 0)
                 logger.debug('Starting protocol execution...')
                 self._protocol.execute(
                     protocol_path=protocol_path,
