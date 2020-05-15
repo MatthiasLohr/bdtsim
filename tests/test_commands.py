@@ -67,6 +67,7 @@ class CommandTest(unittest.TestCase):
         self.assertEqual(p.returncode, 0)
 
     def test_run_fairswap_file_sale(self):
-        p = subprocess.Popen(['bdtsim', 'run', 'FairSwap-FileSale', 'PyEVM'], stdout=subprocess.PIPE)
+        p = subprocess.Popen(['bdtsim', 'run', 'FairSwap-FileSale', 'PyEVM', '-d', 'size', '256'],
+                             stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
