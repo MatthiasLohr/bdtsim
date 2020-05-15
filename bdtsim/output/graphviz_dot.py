@@ -131,7 +131,7 @@ class GraphvizDotOutputFormat(OutputFormat):
         graph.edge(
             tail_name=parent_uuid,
             head_name=child_uuid,
-            label='<<b>%s</b><br />%s>' % (decision.variant, ''.join(['%s<br />' % str(line) for line in label_lines])),
+            label='<<b>%s</b><br />%s>' % (decision.outcome, ''.join(['%s<br />' % str(line) for line in label_lines])),
             color=self._color_by_honesty(decision.is_honest())
         )
 

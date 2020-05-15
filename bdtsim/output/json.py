@@ -47,7 +47,7 @@ class JSONEncoder(json.JSONEncoder):
             return {
                 'account': obj.account,
                 'description': obj.description,
-                'variant': obj.variant,
+                'variant': obj.outcome,
                 'variants': obj.variants,
                 'timestamp': obj.timestamp
             }
