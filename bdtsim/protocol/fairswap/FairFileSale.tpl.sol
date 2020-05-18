@@ -75,7 +75,6 @@ contract FileSale {
         nextStage();
     }
 
-    // function complain about wrong hash of file
     function noComplain() allowed(receiver, stage.keyRevealed) public {
         selfdestruct(sender);
     }
