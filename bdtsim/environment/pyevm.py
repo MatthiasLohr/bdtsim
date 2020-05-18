@@ -61,6 +61,10 @@ class PyEVMEnvironment(Environment):
                 'value': self._eth_tester_instance.get_balance(account)-21000
             })
 
+    def wait(self, seconds: int) -> None:
+        timeout = self._web3.eth.getBlock('latest').timestamp + seconds
+        self._eth_tester_instance.time_travel(timeout)
+
     @staticmethod
     def create_eth_tester_instance(pyevm_instance: PyEVMBackend) -> EthereumTester:
         return EthereumTester(pyevm_instance)

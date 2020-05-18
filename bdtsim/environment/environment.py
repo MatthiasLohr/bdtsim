@@ -16,6 +16,8 @@
 # limitations under the License.
 
 import logging
+import time
+from datetime import datetime
 from typing import Any, Callable, Dict, Optional
 
 from web3 import Web3
@@ -81,6 +83,7 @@ class Environment(object):
                                   allow_failure: bool = False, **kwargs: Any) -> Any:
         if self._contract is None:
             raise RuntimeError('No contract available!')
+        logger.debug('Preparing contract transaction %s(%s)' % (method, ', '.join([str(a) for a in [*args]])))
         web3_contract = self._web3.eth.contract(address=self._contract_address, abi=self._contract.abi)
         contract_method = getattr(web3_contract.functions, method)
         factory = contract_method(*args, **kwargs)
@@ -142,6 +145,21 @@ class Environment(object):
         if self.transaction_callback is not None:
             self.transaction_callback(account, tx_dict, dict(tx_receipt))
         return tx_receipt
+
+    def wait(self, seconds: int) -> None:
+        timeout = self._web3.eth.getBlock('latest').timestamp + seconds
+        logger.debug('Waiting for %d seconds' % seconds)
+        time.sleep(seconds)  # wake up earlier
+        while True:
+            current = self._web3.eth.getBlock('latest').timestamp
+            if current > timeout:
+                return
+            else:
+                logger.debug('Still waiting for timeout (current: %s, waiting for: %s)' % (
+                    datetime.fromtimestamp(current).isoformat(),
+                    datetime.fromtimestamp(timeout).isoformat()
+                ))
+                time.sleep(3)
 
     @property
     def web3(self) -> Web3:
