@@ -61,6 +61,7 @@ Buyer Complaint Types:
 ### Protocol Parameters
 
   * `slices_count`: Number of slices in which the data is to be split
+  * `timeout`: Timeout in seconds before refund can be used
 
 ### Example Protocol Execution
 

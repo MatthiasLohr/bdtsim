@@ -41,10 +41,11 @@ class FairSwap(Protocol):
     CONTRACT_TEMPLATE_FILE = 'FairFileSale.tpl.sol'
     CONTRACT_NAME = 'FileSale'
 
-    def __init__(self, slices_count: int = 8, *args: Any, **kwargs: Any) -> None:
+    def __init__(self, slices_count: int = 8, timeout: int = 600, *args: Any, **kwargs: Any) -> None:
         """
         Args:
             slices_count (int): number of slices in which the data is to be split
+            timeout (int): Timeout in seconds before refund can be used
             *args (Any): Additional arguments
             **kwargs (Any): Additional keyword arguments
         """
@@ -57,6 +58,8 @@ class FairSwap(Protocol):
         if not math.log2(self._slices_count).is_integer():
             raise ProtocolInitializationError('slice_count must be a power of 2')
         self._merkle_tree_depth = int(math.log2(self._slices_count))
+
+        self._timeout = int(timeout)
 
     def _get_contract(self, buyer: Account, price: int, slice_length: int, file_root_hash: bytes,
                       ciphertext_root_hash: bytes, key_hash: bytes) -> SolidityContract:
@@ -79,6 +82,7 @@ class FairSwap(Protocol):
             merkle_tree_depth=self._merkle_tree_depth,
             slice_length=slice_length,
             slices_count=self._slices_count,
+            timeout=self._timeout,
             receiver=buyer.wallet_address,
             price=price,
             key_commitment=self.hex(key_hash),

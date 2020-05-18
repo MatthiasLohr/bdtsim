@@ -53,7 +53,7 @@ contract FileSale {
     // go to next phase
     function nextStage() internal {
         phase = stage(uint(phase) + 1);
-        timeout = now + 10 minutes;
+        timeout = now + {{ timeout }} seconds;
     }
 
     // constructor is initialize function
