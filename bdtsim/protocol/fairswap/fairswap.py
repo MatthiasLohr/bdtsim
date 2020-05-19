@@ -57,7 +57,7 @@ class FairSwap(Protocol):
 
         if not math.log2(self._slices_count).is_integer():
             raise ProtocolInitializationError('slice_count must be a power of 2')
-        self._merkle_tree_depth = int(math.log2(self._slices_count))
+        self._merkle_tree_depth = int(math.log2(self._slices_count)) + 1
 
         self._timeout = int(timeout)
 

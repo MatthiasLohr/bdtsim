@@ -30,6 +30,14 @@ class MerkleTest(unittest.TestCase):
     def test_init(self):
         self.assertRaises(ValueError, MerkleTreeNode, MerkleTreeLeaf(B032), MerkleTreeLeaf(B032), MerkleTreeLeaf(B032))
 
+    def test_get_proof_and_validate(self):
+        for slice_count in [2, 4, 8, 16]:
+            tree = from_bytes(FairSwap.generate_bytes(32 * slice_count), slice_count)
+            for index, leaf in enumerate(tree.leaves):
+                proof = tree.get_proof(leaf)
+                self.assertEqual(len(proof), int(math.log2(slice_count)))
+                self.assertTrue(MerkleTreeNode.validate_proof(tree.digest, leaf, index, proof))
+
 
 class EncodingTest(unittest.TestCase):
     def test_encode_decode(self):
@@ -37,3 +45,33 @@ class EncodingTest(unittest.TestCase):
         tree_enc = encode(tree, B032)
         tree_dec = decode(tree_enc, B032)
         self.assertEqual(tree, tree_dec)
+
+
+class ContractTest(unittest.TestCase):
+    @staticmethod
+    def prepare_contract(file_root_hash, ciphertext_root_hash, key_hash):
+        web3 = Web3(EthereumTesterProvider(EthereumTester(PyEVMBackend())))
+        contract_object = FairSwap(4)._get_contract(
+            buyer=buyer,
+            price=1000000000,
+            slice_length=32,
+            file_root_hash=file_root_hash,
+            ciphertext_root_hash=ciphertext_root_hash,
+            key_hash=key_hash
+        )
+        contract_preparation = web3.eth.contract(abi=contract_object.abi, bytecode=contract_object.bytecode)
+        tx_hash = contract_preparation.constructor().transact()
+        tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
+        return web3, web3.eth.contract(address=tx_receipt.contractAddress, abi=contract_object.abi)
+
+    def test_vrfy(self):
+        tree = from_bytes(FairSwap.generate_bytes(128, seed=42), 4)
+        key = FairSwap.generate_bytes(32, seed=43)
+        tree_enc = encode(tree, key)
+        web3, contract = self.prepare_contract(tree.digest, tree_enc.digest, B032)
+
+        for index, leaf in enumerate(tree_enc.leaves):
+            proof = tree_enc.get_proof(leaf)
+            self.assertEqual(len(proof), 3)
+            call_result = contract.functions.vrfy(index, bytes(leaf), proof).call()
+            self.assertTrue(call_result)

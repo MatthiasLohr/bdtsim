@@ -137,11 +137,11 @@ contract FileSale {
 
     // function to verify Merkle Tree proofs
     function vrfy(uint _index, bytes32 _value, bytes32[depth] memory _proof) public view returns (bool) {
-        for (uint8 i = 0; i < 3; i++) {
+        for (uint8 i = 0; i < depth; i++) {
             if ((_index & 1 << i) >>i == 1)
-                _value = keccak256(abi.encode(_proof[3 - i], _value));
+                _value = keccak256(abi.encodePacked(_proof[depth - i - 1], _value));
             else
-                _value = keccak256(abi.encode(_value, _proof[3 - i]));
+                _value = keccak256(abi.encodePacked(_value, _proof[depth - i - 1]));
         }
         return (_value == chiphertextRoot);
     }
