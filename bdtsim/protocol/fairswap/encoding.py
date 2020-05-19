@@ -30,7 +30,7 @@ class DecodingError(Exception):
 
 
 class DigestMismatchError(DecodingError):
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
 
