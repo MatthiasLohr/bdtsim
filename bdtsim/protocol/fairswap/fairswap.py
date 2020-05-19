@@ -20,9 +20,9 @@ import math
 import random
 from typing import Any, Optional, Union
 
-from eth_utils.crypto import keccak
 from hexbytes.main import HexBytes
 from jinja2 import Template
+from web3 import Web3
 
 from bdtsim.account import Account
 from bdtsim.contract import SolidityContract
@@ -30,8 +30,7 @@ from bdtsim.data_provider import DataProvider
 from bdtsim.environment import Environment
 from bdtsim.protocol import Protocol, ProtocolManager, ProtocolInitializationError, ProtocolExecutionError
 from bdtsim.protocol_path import ProtocolPath
-from bdtsim.util.xor import xor_crypt
-from . import encryption, merkle
+from . import merkle, encoding
 
 
 logger = logging.getLogger(__name__)
@@ -117,103 +116,125 @@ class FairSwap(Protocol):
                                              self._slices_count * 32
                                          ))
 
-        real_plain_data = data_provider.file_pointer.read()
-        real_key = self.generate_bytes(32, 1337)
+        plain_data = data_provider.file_pointer.read()
+        plain_merkle_tree = merkle.from_bytes(plain_data)
+        key = self.generate_bytes(32, 1337)
 
         # === 1a: Seller: encrypt file for transmission
-        encrypt_decision = protocol_path.decide(seller, 'File Encryption/Send', [
-            'correct', 'fake data', 'hash forgery', 'leaf forgery'
-        ])
-        if encrypt_decision == 'correct':
-            transfer_plain_merkle_tree = merkle.from_bytes(real_plain_data)
-            transfer_ciphertext_merkle_tree = encryption.encrypt_merkle_tree(transfer_plain_merkle_tree, real_key)
-        elif encrypt_decision == 'fake data':
-            fake_plain_data = real_plain_data[:-1] + (real_plain_data[-1] ^ 1).to_bytes(1, 'little')
-            transfer_plain_merkle_tree = merkle.from_bytes(fake_plain_data)
-            transfer_ciphertext_merkle_tree = encryption.encrypt_merkle_tree(transfer_plain_merkle_tree, real_key)
-        elif encrypt_decision == 'leaf forgery':
-            transfer_plain_merkle_tree = merkle.from_bytes(real_plain_data)
-            # manually crypt and exchange leaf value
-            leaves_encrypted = [xor_crypt(bytes(leaf), real_key) for leaf in transfer_plain_merkle_tree.leaves]
-            digests_encrypted = [xor_crypt(digest, real_key) for digest in transfer_plain_merkle_tree.digests_pack]
-            # modify leaf data
-            leaves_encrypted[0] = b'0' * len(leaves_encrypted[0])
-            # build encrypted merkle tree
-            transfer_ciphertext_merkle_tree = merkle.from_list(leaves_encrypted + digests_encrypted)
-        elif encrypt_decision == 'hash forgery':
-            transfer_plain_merkle_tree = merkle.from_bytes(real_plain_data)
-            # manually crypt and exchange leaf value
-            leaves_encrypted = [xor_crypt(bytes(leaf), real_key) for leaf in transfer_plain_merkle_tree.leaves]
-            digests_encrypted = [xor_crypt(digest, real_key) for digest in transfer_plain_merkle_tree.digests_pack]
-            # modify two leaves and according hash
-            leaves_encrypted[0] = b'0' * len(leaves_encrypted[0])
-            leaves_encrypted[1] = b'0' * len(leaves_encrypted[1])
-            digests_encrypted[0] = xor_crypt(keccak(leaves_encrypted[0] + leaves_encrypted[1]), real_key)
-            # build encrypted merkle tree
-            transfer_ciphertext_merkle_tree = merkle.from_list(leaves_encrypted + digests_encrypted)
+        encryption_decision = protocol_path.decide(
+            seller, 'File Encryption/Transfer', ['expected', 'completely different', 'leaf forgery', 'hash forgery']
+        )
+        if encryption_decision == 'expected':
+            encrypted_merkle_tree = encoding.encode(plain_merkle_tree, key)
+        elif encryption_decision == 'completely different':
+            encrypted_merkle_tree = encoding.encode(merkle.from_bytes(self.generate_bytes(data_provider.data_size)),
+                                                    key)
+        elif encryption_decision == 'leaf forgery' or encryption_decision == 'hash forgery':
+            data_leaves = [leaf.data for leaf in plain_merkle_tree.leaves]
+            data_digests = plain_merkle_tree.digests_pack
+            data_leaves[0] = b'\x00' * len(data_leaves[0])
+
+            if encryption_decision == 'hash forgery':
+                data_digests[0] = Web3.solidityKeccak(['bytes32', 'bytes32'], [data_leaves[0], data_leaves[1]])
+
+            encrypted_merkle_tree = merkle.from_leaves([merkle.MerkleTreeLeaf(x) for x in data_leaves]
+                                                       + [merkle.MerkleTreeHashLeaf(x) for x in data_digests]
+                                                       + [merkle.MerkleTreeHashLeaf(encoding.B032)])
         else:
-            raise ProtocolExecutionError('Unsupported decision outcome: %s' % encrypt_decision.outcome)
+            raise NotImplementedError()
 
         # === 1b: Seller: deploy smart contract
-        deployment_decision = protocol_path.decide(seller, 'Contract Deployment', [
-            'correct', 'commitment to wrong key', 'incorrect plain root hash', 'incorrect ciphertext root hash'
-        ])
-        if deployment_decision == 'correct':
-            transfer_plain_root_hash = transfer_plain_merkle_tree.digest
-            transfer_ciphertext_root_hash = transfer_ciphertext_merkle_tree.digest
-            transfer_key = real_key
+        deployment_decision = protocol_path.decide(seller, 'Contract Deployment',
+                                                   ['as expected by buyer', 'commitment to wrong key',
+                                                    'unexpected file root hash', 'incorrect ciphertext root hash'])
+        if deployment_decision == 'as expected by buyer':
+            transfer_plain_root_hash = plain_merkle_tree.digest
+            transfer_ciphertext_root_hash = encrypted_merkle_tree.digest
+            transfer_key = key
         elif deployment_decision == 'commitment to wrong key':
-            transfer_plain_root_hash = transfer_plain_merkle_tree.digest
-            transfer_ciphertext_root_hash = transfer_ciphertext_merkle_tree.digest
-            transfer_key = self.generate_bytes(32, 1338, avoid=real_key)
-        elif deployment_decision == 'incorrect plain root hash':
-            transfer_plain_root_hash = self.generate_bytes(32, 1337, avoid=transfer_plain_merkle_tree.digest)
-            transfer_ciphertext_root_hash = transfer_ciphertext_merkle_tree.digest
-            transfer_key = real_key
+            transfer_plain_root_hash = plain_merkle_tree.digest
+            transfer_ciphertext_root_hash = encrypted_merkle_tree.digest
+            transfer_key = self.generate_bytes(32, avoid=key)
+        elif deployment_decision == 'unexpected file root hash':
+            transfer_plain_root_hash = self.generate_bytes(32, avoid=plain_merkle_tree.digest)
+            transfer_ciphertext_root_hash = encrypted_merkle_tree.digest
+            transfer_key = key
         elif deployment_decision == 'incorrect ciphertext root hash':
-            transfer_plain_root_hash = transfer_plain_merkle_tree.digest
-            transfer_ciphertext_root_hash = self.generate_bytes(32, 1337, avoid=transfer_ciphertext_merkle_tree.digest)
-            transfer_key = real_key
+            transfer_plain_root_hash = plain_merkle_tree.digest
+            transfer_ciphertext_root_hash = self.generate_bytes(32, avoid=encrypted_merkle_tree.digest)
+            transfer_key = key
         else:
-            raise ProtocolExecutionError('Unsupported decision outcome: %s' % deployment_decision.outcome)
+            raise NotImplementedError()
 
+        # actual contract deployment
         environment.deploy_contract(seller, self._get_contract(
             buyer=buyer,
             price=price,
-            slice_length=slice_length,
+            slice_length=int(slice_length / 32),
             file_root_hash=transfer_plain_root_hash,
             ciphertext_root_hash=transfer_ciphertext_root_hash,
-            key_hash=keccak(transfer_key)
+            key_hash=Web3.solidityKeccak(['bytes32'], [transfer_key])
         ))
 
         # === 2: Buyer: Accept Contract/Pay Price ===
-        if (transfer_plain_merkle_tree.digest == transfer_plain_root_hash
-                and transfer_ciphertext_merkle_tree.digest == transfer_ciphertext_root_hash):
+        if (plain_merkle_tree.digest == transfer_plain_root_hash
+                and encrypted_merkle_tree.digest == transfer_ciphertext_root_hash):
             acceptance_decision = protocol_path.decide(buyer, 'Accept', variants=['yes', 'leave'])
             if acceptance_decision == 'yes':
                 environment.send_contract_transaction(buyer, 'accept', value=price)
             elif acceptance_decision == 'leave':
                 return
             else:
-                raise ProtocolExecutionError('Unsupported decision outcome: %s' % acceptance_decision.outcome)
+                raise NotImplementedError()
         else:
             return
 
         # === 3: Seller: Reveal key ===
-        key_revelation_decision = protocol_path.decide(seller, 'Key Revelation', variants=['correct', 'leave'])
-        if key_revelation_decision == 'correct':
+        key_revelation_decision = protocol_path.decide(seller, 'Key Revelation', ['yes', 'leave'])
+        if key_revelation_decision == 'yes':
             environment.send_contract_transaction(seller, 'revealKey', transfer_key)
-            print('worked')
         elif key_revelation_decision == 'leave':
-            pass
+            logger.debug('Seller: Leaving without Key Revelation')
+            if protocol_path.decide(buyer, 'Refund', variants=['yes', 'no']) == 'yes':
+                logger.debug('Buyer: Waiting for timeout to request refund')
+                environment.wait(self._timeout + 1)
+                environment.send_contract_transaction(buyer, 'refund')
+            return
         else:
-            raise ProtocolExecutionError('Unsupported decision outcome: %s' % key_revelation_decision.outcome)
+            raise NotImplementedError()
 
         # === 4: Buyer: Send Ok/Complain/Leave
-        # TODO implement
+        try:
+            decrypted_merkle_tree = encoding.decode(encrypted_merkle_tree, transfer_key)
+            if decrypted_merkle_tree.digest == plain_merkle_tree.digest:
+                if protocol_path.decide(buyer, 'Confirm', variants=['yes', 'leave']) == 'yes':
+                    environment.send_contract_transaction(buyer, 'noComplain')
+                    return
+            else:
+                if protocol_path.decide(buyer, 'complain about root', ['yes']) == 'yes':
+                    logger.debug('Buyer: Complaining about incorrect file root hash')
+                    root_hash_leaf = encrypted_merkle_tree.leaves[-2]
+                    proof = encrypted_merkle_tree.get_proof(root_hash_leaf)
+                    environment.send_contract_transaction(buyer, 'complainAboutRoot', root_hash_leaf.data, proof)
+        except encoding.DigestMismatchError as error:
+            complain_subject = 'Leaf' if error.index_in < self._slices_count else 'Node'
+            if protocol_path.decide(buyer, 'Complain about %s' % complain_subject, ['yes']) == 'yes':
+                environment.send_contract_transaction(
+                    buyer,
+                    'complainAbout%s' % complain_subject,
+                    error.index_out,
+                    error.index_in,
+                    error.out.data,
+                    error.in1.data_as_list(),
+                    error.in2.data_as_list(),
+                    encrypted_merkle_tree.get_proof(error.out),
+                    encrypted_merkle_tree.get_proof(error.in1)
+                )
 
         # === 5: Seller: Finalize (when Buyer leaves in 4)
-        # TODO implement
+        if protocol_path.decide(seller, 'Request Payout', variants=['yes', 'no']) == 'yes':
+            environment.wait(self._timeout + 1)
+            environment.send_contract_transaction(seller, 'refund')
 
     @staticmethod
     def hex(value: Union[HexBytes, bytes, bytearray]) -> str:

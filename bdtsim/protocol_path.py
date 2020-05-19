@@ -40,8 +40,8 @@ class Decision(object):
             description (str): Description of this decision (not considered for equality)
             timestamp (float): When the decision has taken place
         """
-        if len(variants) < 2:
-            raise ValueError('You have to provide at least 2 variants for a decision')
+        if len(variants) < 1:
+            raise ValueError('You have to provide at least one variant for a decision or two to have a choice')
         if outcome not in variants:
             raise ValueError('%s not in list of possible variants (%s)' % (outcome, ', '.join(variants)))
         if honest_variants is not None:

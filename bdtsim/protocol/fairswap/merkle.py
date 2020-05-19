@@ -19,7 +19,7 @@ import itertools
 import math
 from typing import Any, List, Tuple
 
-from eth_utils.crypto import keccak
+from web3 import Web3
 
 
 class MerkleTreeNode(object):
@@ -38,7 +38,11 @@ class MerkleTreeNode(object):
 
     @property
     def digest(self) -> bytes:
-        return keccak(b''.join([bytes(child) for child in self.children]))
+        keccak_inputs: List[Tuple[str, bytes]] = []
+        for child in self.children:
+            keccak_inputs.append(('bytes32', child.digest))
+        types, args = zip(*keccak_inputs)
+        return bytes(Web3.solidityKeccak(types, args))
 
     @property
     def digests_dfs(self) -> List[bytes]:
@@ -53,8 +57,38 @@ class MerkleTreeNode(object):
             c._digests_pack(level + 1) for c in self.children
         ])) + [(self.digest, level)]
 
-    def __bytes__(self) -> bytes:
-        return self.digest
+    def has_indirect_child(self, node: 'MerkleTreeNode') -> bool:
+        if node in self.children:
+            return True
+
+        for child in self.children:
+            if child.has_indirect_child(node):
+                return True
+
+        return False
+
+    def get_proof(self, node: 'MerkleTreeLeaf') -> List[bytes]:
+        if self.children[0] == node:
+            return [self.children[1].digest]
+        elif self.children[1] == node:
+            return [self.children[0].digest]
+
+        if self.children[0].has_indirect_child(node):
+            return [self.children[1].digest] + self.children[0].get_proof(node)
+        elif self.children[1].has_indirect_child(node):
+            return [self.children[0].digest] + self.children[1].get_proof(node)
+        else:
+            raise ValueError('Node is not part of this tree')
+
+    @staticmethod
+    def validate_proof(root_digest: bytes, node: 'MerkleTreeNode', index: int, proof: List[bytes]) -> bool:
+        tmp_digest = node.digest
+        for i in range(len(proof)):
+            if (index & 1 << i) >> i == 1:
+                tmp_digest = Web3.solidityKeccak(['bytes32', 'bytes32'], [proof[len(proof) - i - 1], tmp_digest])
+            else:
+                tmp_digest = Web3.solidityKeccak(['bytes32', 'bytes32'], [tmp_digest, proof[len(proof) - i - 1]])
+        return tmp_digest == root_digest
 
     def __repr__(self) -> str:
         return '<%s.%s %s>' % (
@@ -79,8 +113,21 @@ class MerkleTreeLeaf(MerkleTreeNode):
         self._data = data
 
     @property
+    def digest(self) -> bytes:
+        data_as_list = self.data_as_list()
+        # noinspection PyCallByClass
+        return bytes(Web3.solidityKeccak(['bytes[%d]' % len(data_as_list)], [data_as_list]))
+
+    @property
     def data(self) -> bytes:
         return self._data
+
+    @data.setter
+    def data(self, data: bytes) -> None:
+        self._data = data
+
+    def data_as_list(self, slice_size: int = 32) -> List[bytes]:
+        return [self.data[i * slice_size:(i + 1) * slice_size] for i in range(int(len(self.data) / slice_size))]
 
     @property
     def leaves(self) -> List['MerkleTreeLeaf']:
@@ -97,9 +144,6 @@ class MerkleTreeLeaf(MerkleTreeNode):
     def _digests_pack(self, level: int) -> List[Tuple[bytes, int]]:
         return []
 
-    def __bytes__(self) -> bytes:
-        return self.data
-
     def __repr__(self) -> str:
         return '<%s.%s %s>' % (
             __name__,
@@ -115,6 +159,12 @@ class MerkleTreeLeaf(MerkleTreeNode):
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
+
+
+class MerkleTreeHashLeaf(MerkleTreeLeaf):
+    @property
+    def digest(self) -> bytes:
+        return self.data
 
 
 def from_leaves(leaves: List[MerkleTreeLeaf]) -> MerkleTreeNode:

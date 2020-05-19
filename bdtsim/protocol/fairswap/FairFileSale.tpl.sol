@@ -82,9 +82,8 @@ contract FileSale {
     // function complain about wrong hash of file
     function complainAboutRoot(bytes32 _Zm, bytes32[depth] memory _proofZm) allowed(receiver, stage.keyRevealed) public {
         require (vrfy(2 * (n - 1), _Zm, _proofZm));
-        if (cryptSmall(2 * (n - 1), _Zm) != fileRoot) {
-            selfdestruct(receiver);
-        }
+        require (cryptSmall(2 * (n - 1), _Zm) != fileRoot);
+        selfdestruct(receiver);
     }
 
     // function complain about wrong hash of two inputs
@@ -94,10 +93,9 @@ contract FileSale {
         require (vrfy(_indexOut, _Zout, _proofZout));
         bytes32 Xout = cryptSmall(_indexOut, _Zout);
         require (vrfy(_indexIn, keccak256(abi.encode(_Zin1)), _proofZin));
-        require (_proofZin[0] == keccak256(abi.encode(_Zin2)));
-        if (Xout != keccak256(abi.encode(cryptLarge(_indexIn, _Zin1), cryptLarge(_indexIn + 1, _Zin2)))) {
-            selfdestruct(receiver);
-        }
+        require (_proofZin[depth - 1] == keccak256(abi.encode(_Zin2)));
+        require (Xout != keccak256(abi.encode(cryptLarge(_indexIn, _Zin1), cryptLarge(_indexIn + 1, _Zin2))));
+        selfdestruct(receiver);
     }
 
     // function complain about wrong hash of two inputs
@@ -108,9 +106,8 @@ contract FileSale {
         bytes32 Xout = cryptSmall(_indexOut, _Zout);
         require (vrfy(_indexIn, _Zin1, _proofZin));
         require (_proofZin[0] == _Zin2);
-        if (Xout != keccak256(abi.encode(cryptSmall(_indexIn, _Zin1), cryptSmall(_indexIn+ 1, _Zin2)))) {
-            selfdestruct(receiver);
-        }
+        require (Xout != keccak256(abi.encode(cryptSmall(_indexIn, _Zin1), cryptSmall(_indexIn+ 1, _Zin2))));
+        selfdestruct(receiver);
     }
 
     // refund function is called in case some party did not contribute in time

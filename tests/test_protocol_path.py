@@ -25,7 +25,6 @@ class DecisionTest(unittest.TestCase):
         # should pass:
         Decision(seller, 'yes', ['yes', 'no'])
 
-        self.assertRaises(ValueError, Decision, seller, 'yes', ['yes'])
         self.assertRaises(ValueError, Decision, seller, 'no', ['yes'])
 
     def test_equals(self):

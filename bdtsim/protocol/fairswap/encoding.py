@@ -21,7 +21,7 @@ from typing import List
 from web3 import Web3
 
 from bdtsim.util.xor import xor_crypt
-from .merkle import MerkleTreeNode, MerkleTreeLeaf, from_list
+from .merkle import MerkleTreeNode, MerkleTreeLeaf, MerkleTreeHashLeaf, from_leaves
 
 
 B032 = b'\x00' * 32
@@ -32,8 +32,13 @@ class DecodingError(Exception):
 
 
 class DigestMismatchError(DecodingError):
-    def __init__(self) -> None:
-        pass
+    def __init__(self, in1: MerkleTreeLeaf, in2: MerkleTreeLeaf, out: MerkleTreeLeaf, index_in: int,
+                 index_out: int) -> None:
+        self.in1 = in1
+        self.in2 = in2
+        self.out = out
+        self.index_in = index_in
+        self.index_out = index_out
 
 
 def crypt(value: bytes, index: int, key: bytes) -> bytes:
@@ -41,9 +46,11 @@ def crypt(value: bytes, index: int, key: bytes) -> bytes:
 
 
 def encode(root: MerkleTreeNode, key: bytes) -> MerkleTreeNode:
-    leaves_enc = [crypt(bytes(leaf), index, key) for index, leaf in enumerate(root.leaves)]
-    digests_enc = [crypt(digest, index + len(leaves_enc), key) for index, digest in enumerate(root.digests_pack)]
-    return from_list(leaves_enc + digests_enc + [B032])
+    leaves_enc = [crypt(leaf.data, index, key) for index, leaf in enumerate(root.leaves)]
+    digests_enc = [crypt(digest, 2 * len(leaves_enc) + index, key) for index, digest in enumerate(root.digests_pack)]
+    return from_leaves([MerkleTreeLeaf(x) for x in leaves_enc]
+                       + [MerkleTreeHashLeaf(x) for x in digests_enc]
+                       + [MerkleTreeHashLeaf(B032)])
 
 
 def decode(root: MerkleTreeNode, key: bytes) -> MerkleTreeNode:
@@ -54,18 +61,26 @@ def decode(root: MerkleTreeNode, key: bytes) -> MerkleTreeNode:
         raise ValueError('The provided Merkle Tree does not appear to be encoded')
 
     digest_start_index = int(len(leaf_bytes_enc) / 2)
+    node_index = 0
     digest_index = digest_start_index
-    nodes: List[MerkleTreeNode] = [MerkleTreeLeaf(crypt(bytes(leaf_bytes_enc[i]), i, key))
+    nodes: List[MerkleTreeNode] = [MerkleTreeLeaf(crypt(leaf_bytes_enc[i].data, i, key))
                                    for i in range(0, digest_start_index)]
     while len(nodes) > 1:
         nodes_new = []
         for i in range(0, len(nodes), 2):
             node = MerkleTreeNode(nodes[i], nodes[i + 1])
-            if node.digest == crypt(bytes(leaf_bytes_enc[digest_index]), digest_index, key):
+            if node.digest == crypt(leaf_bytes_enc[digest_index].data, digest_start_index + digest_index, key):
+                node_index += 2
                 digest_index += 1
                 nodes_new.append(node)
             else:
-                raise DigestMismatchError()
+                raise DigestMismatchError(
+                    in1=leaf_bytes_enc[node_index],
+                    in2=leaf_bytes_enc[node_index + 1],
+                    out=leaf_bytes_enc[digest_index],
+                    index_in=node_index,
+                    index_out=digest_index
+                )
         nodes = nodes_new
 
     return nodes[0]

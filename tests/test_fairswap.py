@@ -32,6 +32,7 @@ class FairSwapTest(unittest.TestCase):
     def test_keccak(self):
         data = FairSwap.generate_bytes(32)
         self.assertEqual(keccak(data), Web3.solidityKeccak(['bytes32'], [data]))
+        self.assertEqual(keccak(data), Web3.solidityKeccak(['bytes32[1]'], [[data]]))
         self.assertEqual(keccak(data), Web3.keccak(data))
 
 
@@ -58,9 +59,9 @@ class EncodingTest(unittest.TestCase):
 
 class ContractTest(unittest.TestCase):
     @staticmethod
-    def prepare_contract(file_root_hash, ciphertext_root_hash, key_hash):
+    def prepare_contract(file_root_hash, ciphertext_root_hash, key_hash, slice_count: int = 4):
         web3 = Web3(EthereumTesterProvider(EthereumTester(PyEVMBackend())))
-        contract_object = FairSwap(4)._get_contract(
+        contract_object = FairSwap(slice_count)._get_contract(
             buyer=buyer,
             price=1000000000,
             slice_length=32,
@@ -82,12 +83,13 @@ class ContractTest(unittest.TestCase):
         for index, leaf in enumerate(tree_enc.leaves):
             proof = tree_enc.get_proof(leaf)
             self.assertEqual(len(proof), 3)
-            call_result = contract.functions.vrfy(index, bytes(leaf), proof).call()
+            call_result = contract.functions.vrfy(index, leaf.digest, proof).call()
             self.assertTrue(call_result)
 
     def test_crypt_small(self):
-        web3, contract = self.prepare_contract(FairSwap.generate_bytes(32), FairSwap.generate_bytes(32), B032)
-        for i in range(8):
-            data = FairSwap.generate_bytes(32)
-            call_result = contract.functions.cryptSmall(i, data).call()
-            self.assertEqual(call_result, crypt(data, 4 + i, B032))
+        for n in [4, 8, 16]:
+            web3, contract = self.prepare_contract(FairSwap.generate_bytes(32), FairSwap.generate_bytes(32), B032, n)
+            for i in range(8):
+                data = FairSwap.generate_bytes(32)
+                call_result = contract.functions.cryptSmall(i, data).call()
+                self.assertEqual(call_result, crypt(data, n + i, B032))
