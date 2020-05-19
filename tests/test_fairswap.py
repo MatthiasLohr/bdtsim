@@ -19,6 +19,7 @@ import math
 import unittest
 
 from eth_tester import EthereumTester, PyEVMBackend
+from eth_utils.crypto import keccak
 from web3 import Web3, EthereumTesterProvider
 
 from bdtsim.account import buyer
@@ -28,7 +29,10 @@ from bdtsim.protocol.fairswap.merkle import MerkleTreeNode, MerkleTreeLeaf, from
 
 
 class FairSwapTest(unittest.TestCase):
-    pass
+    def test_keccak(self):
+        data = FairSwap.generate_bytes(32)
+        self.assertEqual(keccak(data), Web3.solidityKeccak(['bytes32'], [data]))
+        self.assertEqual(keccak(data), Web3.keccak(data))
 
 
 class MerkleTest(unittest.TestCase):
