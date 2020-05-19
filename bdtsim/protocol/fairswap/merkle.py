@@ -25,7 +25,7 @@ from eth_utils.crypto import keccak
 class MerkleTreeNode(object):
     def __init__(self, *children: 'MerkleTreeNode') -> None:
         if len(children) > 2:
-            raise ValueError('A node can have at max 2 children')
+            raise ValueError('Cannot have more than two children')
         self._children = list(children)
 
     @property
