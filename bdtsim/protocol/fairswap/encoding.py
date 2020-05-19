@@ -18,6 +18,8 @@
 import math
 from typing import List
 
+from web3 import Web3
+
 from bdtsim.util.xor import xor_crypt
 from .merkle import MerkleTreeNode, MerkleTreeLeaf, from_list
 
@@ -34,9 +36,13 @@ class DigestMismatchError(DecodingError):
         pass
 
 
+def crypt(value: bytes, index: int, key: bytes) -> bytes:
+    return xor_crypt(value, Web3.solidityKeccak(['uint256', 'bytes32'], [index, key]))
+
+
 def encode(root: MerkleTreeNode, key: bytes) -> MerkleTreeNode:
-    leaves_enc = [xor_crypt(bytes(leaf), key) for leaf in root.leaves]
-    digests_enc = [xor_crypt(digest, key) for digest in root.digests_pack]
+    leaves_enc = [crypt(bytes(leaf), index, key) for index, leaf in enumerate(root.leaves)]
+    digests_enc = [crypt(digest, index + len(leaves_enc), key) for index, digest in enumerate(root.digests_pack)]
     return from_list(leaves_enc + digests_enc + [B032])
 
 
@@ -49,13 +55,13 @@ def decode(root: MerkleTreeNode, key: bytes) -> MerkleTreeNode:
 
     digest_start_index = int(len(leaf_bytes_enc) / 2)
     digest_index = digest_start_index
-    nodes: List[MerkleTreeNode] = [MerkleTreeLeaf(xor_crypt(bytes(leaf_bytes_enc[i]), key))
+    nodes: List[MerkleTreeNode] = [MerkleTreeLeaf(crypt(bytes(leaf_bytes_enc[i]), i, key))
                                    for i in range(0, digest_start_index)]
     while len(nodes) > 1:
         nodes_new = []
         for i in range(0, len(nodes), 2):
             node = MerkleTreeNode(nodes[i], nodes[i + 1])
-            if node.digest == xor_crypt(bytes(leaf_bytes_enc[digest_index]), key):
+            if node.digest == crypt(bytes(leaf_bytes_enc[digest_index]), digest_index, key):
                 digest_index += 1
                 nodes_new.append(node)
             else:

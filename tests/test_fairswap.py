@@ -15,10 +15,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
 import unittest
 
+from eth_tester import EthereumTester, PyEVMBackend
+from web3 import Web3, EthereumTesterProvider
+
+from bdtsim.account import buyer
 from bdtsim.protocol.fairswap import FairSwap
-from bdtsim.protocol.fairswap.encoding import encode, decode, B032
+from bdtsim.protocol.fairswap.encoding import encode, decode, B032, crypt
 from bdtsim.protocol.fairswap.merkle import MerkleTreeNode, MerkleTreeLeaf, from_bytes
 
 
@@ -75,3 +80,10 @@ class ContractTest(unittest.TestCase):
             self.assertEqual(len(proof), 3)
             call_result = contract.functions.vrfy(index, bytes(leaf), proof).call()
             self.assertTrue(call_result)
+
+    def test_crypt_small(self):
+        web3, contract = self.prepare_contract(FairSwap.generate_bytes(32), FairSwap.generate_bytes(32), B032)
+        for i in range(8):
+            data = FairSwap.generate_bytes(32)
+            call_result = contract.functions.cryptSmall(i, data).call()
+            self.assertEqual(call_result, crypt(data, 4 + i, B032))
