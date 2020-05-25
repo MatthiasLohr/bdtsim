@@ -16,6 +16,7 @@
 # limitations under the License.
 
 import copy
+import itertools
 from typing import Any, Dict, List, Optional
 
 from bdtsim.account import Account
@@ -175,15 +176,41 @@ class ResultNode(object):
             self.children.update({decision: child})
         return child
 
-    def account_was_completely_host(self, account: Account) -> bool:
+    def all_accounts_completely_honest(self) -> bool:
+        if self.parent is not None:
+            incoming_decision = list(self.parent.children.keys())[list(self.parent.children.values()).index(self)]
+            if not incoming_decision.is_honest():
+                return False
+            else:
+                return self.parent.all_accounts_completely_honest()
+        else:
+            return True
+
+    def account_completely_honest(self, account: Account) -> bool:
         if self.parent is not None:
             incoming_decision = list(self.parent.children.keys())[list(self.parent.children.values()).index(self)]
             if incoming_decision.account == account and not incoming_decision.is_honest():
                 return False
             else:
-                return self.parent.account_was_completely_host(account)
+                return self.parent.account_completely_honest(account)
         else:
             return True
+
+    @property
+    def final_nodes(self) -> List['ResultNode']:
+        if len(self.children) > 0:
+            return list(itertools.chain.from_iterable([c.final_nodes for c in self.children.values()]))
+        else:
+            return [self]
+
+    @property
+    def aggregation_summary(self) -> TransactionLogCollection.Aggregation:
+        aggregation_summary = TransactionLogCollection.Aggregation(TransactionLogCollection())
+        next_node: Optional[ResultNode] = self
+        while next_node is not None:
+            aggregation_summary += next_node.tx_collection.aggregation
+            next_node = next_node.parent
+        return aggregation_summary
 
 
 class SimulationResult(object):

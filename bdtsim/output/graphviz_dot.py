@@ -140,16 +140,10 @@ class GraphvizDotOutputFormat(OutputFormat):
         return [str(entry) for entry in tx_collection.aggregation.entries.values()]
 
     def _add_end_node(self, graph: Digraph, uuid: str, node: ResultNode) -> None:
-        aggregation_summary = TransactionLogCollection.Aggregation(TransactionLogCollection())
-        next_node: Optional[ResultNode] = node
-        while next_node is not None:
-            aggregation_summary += next_node.tx_collection.aggregation
-            next_node = next_node.parent
-
         label_lines = []
-        for entry in aggregation_summary.entries.values():
+        for entry in node.aggregation_summary.entries.values():
             label_lines.append('<font color="%s">%s</font>' % (
-                self._color_by_honesty(node.account_was_completely_host(entry.account)),
+                self._color_by_honesty(node.account_completely_honest(entry.account)),
                 str(entry)
             ))
 

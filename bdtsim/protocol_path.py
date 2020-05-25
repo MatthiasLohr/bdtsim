@@ -214,33 +214,19 @@ class ProtocolPath(object):
                 ))
         return alternatives
 
-    def all_participants_were_honest(self, honest_variants: Optional[List[str]] = None) -> bool:
-        if honest_variants is None:
-            for decision in self.decisions:
-                if decision.variants.index(decision.outcome) > 0:
-                    return False
-            return True
-        else:
-            for decision in self.decisions:
-                if decision.outcome not in honest_variants:
-                    return False
-            return True
+    def all_accounts_completely_honest(self) -> bool:
+        for decision in self.decisions:
+            if not decision.is_honest():
+                return False
+        return True
 
-    def participant_was_honest(self, account: Account, honest_variants: Optional[List[str]] = None) -> bool:
-        if honest_variants is None:
-            for decision in self.decisions:
-                if decision.account != account:
-                    continue
-                if decision.variants.index(decision.outcome) > 0:
-                    return False
-            return True
-        else:
-            for decision in self.decisions:
-                if decision.account != account:
-                    continue
-                if decision.outcome not in honest_variants:
-                    return False
-            return True
+    def account_completely_honest(self, account: Account) -> bool:
+        for decision in self.decisions:
+            if decision.account != account:
+                continue
+            if not decision.is_honest():
+                return False
+        return True
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, ProtocolPath):
