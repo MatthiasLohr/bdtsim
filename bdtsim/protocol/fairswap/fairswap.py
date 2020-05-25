@@ -216,6 +216,7 @@ class FairSwap(Protocol):
                     root_hash_leaf = encrypted_merkle_tree.leaves[-2]
                     proof = encrypted_merkle_tree.get_proof(root_hash_leaf)
                     environment.send_contract_transaction(buyer, 'complainAboutRoot', root_hash_leaf.data, proof)
+                    return
         except encoding.DigestMismatchError as error:
             complain_subject = 'Leaf' if error.index_in < self._slices_count else 'Node'
             if protocol_path.decide(buyer, 'Complain about %s' % complain_subject, ['yes']) == 'yes':
@@ -230,6 +231,7 @@ class FairSwap(Protocol):
                     encrypted_merkle_tree.get_proof(error.out),
                     encrypted_merkle_tree.get_proof(error.in1)
                 )
+                return
 
         # === 5: Seller: Finalize (when Buyer leaves in 4)
         if protocol_path.decide(seller, 'Request Payout', variants=['yes', 'no']) == 'yes':
