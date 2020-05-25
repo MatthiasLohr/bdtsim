@@ -24,7 +24,7 @@ from .data_provider_manager import DataProviderManager
 
 
 class RandomDataProvider(DataProvider):
-    def __init__(self, size: int = 1000000, seed: int = 42) -> None:
+    def __init__(self, size: int = 1048576, seed: int = 42) -> None:
         super(RandomDataProvider, self).__init__()
         self._size = int(size)
         self._seed = seed
