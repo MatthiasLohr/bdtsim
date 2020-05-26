@@ -30,7 +30,7 @@ class HumanReadableOutputFormat(OutputFormat):
     @staticmethod
     def _print_list_aggregation_entries(entries: Dict[Account, TransactionLogList.Aggregation.Entry]) -> None:
         for entry in entries.values():
-            print('%s: %d (%d)' % (entry.account.name, entry.tx_fees, entry.tx_count))
+            print(str(entry))
         print('')
 
     @staticmethod

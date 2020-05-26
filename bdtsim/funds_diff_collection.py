@@ -27,6 +27,20 @@ class FundsDiffCollection(object):
         else:
             self._dict = {}
 
+    def get(self, account: Account) -> int:
+        diff = self._dict.get(account)
+        if diff is None:
+            return 0
+        else:
+            return diff
+
+    def __repr__(self) -> str:
+        return '<%s.%s %s>' % (
+            __name__,
+            FundsDiffCollection.__name__,
+            ', '.join(['%s: %d' % (account.name, diff) for account, diff in self._dict.items()])
+        )
+
     def __iadd__(self, other: Any) -> 'FundsDiffCollection':
         if isinstance(other, FundsDiffCollection):
             for account, other_amount in other._dict.items():
@@ -35,6 +49,18 @@ class FundsDiffCollection(object):
                     self._dict.update({account: other_amount})
                 else:
                     self._dict.update({account: current_amount + other_amount})
+            return self
+        else:
+            return NotImplemented
+
+    def __isub__(self, other: Any) -> 'FundsDiffCollection':
+        if isinstance(other, FundsDiffCollection):
+            for account, other_amount in other._dict.items():
+                current_amount = self._dict.get(account)
+                if current_amount is None:
+                    self._dict.update({account: other_amount})
+                else:
+                    self._dict.update({account: current_amount - other_amount})
             return self
         else:
             return NotImplemented

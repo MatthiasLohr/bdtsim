@@ -42,6 +42,14 @@ class TransactionLogList(object):
                 self.tx_count = tx_count
                 self.funds_diff = funds_diff
 
+            def __str__(self) -> str:
+                return '%s: %d (%d transaction(s), value diff %d)' % (
+                    self.account.name,
+                    self.tx_fees,
+                    self.tx_count,
+                    self.funds_diff.get(self.account)
+                )
+
         def __init__(self, tx_list: 'TransactionLogList') -> None:
             self.entries: Dict[Account, TransactionLogList.Aggregation.Entry] = {}
             for tx in tx_list.tx_log_list:
