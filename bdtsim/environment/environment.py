@@ -155,11 +155,11 @@ class Environment(object):
         funds_diff = FundsDiffCollection()
         for tmp_account in seller, buyer, operator:
             balance_after = self._web3.eth.getBalance(tmp_account.wallet_address, 'latest')
-            balance_diff = balance_after - balances_before.get(account)
+            balance_diff = balance_after - balances_before.get(tmp_account)
             if balance_diff != 0:
                 funds_diff += FundsDiffCollection({tmp_account: balance_diff})
 
-        funds_diff += FundsDiffCollection({account: tx_receipt['gasUsed']})
+        funds_diff += FundsDiffCollection({account: tx_receipt['gasUsed'] * 1000000000})
 
         if self.transaction_callback is not None:
             self.transaction_callback(account, tx_dict, dict(tx_receipt), funds_diff)
