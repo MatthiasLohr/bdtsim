@@ -36,7 +36,7 @@ class TransactionLogEntry(object):
 class TransactionLogList(object):
     class Aggregation(object):
         class Entry(object):
-            def __init__(self, account: Account, tx_fees: int, tx_count: int, funds_diff: FundsDiffCollection) -> None:
+            def __init__(self, account: Account, tx_fees: int, tx_count: int, funds_diff: int) -> None:
                 self.account = account
                 self.tx_fees = tx_fees
                 self.tx_count = tx_count
@@ -47,7 +47,7 @@ class TransactionLogList(object):
                     self.account.name,
                     self.tx_fees,
                     self.tx_count,
-                    self.funds_diff.get(self.account)
+                    self.funds_diff
                 )
 
         def __init__(self, tx_list: 'TransactionLogList') -> None:
@@ -60,13 +60,13 @@ class TransactionLogList(object):
                             tx.account,
                             int(tx.tx_receipt['gasUsed']),
                             1,
-                            tx.funds_diff
+                            tx.funds_diff.get(tx.account)
                         )
                     })
                 else:
                     entry.tx_fees += int(tx.tx_receipt['gasUsed'])
                     entry.tx_count += 1
-                    entry.funds_diff += tx.funds_diff
+                    entry.funds_diff += tx.funds_diff.get(tx.account)
 
     def __init__(self) -> None:
         self.tx_log_list: List[TransactionLogEntry] = []
@@ -89,7 +89,8 @@ class TransactionLogCollection(object):
     class Aggregation(object):
         class Entry(object):
             def __init__(self, account: Account, tx_fees_min: int, tx_fees_max: int, tx_fees_sum: int,
-                         tx_count_min: int, tx_count_max: int, tx_count_sum: int, list_count: int) -> None:
+                         tx_count_min: int, tx_count_max: int, tx_count_sum: int, value_diff_min: int,
+                         value_diff_max: int, list_count: int,) -> None:
                 self.account = account
                 self.tx_fees_min = tx_fees_min
                 self.tx_fees_max = tx_fees_max
@@ -97,20 +98,24 @@ class TransactionLogCollection(object):
                 self.tx_count_min = tx_count_min
                 self.tx_count_max = tx_count_max
                 self.tx_count_sum = tx_count_sum
+                self.value_diff_min = value_diff_min
+                self.value_diff_max = value_diff_max
                 self.list_count = list_count
 
             def __str__(self) -> str:
                 if self.tx_fees_min == self.tx_fees_max:
-                    return '%s: %d (%d)' % (
+                    return '%s: %d (%d transaction(s), value diff %d)' % (
                         self.account.name,
                         self.tx_fees_min,
-                        self.tx_count_min
+                        self.tx_count_min,
+                        self.value_diff_min
                     )
                 else:
-                    return '%s: %d/%d/%d (%d/%d/%d)' % (
+                    return '%s: %d/%d/%d (%d/%d/%d transaction(s), value diff %d/%d)' % (
                         self.account.name,
                         self.tx_fees_min, self.tx_fees_mean, self.tx_fees_max,
-                        self.tx_count_min, self.tx_count_mean, self.tx_count_max
+                        self.tx_count_min, self.tx_count_mean, self.tx_count_max,
+                        self.value_diff_min, self.value_diff_max
                     )
 
             @property
@@ -135,6 +140,8 @@ class TransactionLogCollection(object):
                             tx_list_aggregation.tx_count,
                             tx_list_aggregation.tx_count,
                             tx_list_aggregation.tx_count,
+                            tx_list_aggregation.funds_diff,
+                            tx_list_aggregation.funds_diff,
                             1
                         )})
                     else:
@@ -144,6 +151,8 @@ class TransactionLogCollection(object):
                         entry.tx_count_min = min(entry.tx_count_min, tx_list_aggregation.tx_count)
                         entry.tx_count_max = max(entry.tx_count_max, tx_list_aggregation.tx_count)
                         entry.tx_count_sum += tx_list_aggregation.tx_count
+                        entry.value_diff_min = min(entry.value_diff_min, tx_list_aggregation.funds_diff)
+                        entry.value_diff_max = max(entry.value_diff_max, tx_list_aggregation.funds_diff)
                         entry.list_count += 1
 
         def __iadd__(self, other: 'TransactionLogCollection.Aggregation') -> 'TransactionLogCollection.Aggregation':
@@ -159,6 +168,8 @@ class TransactionLogCollection(object):
                         local_entry.tx_count_min += remote_entry.tx_count_min
                         local_entry.tx_count_max += remote_entry.tx_count_max
                         local_entry.tx_count_sum += remote_entry.tx_count_sum
+                        local_entry.value_diff_min += remote_entry.value_diff_min
+                        local_entry.value_diff_max += remote_entry.value_diff_max
                         local_entry.list_count += remote_entry.list_count
                 return self
             else:
