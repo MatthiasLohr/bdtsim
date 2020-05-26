@@ -21,6 +21,7 @@ from typing import Any, Dict, Optional, Type
 
 from bdtsim.account import Account
 from bdtsim.environment import Environment
+from bdtsim.funds_diff_collection import FundsDiffCollection
 from bdtsim.protocol_path import ProtocolPath, Decision
 from .simulation_result import SimulationResult, ResultNode, TransactionLogEntry, TransactionLogList
 
@@ -33,8 +34,9 @@ class SimpleTransactionMonitor(object):
         self._environment = environment
         self._transactions_target = transactions_target
 
-    def _transaction_callback(self, account: Account, tx_dict: Dict[str, Any], tx_receipt: Dict[str, Any]) -> None:
-        self._transactions_target.append(TransactionLogEntry(account, tx_dict, tx_receipt))
+    def _transaction_callback(self, account: Account, tx_dict: Dict[str, Any], tx_receipt: Dict[str, Any],
+                              funds_diff_collection: FundsDiffCollection) -> None:
+        self._transactions_target.append(TransactionLogEntry(account, tx_dict, tx_receipt, funds_diff_collection))
 
     def __enter__(self) -> None:
         self._environment.transaction_callback = self._transaction_callback
@@ -61,8 +63,9 @@ class ExecutionTransactionMonitor(object):
         self._current_transactions = TransactionLogList()
         self._current_execution_result_node = self._current_execution_result_node.child(decision)
 
-    def _transaction_callback(self, account: Account, tx_dict: Dict[str, Any], tx_receipt: Dict[str, Any]) -> None:
-        self._current_transactions.append(TransactionLogEntry(account, tx_dict, tx_receipt))
+    def _transaction_callback(self, account: Account, tx_dict: Dict[str, Any], tx_receipt: Dict[str, Any],
+                              funds_diff_collection: FundsDiffCollection) -> None:
+        self._current_transactions.append(TransactionLogEntry(account, tx_dict, tx_receipt, funds_diff_collection))
 
     def __enter__(self) -> None:
         self._current_execution_result_node = self._execution_result_root

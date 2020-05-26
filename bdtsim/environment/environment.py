@@ -27,8 +27,9 @@ from web3.gas_strategies.time_based import fast_gas_price_strategy
 from web3.providers.base import BaseProvider
 from web3.types import TxParams, Wei
 
-from bdtsim.account import Account
+from bdtsim.account import Account, buyer, seller, operator
 from bdtsim.contract import SolidityContract
+from bdtsim.funds_diff_collection import FundsDiffCollection
 
 
 logger = logging.getLogger(__name__)
@@ -57,7 +58,9 @@ class Environment(object):
         self._contract: Optional[SolidityContract] = None
         self._contract_address: Optional[str] = None
 
-        self._transaction_callback: Optional[Callable[[Account, Dict[str, Any], Dict[str, Any]], None]] = None
+        self._transaction_callback: Optional[
+            Callable[[Account, Dict[str, Any], Dict[str, Any], FundsDiffCollection], None]
+        ] = None
 
     @property
     def chain_id(self) -> int:
@@ -127,6 +130,11 @@ class Environment(object):
             tx_dict['gasPrice'] = self._web3.eth.generateGasPrice(tx_dict)
         tx_signed = self._web3.eth.account.sign_transaction(tx_dict, private_key=account.wallet_private_key)
 
+        # collect current account balances
+        balances_before: Dict[Account, int] = {}
+        for tmp_account in seller, buyer, operator:
+            balances_before.update({tmp_account: self._web3.eth.getBalance(tmp_account.wallet_address, 'latest')})
+
         logger.debug('Submitting transaction %s...' % str(tx_dict))
         tx_hash = self._web3.eth.sendRawTransaction(tx_signed.rawTransaction)
 
@@ -142,8 +150,19 @@ class Environment(object):
             raise RuntimeError('Transaction execution not successful')
 
         logger.debug('Got receipt %s' % str(tx_receipt))
+
+        # collect current account balances
+        funds_diff = FundsDiffCollection()
+        for tmp_account in seller, buyer, operator:
+            balance_after = self._web3.eth.getBalance(tmp_account.wallet_address, 'latest')
+            balance_diff = balance_after - balances_before.get(account)
+            if balance_diff != 0:
+                funds_diff += FundsDiffCollection({tmp_account: balance_diff})
+
+        funds_diff += FundsDiffCollection({account: tx_receipt['gasUsed']})
+
         if self.transaction_callback is not None:
-            self.transaction_callback(account, tx_dict, dict(tx_receipt))
+            self.transaction_callback(account, tx_dict, dict(tx_receipt), funds_diff)
         return tx_receipt
 
     def wait(self, seconds: int) -> None:
@@ -166,10 +185,13 @@ class Environment(object):
         return self._web3
 
     @property
-    def transaction_callback(self) -> Optional[Callable[[Account, Dict[str, Any], Dict[str, Any]], None]]:
+    def transaction_callback(self) -> Optional[
+        Callable[[Account, Dict[str, Any], Dict[str, Any], FundsDiffCollection], None]
+    ]:
         return self._transaction_callback
 
     @transaction_callback.setter
-    def transaction_callback(self,
-                             callback: Optional[Callable[[Account, Dict[str, Any], Dict[str, Any]], None]]) -> None:
+    def transaction_callback(self, callback: Optional[
+        Callable[[Account, Dict[str, Any], Dict[str, Any], FundsDiffCollection], None]
+    ]) -> None:
         self._transaction_callback = callback
