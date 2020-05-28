@@ -26,11 +26,11 @@ from bdtsim.protocol_path import Decision
 
 class TransactionLogEntry(object):
     def __init__(self, account: Account, tx_dict: Dict[str, Any], tx_receipt: Dict[str, Any],
-                 funds_diff: FundsDiffCollection) -> None:
+                 funds_diff_collection: FundsDiffCollection) -> None:
         self.account = account
         self.tx_dict = tx_dict
         self.tx_receipt = tx_receipt
-        self.funds_diff = funds_diff
+        self.funds_diff_collection = funds_diff_collection
 
 
 class TransactionLogList(object):
@@ -53,6 +53,7 @@ class TransactionLogList(object):
         def __init__(self, tx_list: 'TransactionLogList') -> None:
             self.entries: Dict[Account, TransactionLogList.Aggregation.Entry] = {}
             for tx in tx_list.tx_log_list:
+                # work on log line
                 entry = self.entries.get(tx.account)
                 if entry is None:
                     self.entries.update({
@@ -60,13 +61,26 @@ class TransactionLogList(object):
                             tx.account,
                             int(tx.tx_receipt['gasUsed']),
                             1,
-                            tx.funds_diff.get(tx.account)
+                            0
                         )
                     })
                 else:
                     entry.tx_fees += int(tx.tx_receipt['gasUsed'])
                     entry.tx_count += 1
-                    entry.funds_diff += tx.funds_diff.get(tx.account)
+                # work on all fund diffs
+                for account, funds_diff in tx.funds_diff_collection.items():
+                    funds_diff_entry = self.entries.get(account)
+                    if funds_diff_entry is None:
+                        self.entries.update({
+                            account: TransactionLogList.Aggregation.Entry(
+                                account,
+                                0,
+                                0,
+                                funds_diff
+                            )
+                        })
+                    else:
+                        funds_diff_entry.funds_diff += funds_diff
 
     def __init__(self) -> None:
         self.tx_log_list: List[TransactionLogEntry] = []

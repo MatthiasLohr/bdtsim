@@ -44,6 +44,21 @@ class FundsDiffCollectionTest(unittest.TestCase):
         fd += FundsDiffCollection({seller: 6, buyer: 7})
         self.assertEqual(FundsDiffCollection({seller: 18, buyer: 14}), fd)
 
+    def test_add(self):
+        fd = FundsDiffCollection({seller: 7})
+        fd = fd + FundsDiffCollection({seller: 6})
+        self.assertEqual(FundsDiffCollection({seller: 13}), fd)
+
+        fd = FundsDiffCollection({seller: 7})
+        fd = fd + FundsDiffCollection({buyer: 6})
+        self.assertEqual(FundsDiffCollection({seller: 7, buyer: 6}), fd)
+
+        fd = FundsDiffCollection({seller: 6, buyer: 7})
+        fd = fd + FundsDiffCollection({seller: 6})
+        self.assertEqual(FundsDiffCollection({seller: 12, buyer: 7}), fd)
+        fd = fd + FundsDiffCollection({seller: 6, buyer: 7})
+        self.assertEqual(FundsDiffCollection({seller: 18, buyer: 14}), fd)
+
     def test_isub(self):
         fd = FundsDiffCollection({seller: 7})
         fd -= FundsDiffCollection({seller: 6})
@@ -57,4 +72,19 @@ class FundsDiffCollectionTest(unittest.TestCase):
         fd -= FundsDiffCollection({seller: 5})
         self.assertEqual(FundsDiffCollection({seller: 1, buyer: 7}), fd)
         fd -= FundsDiffCollection({seller: 6, buyer: 6})
+        self.assertEqual(FundsDiffCollection({seller: -5, buyer: 1}), fd)
+
+    def test_sub(self):
+        fd = FundsDiffCollection({seller: 7})
+        fd = fd - FundsDiffCollection({seller: 6})
+        self.assertEqual(FundsDiffCollection({seller: 1}), fd)
+
+        fd = FundsDiffCollection({seller: 7})
+        fd = fd - FundsDiffCollection({buyer: 6})
+        self.assertEqual(FundsDiffCollection({seller: 7, buyer: -6}), fd)
+
+        fd = FundsDiffCollection({seller: 6, buyer: 7})
+        fd = fd - FundsDiffCollection({seller: 5})
+        self.assertEqual(FundsDiffCollection({seller: 1, buyer: 7}), fd)
+        fd = fd - FundsDiffCollection({seller: 6, buyer: 6})
         self.assertEqual(FundsDiffCollection({seller: -5, buyer: 1}), fd)
