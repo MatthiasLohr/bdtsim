@@ -130,15 +130,26 @@ class FairSwap(Protocol):
             encrypted_merkle_tree = encoding.encode(merkle.from_bytes(self.generate_bytes(data_provider.data_size)),
                                                     key)
         elif encryption_decision == 'leaf forgery' or encryption_decision == 'hash forgery':
-            data_leaves = [leaf.data for leaf in plain_merkle_tree.leaves]
-            data_digests = plain_merkle_tree.digests_pack
-            data_leaves[0] = b'\x00' * len(data_leaves[0])
+            # extract correct plain data
+            plain_leaves_data = [leaf.data for leaf in plain_merkle_tree.leaves]
+            plain_digests = plain_merkle_tree.digests_pack
+
+            # forge first leaf
+            plain_leaves_data[0] = b'\x00' * len(plain_leaves_data[0])
 
             if encryption_decision == 'hash forgery':
-                data_digests[0] = Web3.solidityKeccak(['bytes32', 'bytes32'], [data_leaves[0], data_leaves[1]])
+                plain_digests[0] = merkle.MerkleTreeNode(
+                    merkle.MerkleTreeLeaf(plain_leaves_data[0]),
+                    merkle.MerkleTreeLeaf(plain_leaves_data[1])
+                ).digest
 
-            encrypted_merkle_tree = merkle.from_leaves([merkle.MerkleTreeLeaf(x) for x in data_leaves]
-                                                       + [merkle.MerkleTreeHashLeaf(x) for x in data_digests]
+            encrypted_leaves_data = [encoding.crypt(data, i, key) for i, data in enumerate(plain_leaves_data)]
+            encrypted_digests = [
+                encoding.crypt(data, 2 * len(plain_leaves_data) + i, key) for i, data in enumerate(plain_digests)
+            ]
+
+            encrypted_merkle_tree = merkle.from_leaves([merkle.MerkleTreeLeaf(x) for x in encrypted_leaves_data]
+                                                       + [merkle.MerkleTreeHashLeaf(x) for x in encrypted_digests]
                                                        + [merkle.MerkleTreeHashLeaf(encoding.B032)])
         else:
             raise NotImplementedError()
@@ -218,20 +229,36 @@ class FairSwap(Protocol):
                     environment.send_contract_transaction(buyer, 'complainAboutRoot', root_hash_leaf.data, proof)
                     return
         except encoding.DigestMismatchError as error:
-            complain_subject = 'Leaf' if error.index_in < self._slices_count else 'Node'
-            if protocol_path.decide(buyer, 'Complain about %s' % complain_subject, ['yes']) == 'yes':
-                environment.send_contract_transaction(
-                    buyer,
-                    'complainAbout%s' % complain_subject,
-                    error.index_out,
-                    error.index_in,
-                    error.out.data,
-                    error.in1.data_as_list(),
-                    error.in2.data_as_list(),
-                    encrypted_merkle_tree.get_proof(error.out),
-                    encrypted_merkle_tree.get_proof(error.in1)
-                )
-                return
+            if error.index_in < self._slices_count:
+                # complain about leaf
+                if protocol_path.decide(buyer, 'Complain about Leaf', ['yes']) == 'yes':
+                    environment.send_contract_transaction(
+                        buyer,
+                        'complainAboutLeaf',
+                        error.index_out,
+                        error.index_in,
+                        error.out.data,
+                        error.in1.data_as_list(),
+                        error.in2.data_as_list(),
+                        encrypted_merkle_tree.get_proof(error.out),
+                        encrypted_merkle_tree.get_proof(error.in1)
+                    )
+                    return
+            else:
+                # complain about node
+                if protocol_path.decide(buyer, 'Complain about Node', ['yes']) == 'yes':
+                    environment.send_contract_transaction(
+                        buyer,
+                        'complainAboutNode',
+                        error.index_out,
+                        error.index_in,
+                        error.out.data,
+                        error.in1.data,
+                        error.in2.data,
+                        encrypted_merkle_tree.get_proof(error.out),
+                        encrypted_merkle_tree.get_proof(error.in1)
+                    )
+                    return
 
         # === 5: Seller: Finalize (when Buyer leaves in 4)
         if protocol_path.decide(seller, 'Request Payout', variants=['yes', 'no']) == 'yes':
