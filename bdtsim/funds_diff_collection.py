@@ -58,9 +58,22 @@ class FundsDiffCollection(object):
             for account, other_amount in other._dict.items():
                 current_amount = self._dict.get(account)
                 if current_amount is None:
-                    self._dict.update({account: other_amount})
+                    self._dict.update({account: -other_amount})
                 else:
                     self._dict.update({account: current_amount - other_amount})
             return self
         else:
             return NotImplemented
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, FundsDiffCollection):
+            for a, b in (self._dict, other._dict), (other._dict, self._dict):
+                for account in a.keys():
+                    if a.get(account, 0) != b.get(account, 0):
+                        return False
+            return True
+        else:
+            return NotImplemented
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
