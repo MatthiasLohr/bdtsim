@@ -8,7 +8,9 @@ These protocols are currently supported (or planned to be supported) by BDTsim:
   * Delgado-Segura ([planned](https://gitlab.com/MatthiasLohr/bdtsim/-/issues/1))
 
 
-## SimplePayment
+## Supported Protocols
+
+### SimplePayment
 
 The SimplePayment protocol does nothing else than having the buyer paying the seller
 (either direct or indirect using a smart contract as relay).
@@ -18,7 +20,7 @@ On the one hand, this protocol serves as a comparative evaluation to more compli
 On the other hand it serves as a simple protocol for internal tests of the framework.
 
 
-### Example Protocol Execution
+#### Example Protocol Execution
 
 The following command executes the indirect variant of the SimplePayment protocol in the PyEVM environment,
 using a smart contract for transferring the money to the seller:
@@ -32,7 +34,7 @@ using a direct money transfer transaction without an intermediary smart contract
 bdtsim run SimplePayment-direct PyEVM
 ```
 
-## FairSwap
+### FairSwap
 
 The FairSwap protocol was presented in the following research paper:
 
@@ -47,29 +49,31 @@ Original example smart contract repository: [https://github.com/lEthDev/FairSwap
 Use kindly permitted by Lisa Eckey (16. April 2020).
 
 Protocol Assumptions:
-  * Both seller and buyer know the plain data's Merkle Tree root hash
+
+  * Both seller and buyer know the plain data's Merkle Tree root hash before the exchange (simulation process) is started
 
 Buyer Complaint Types:
-  * **Complain About Root**
+
+  * **Complain About Root**, raised when 
     * wrong decryption key
     * wrong plain file encrypted
-  * **Complain About Node**
-    * intentional modification of a hash value
-  * **Complain About Leaf**
+  * **Complain About Node**, raised when
+    * intentional modification of a hash value in a non-leaf node
+  * **Complain About Leaf**, raised when
     * intentional modification of leaf value
 
-### Protocol Parameters
+#### Protocol Parameters
 
-  * `slices_count`: Number of slices in which the data is to be split
+  * `slices-count`: Number of slices in which the data is to be split
   * `timeout`: Timeout in seconds before refund can be used
 
-### Example Protocol Execution
+#### Example Protocol Execution
 
 ```
-bdtsim -l DEBUG run FairSwap-FileSale PyEVM -p slice_count 8
+bdtsim -l DEBUG run FairSwap-FileSale PyEVM -p slices-count 8
 ```
 
-## OptiSwap
+### OptiSwap
 
 *(not implemented yet)*
 
@@ -77,7 +81,7 @@ Original example smart contract repository: [https://github.com/CryBtoS/OptiSwap
 Use kindly permitted by Lisa Eckey (16. April 2020).
 
 
-## Delgado-Segura
+### Delgado-Segura
 
 *(not implemented yet)*
 

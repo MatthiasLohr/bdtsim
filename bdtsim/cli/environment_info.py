@@ -23,11 +23,13 @@ from .command_manager import SubCommand
 
 
 class EnvironmentInfoSubCommand(SubCommand):
+    help = 'print information about the selected environment'
+
     def __init__(self, parser: argparse.ArgumentParser) -> None:
         super(EnvironmentInfoSubCommand, self).__init__(parser)
         parser.add_argument('environment', choices=EnvironmentManager.environments.keys())
         parser.add_argument('-e', '--environment-parameter', nargs=2, action='append', dest='environment_parameters',
-                            default=[])
+                            default=[], metavar=('KEY', 'VALUE'), help='Pass additional parameters to the environment')
 
     def __call__(self, args: argparse.Namespace) -> int:
         environment_parameters: Dict[str, str] = {}

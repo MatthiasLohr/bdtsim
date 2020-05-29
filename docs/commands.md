@@ -3,55 +3,57 @@
 The `bdtsim` command offers several sub-commands for carrying out simulations and working with the results.
 Check `bdtsim -h` for a full list of supported commands and available parameters.
 
-The following sections provide more detailed information about available sub-commands:
+Below you can find more detailed information about available sub-commands:
 
+## environment-info
 
-## list-protocols
+`bdtsim environment-info <environment>` prints some information about the selected environment.
 
-`bdtsim list-protocols` prints a list of supported protocols to be simulated.
-The printed values can be used as protocol argument for the [run](#run) command.
+The following options are available:
+
+  * `-e <key> <value>`/`--environment-parameter <key> <value>`: Pass parameters (key/values pairs) to the selected environment.
+    Please read the [environments documentation](environments.md) for a list of supported parameters, dependent on the selected environment.
+    You can use `-e <key> <value>` multiple times to pass multiple key value pairs.
+
+## list-data-providers
+
+`bdtsim list-data-providers` prints a list of supported data providers to be used in the simulation.
+The printed values can be used as data provider argument for the [run](#run) command.
+
+Please read the [data providers documentation](data_providers.md) for more details.
 
 ## list-environments
 
 `bdtsim list-environments` prints a list of supported environments in which simulations can be carried out.
 The printed values can be used as environment argument for the [run](#run) command.
 
-## list-data-providers
-
-`bdtsim list-data-providers` prints a list of supported data providers to be used in simulation.
-The printed values can be used as data provider argument for the [run](#run) command.
+Please read the [environments documentation](environments.md) for more details.
 
 ## list-output-formats
 
 `bdtsim list-output-formats` prints a list of supported output formats for the simulation results.
 The printed values can be used as output format argument for the [run](#run) command.
 
-## environment-info
+Please read the [output formats documentation](output_formats.md) for more details.
 
-`bdtsim environment-info <environment>` prints some information about the provided environment.
+## list-protocols
 
-The following options are available:
+`bdtsim list-protocols` prints a list of supported protocols to be simulated.
+The printed values can be used as protocol argument for the [run](#run) command.
 
-  * `-e <key> <value>`/`--environment-parameter <key> <value>`: Pass parameters (key/values pairs) to the selected environment.
-    Please read the [Environment documentation](environments.md) for a list of supported parameters, dependent on the selected environment.
-    You can use this parameters multiple times.
+Please read the [protocols documentation](protocols.md) for more details.
 
 ## run
 
-`bdtsim run <protocol> <environment>` simulates the behavior of protocol `<protocol>` in the environment `<environment>`.
+`bdtsim run <protocol> <environment>` simulates the behavior of a [protocol](protocols.md) in the given
+[environment](environments.md).
 
-The following options are available:
+The following additional parameters are available:
 
-  * `-c <chain id>`/`--chain-id <chain id>`: Set the Chain Id for blockchain transactions. Depends on the Ethereum network you want to use.
-  * `-o <format>`/`--output-format <format>`: Output format for the simulation results.
-    Allowed values are `human-readable`, `json` and `yaml`.
-  * `--gas-price <gas price>`: Define the gas price for the transactions. By default, BDTsim tries to fetch the gas price from the
-    network, using Web3's [Gas Price API](https://web3py.readthedocs.io/en/stable/gas_price.html)
-  * `--gas-price-factor <gas price factor>`: Multiply the gas price specified with `--gas-price` or fetched from the network with this factor.
-  * `--tx-wait-timeout <timeout>`: Define the timeout for waiting for a transaction to get added to the network. Default ist 120 seconds.
-  * `-p <key> <value>`/`--protocol-parameter <key> <value>`: Pass parameters (key/value pairs to the selected protocol.
-    Please read the [Protocols documentation](protocols.md) for a list of supported parameters, dependent on the selected protocol.
-    You can use this parameters multiple times.
-  * `-e <key> <value>`/`--environment-parameter <key> <value>`: Pass parameters (key/values pairs) to the selected environment.
-    Please read the [Environment documentation](environments.md) for a list of supported parameters, dependent on the selected environment.
-    You can use this parameters multiple times.
+  * `--data-provider DATA_PROVIDER`: set the [data provider](data_providers.md) to be used during the simulation
+  * `-f OUTPUT_FORMAT`, `--output-format OUTPUT_FORMAT`: set the desired [output format](output_formats.md) for simulation results
+  * `--price PRICE`: set the price for the asset to be traded
+  * `-p KEY VALUE`, `--protocol-parameter KEY VALUE`: pass additional parameters to the protocol
+  * `-e KEY VALUE`, `--environment-parameter KEY VALUE`: pass additional parameters to the environment
+  * `-d KEY VALUE`, `--data-provider-parameter KEY VALUE`: pass additional parameters to the data provider
+  * `-o KEY VALUE`, `--output-format-parameter KEY VALUE` pass additional parameters to the output format

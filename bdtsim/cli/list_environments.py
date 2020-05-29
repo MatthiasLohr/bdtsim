@@ -22,6 +22,8 @@ from .command_manager import SubCommand
 
 
 class ListEnvironmentsSubCommand(SubCommand):
+    help = 'print a list of supported environments'
+
     def __call__(self, args: argparse.Namespace) -> None:
         for name in EnvironmentManager.environments.keys():
             print(name)

@@ -36,7 +36,8 @@ class CommandManager(object):
     def __init__(self) -> None:
         self._argument_parser = argparse.ArgumentParser()
         self._argument_parser.add_argument('-l', '--log-level', default='WARNING',
-                                           choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
+                                           choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+                                           help='set log level for bdtsim')
         self._command_parser = self._argument_parser.add_subparsers(title='command', dest='command', required=True)
         self._subcommands: Dict[str, SubCommand] = {}
 

@@ -27,25 +27,28 @@ from .command_manager import SubCommand
 
 
 class RunSubCommand(SubCommand):
+    help = 'run a simulation'
+
     def __init__(self, parser: argparse.ArgumentParser) -> None:
         super(RunSubCommand, self).__init__(parser)
-        parser.add_argument('protocol', choices=ProtocolManager.protocols.keys())
-        parser.add_argument('environment', choices=EnvironmentManager.environments.keys())
+        parser.add_argument('protocol', choices=ProtocolManager.protocols.keys(), help='protocol to be simulated')
+        parser.add_argument('environment', choices=EnvironmentManager.environments.keys(),
+                            help='environment in which the simulation will take place')
         parser.add_argument('--data-provider', choices=DataProviderManager.data_providers.keys(),
-                            default='RandomDataProvider')
-        parser.add_argument('-c', '--chain-id', type=int, default=None)
+                            default='RandomDataProvider', help='set the data provider/data source for the simulation')
         parser.add_argument('-f', '--output-format', choices=OutputFormatManager.output_formats.keys(),
-                            default='human-readable')
-        parser.add_argument('--price', type=int, default=1000000000)
-        parser.add_argument('--gas-price', type=int, default=None)
+                            default='human-readable', help='set the desired output format for simulation results')
+        parser.add_argument('--price', type=int, default=1000000000, help='set the price for the asset to be traded')
         parser.add_argument('-p', '--protocol-parameter', nargs=2, action='append', dest='protocol_parameters',
-                            default=[])
+                            default=[], metavar=('KEY', 'VALUE'), help='pass additional parameters to the protocol')
         parser.add_argument('-e', '--environment-parameter', nargs=2, action='append', dest='environment_parameters',
-                            default=[])
+                            default=[], metavar=('KEY', 'VALUE'), help='pass additional parameters to the environment')
         parser.add_argument('-d', '--data-provider-parameter', nargs=2, action='append',
-                            dest='data_provider_parameters', default=[])
+                            dest='data_provider_parameters', default=[], metavar=('KEY', 'VALUE'),
+                            help='pass additional parameters to the data provider')
         parser.add_argument('-o', '--output-format-parameter', nargs=2, action='append',
-                            dest='output_format_parameters', default=[])
+                            dest='output_format_parameters', default=[], metavar=('KEY', 'VALUE'),
+                            help='pass additional parameters to the output format')
 
     def __call__(self, args: argparse.Namespace) -> None:
         protocol_parameters: Dict[str, str] = {}
@@ -69,8 +72,6 @@ class RunSubCommand(SubCommand):
 
         environment = EnvironmentManager.instantiate(
             args.environment,
-            chain_id=args.chain_id,
-            gas_price=args.gas_price,
             **environment_parameters
         )
 
