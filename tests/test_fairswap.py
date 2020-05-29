@@ -53,7 +53,8 @@ class EncodingTest(unittest.TestCase):
     def test_encode_decode(self):
         tree = from_bytes(FairSwap.generate_bytes(128, seed=42), 4)
         tree_enc = encode(tree, B032)
-        tree_dec = decode(tree_enc, B032)
+        tree_dec, errors = decode(tree_enc, B032)
+        self.assertEqual([], errors)
         self.assertEqual(tree, tree_dec)
 
 

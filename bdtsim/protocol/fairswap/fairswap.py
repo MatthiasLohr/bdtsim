@@ -215,23 +215,24 @@ class FairSwap(Protocol):
             raise NotImplementedError()
 
         # === 4: Buyer: Send Ok/Complain/Leave
-        try:
-            decrypted_merkle_tree = encoding.decode(encrypted_merkle_tree, transfer_key)
-            if decrypted_merkle_tree.digest == plain_merkle_tree.digest:
-                if protocol_path.decide(buyer, 'Confirm', variants=['yes', 'leave']) == 'yes':
+        root_hash_enc = encrypted_merkle_tree.leaves[-2].data
+        if encoding.crypt(root_hash_enc, 3 * self._slices_count - 2, transfer_key) != plain_merkle_tree.digest:
+            if protocol_path.decide(buyer, 'complain about root', ['yes']) == 'yes':
+                logger.debug('Buyer: Complaining about incorrect file root hash')
+                root_hash_leaf = encrypted_merkle_tree.leaves[-2]
+                proof = encrypted_merkle_tree.get_proof(root_hash_leaf)
+                environment.send_contract_transaction(buyer, 'complainAboutRoot', root_hash_leaf.data, proof)
+                return
+        else:
+            decrypted_merkle_tree, errors = encoding.decode(encrypted_merkle_tree, transfer_key)
+            if len(errors) == 0:
+                if protocol_path.decide(buyer, 'Confirm', variants=['yes', 'leave'],
+                                        honest_variants=['yes', 'leave']) == 'yes':
                     environment.send_contract_transaction(buyer, 'noComplain')
                     return
-            else:
-                if protocol_path.decide(buyer, 'complain about root', ['yes']) == 'yes':
-                    logger.debug('Buyer: Complaining about incorrect file root hash')
-                    root_hash_leaf = encrypted_merkle_tree.leaves[-2]
-                    proof = encrypted_merkle_tree.get_proof(root_hash_leaf)
-                    environment.send_contract_transaction(buyer, 'complainAboutRoot', root_hash_leaf.data, proof)
-                    return
-        except encoding.DigestMismatchError as error:
-            if error.index_in < self._slices_count:
-                # complain about leaf
+            elif isinstance(errors[-1], encoding.LeafDigestMismatchError):
                 if protocol_path.decide(buyer, 'Complain about Leaf', ['yes']) == 'yes':
+                    error: encoding.NodeDigestMismatchError = errors[-1]
                     environment.send_contract_transaction(
                         buyer,
                         'complainAboutLeaf',
@@ -245,8 +246,8 @@ class FairSwap(Protocol):
                     )
                     return
             else:
-                # complain about node
                 if protocol_path.decide(buyer, 'Complain about Node', ['yes']) == 'yes':
+                    error = errors[-1]
                     environment.send_contract_transaction(
                         buyer,
                         'complainAboutNode',
@@ -261,7 +262,8 @@ class FairSwap(Protocol):
                     return
 
         # === 5: Seller: Finalize (when Buyer leaves in 4)
-        if protocol_path.decide(seller, 'Request Payout', variants=['yes', 'no']) == 'yes':
+        if protocol_path.decide(seller, 'Request Payout', variants=['yes', 'no'],
+                                honest_variants=['yes', 'no']) == 'yes':
             environment.wait(self._timeout + 1)
             environment.send_contract_transaction(seller, 'refund')
 
