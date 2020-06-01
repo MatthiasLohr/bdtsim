@@ -32,8 +32,10 @@ class CommandTest(unittest.TestCase):
         self.assertEqual(p.returncode, 0)
         self.assertEqual(out.decode('utf-8').strip(), '\n'.join([
             'FairSwap-FileSale',
-            'SimplePayment',
-            'SimplePayment-direct'
+            'SimplePayment-prepaid',
+            'SimplePayment-prepaid-direct',
+            'SimplePayment-postpaid',
+            'SimplePayment-postpaid-direct'
         ]))
 
     def test_list_data_providers(self):
@@ -56,13 +58,23 @@ class CommandTest(unittest.TestCase):
             'yaml'
         ]))
 
-    def test_run_simplepayment(self):
-        p = subprocess.Popen(['bdtsim', 'run', 'SimplePayment', 'PyEVM'], stdout=subprocess.PIPE)
+    def test_run_simplepayment_prepaid(self):
+        p = subprocess.Popen(['bdtsim', 'run', 'SimplePayment-prepaid', 'PyEVM'], stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
 
-    def test_run_simplepayment_direct(self):
-        p = subprocess.Popen(['bdtsim', 'run', 'SimplePayment-direct', 'PyEVM'], stdout=subprocess.PIPE)
+    def test_run_simplepayment_prepaid_direct(self):
+        p = subprocess.Popen(['bdtsim', 'run', 'SimplePayment-prepaid-direct', 'PyEVM'], stdout=subprocess.PIPE)
+        out, err = p.communicate()
+        self.assertEqual(p.returncode, 0)
+
+    def test_run_simplepayment_postpaid(self):
+        p = subprocess.Popen(['bdtsim', 'run', 'SimplePayment-postpaid', 'PyEVM'], stdout=subprocess.PIPE)
+        out, err = p.communicate()
+        self.assertEqual(p.returncode, 0)
+
+    def test_run_simplepayment_postpaid_direct(self):
+        p = subprocess.Popen(['bdtsim', 'run', 'SimplePayment-postpaid-direct', 'PyEVM'], stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
 
