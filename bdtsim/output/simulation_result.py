@@ -17,9 +17,9 @@
 
 import copy
 import itertools
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from bdtsim.account import Account
+from bdtsim.account import Account, seller, buyer
 from bdtsim.funds_diff_collection import FundsDiffCollection
 from bdtsim.protocol_path import Decision
 
@@ -256,8 +256,61 @@ class ResultNode(object):
         return aggregation_summary
 
 
+class AggregationAttributeHelper(object):
+    def __init__(self, account: Account, attribute: str) -> None:
+        self._account = account
+        self._attribute = attribute
+
+    def __call__(self, aggregation: TransactionLogCollection.Aggregation) -> Any:
+        return getattr(aggregation.entries.get(self._account), self._attribute)
+
+
 class SimulationResult(object):
     def __init__(self) -> None:
         self.preparation_transactions = TransactionLogList()
         self.execution_result_root = ResultNode()
         self.cleanup_transactions = TransactionLogList()
+
+    def get_important_execution_results(self) -> List[Tuple[str, TransactionLogCollection.Aggregation]]:
+        all_honest_results = []
+        seller_honest_results = []
+        buyer_honest_results = []
+
+        for node in self.execution_result_root.final_nodes:
+            if node.all_accounts_completely_honest():
+                all_honest_results.append(node.aggregation_summary)
+            elif node.account_completely_honest(seller):
+                seller_honest_results.append(node.aggregation_summary)
+            elif node.account_completely_honest(buyer):
+                buyer_honest_results.append(node.aggregation_summary)
+
+        important_results = []
+        for honesty_str, results in [
+            ('All Parties Honest', all_honest_results),
+            ('Honest Seller, Cheating Buyer', seller_honest_results),
+            ('Honest Buyer, Cheating Seller', buyer_honest_results)
+        ]:
+            for account in seller, buyer:
+                tx_fees_max_result = self._apply_aggr_func(max, results, account, 'tx_fees_max')
+                if tx_fees_max_result is not None:
+                    important_results.append(('%s - %s max fees' % (honesty_str, account.name), tx_fees_max_result))
+
+                profit_max_result = self._apply_aggr_func(max, results, account, 'value_diff_max')
+                if profit_max_result is not None:
+                    important_results.append(('%s - %s max profit' % (honesty_str, account.name), profit_max_result))
+
+                expenses_max_result = self._apply_aggr_func(min, results, account, 'value_diff_min')
+                if expenses_max_result is not None:
+                    important_results.append(('%s - %s max expenses' % (honesty_str, account.name),
+                                              expenses_max_result))
+
+        return important_results
+
+    @staticmethod
+    def _apply_aggr_func(aggr_func: Callable[..., TransactionLogCollection.Aggregation],
+                         results: List[TransactionLogCollection.Aggregation], account: Account,
+                         attribute: str) -> Optional[TransactionLogCollection.Aggregation]:
+        results_filtered = list(filter(lambda x: x.entries.get(account) is not None, results))
+        if len(results_filtered) == 0:
+            return None
+        return aggr_func(results_filtered, key=AggregationAttributeHelper(account, attribute))
