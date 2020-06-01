@@ -43,15 +43,37 @@ class SimplePayment(Protocol):
 
     def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
                 seller: Account, buyer: Account, price: int = 1000000000) -> None:
+        raise NotImplementedError()
+
+
+class SimplePaymentPrepaid(SimplePayment):
+    def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
+                seller: Account, buyer: Account, price: int = 1000000000) -> None:
         if protocol_path.decide(buyer, description='Payment', variants=['paying', 'not paying']).is_honest():
             logger.debug('Decided to be honest')
             if self._use_contract:
                 environment.send_contract_transaction(buyer, 'pay', seller.wallet_address, value=price)
             else:
                 environment.send_direct_transaction(buyer, seller, price)
+
+            protocol_path.decide(seller, description='Give goods', variants=['yes', 'no'])
         else:
             logger.debug('Decided to cheat')  # do nothing
 
 
-ProtocolManager.register('SimplePayment', SimplePayment, use_contract=True)
-ProtocolManager.register('SimplePayment-direct', SimplePayment, use_contract=False)
+class SimplePaymentPostpaid(SimplePayment):
+    def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
+                seller: Account, buyer: Account, price: int = 1000000000) -> None:
+        if protocol_path.decide(seller, 'Give goods', ['yes', 'no']).is_honest():
+            if protocol_path.decide(buyer, description='Payment', variants=['paying', 'not paying']).is_honest():
+                logger.debug('Decided to be honest')
+                if self._use_contract:
+                    environment.send_contract_transaction(buyer, 'pay', seller.wallet_address, value=price)
+                else:
+                    environment.send_direct_transaction(buyer, seller, price)
+
+
+ProtocolManager.register('SimplePayment-prepaid', SimplePaymentPrepaid, use_contract=True)
+ProtocolManager.register('SimplePayment-prepaid-direct', SimplePaymentPrepaid, use_contract=False)
+ProtocolManager.register('SimplePayment-postpaid', SimplePaymentPostpaid, use_contract=True)
+ProtocolManager.register('SimplePayment-postpaid-direct', SimplePaymentPostpaid, use_contract=False)
