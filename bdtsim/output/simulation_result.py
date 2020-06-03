@@ -295,14 +295,13 @@ class SimulationResult(object):
                 if tx_fees_max_result is not None:
                     important_results.append(('%s - %s max fees' % (honesty_str, account.name), tx_fees_max_result))
 
-                profit_max_result = self._apply_aggr_func(max, results, account, 'value_diff_max')
-                if profit_max_result is not None:
-                    important_results.append(('%s - %s max profit' % (honesty_str, account.name), profit_max_result))
+            profit_max_result = self._apply_aggr_func(max, results, seller, 'value_diff_max')
+            if profit_max_result is not None:
+                important_results.append(('%s - Seller max profit' % honesty_str, profit_max_result))
 
-                expenses_max_result = self._apply_aggr_func(min, results, account, 'value_diff_min')
-                if expenses_max_result is not None:
-                    important_results.append(('%s - %s max expenses' % (honesty_str, account.name),
-                                              expenses_max_result))
+            expenses_max_result = self._apply_aggr_func(min, results, buyer, 'value_diff_min')
+            if expenses_max_result is not None:
+                important_results.append(('%s - Buyer max expenses' % honesty_str, expenses_max_result))
 
         return important_results
 
