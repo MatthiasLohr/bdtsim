@@ -21,6 +21,7 @@ from uuid import uuid4
 from graphviz import Digraph  # type: ignore
 
 from bdtsim.protocol_path import Decision
+from bdtsim.util.types import to_bool
 from .output_format import OutputFormat
 from .output_format_manager import OutputFormatManager
 from .simulation_result import SimulationResult, ResultNode, TransactionLogList, TransactionLogCollection
@@ -32,7 +33,7 @@ class GraphvizDotOutputFormat(OutputFormat):
 
     def __init__(self, output_filename: Optional[str] = None, view: bool = False, cleanup: bool = False,
                  output_format: str = 'pdf', graphviz_renderer: Optional[str] = None,
-                 graphviz_formatter: Optional[str] = None) -> None:
+                 graphviz_formatter: Optional[str] = None, show_edges_details: Optional[bool] = True) -> None:
         """Create a [dot graph](https://www.graphviz.org/) for simulation result presentation.
 
         Args:
@@ -50,6 +51,7 @@ class GraphvizDotOutputFormat(OutputFormat):
         self._output_format = output_format
         self._graphviz_renderer = graphviz_renderer
         self._graphviz_formatter = graphviz_formatter
+        self._show_edges_details = to_bool(show_edges_details)
 
     def render(self, simulation_result: SimulationResult) -> None:
         graph = self._generate_graph(simulation_result)
@@ -117,21 +119,33 @@ class GraphvizDotOutputFormat(OutputFormat):
 
     def _add_start_edge(self, graph: Digraph, parent_uuid: str, child_uuid: str,
                         tx_collection: TransactionLogCollection) -> None:
+        if self._show_edges_details:
+            label = '<%s>' % ''.join(
+                ['%s<br />' % str(label_line) for label_line in self._get_label_lines_for_tx_collection(tx_collection)]
+            )
+        else:
+            label = ''
+
         graph.edge(
             tail_name=parent_uuid,
             head_name=child_uuid,
-            label='<%s>' % ''.join(
-                ['%s<br />' % str(label_line) for label_line in self._get_label_lines_for_tx_collection(tx_collection)]
-            )
+            label=label
         )
 
     def _add_decision_edge(self, graph: Digraph, parent_uuid: str, child_uuid: str, decision: Decision,
                            tx_collection: TransactionLogCollection) -> None:
-        label_lines = self._get_label_lines_for_tx_collection(tx_collection)
+        if self._show_edges_details:
+            label_lines = self._get_label_lines_for_tx_collection(tx_collection)
+            label = '<<b>%s</b><br />%s>' % (decision.outcome, ''.join(
+                ['%s<br />' % str(line) for line in label_lines]
+            ))
+        else:
+            label = '<<b>%s</b>>' % decision.outcome
+
         graph.edge(
             tail_name=parent_uuid,
             head_name=child_uuid,
-            label='<<b>%s</b><br />%s>' % (decision.outcome, ''.join(['%s<br />' % str(line) for line in label_lines])),
+            label=label,
             color=self._color_by_honesty(decision.is_honest())
         )
 
