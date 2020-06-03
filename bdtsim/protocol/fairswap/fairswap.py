@@ -117,7 +117,7 @@ class FairSwap(Protocol):
                                          ))
 
         plain_data = data_provider.file_pointer.read()
-        plain_merkle_tree = merkle.from_bytes(plain_data)
+        plain_merkle_tree = merkle.from_bytes(plain_data, self._slices_count)
         key = self.generate_bytes(32, 1337)
 
         # === 1a: Seller: encrypt file for transmission
@@ -127,8 +127,10 @@ class FairSwap(Protocol):
         if encryption_decision == 'expected':
             encrypted_merkle_tree = encoding.encode(plain_merkle_tree, key)
         elif encryption_decision == 'completely different':
-            encrypted_merkle_tree = encoding.encode(merkle.from_bytes(self.generate_bytes(data_provider.data_size)),
-                                                    key)
+            encrypted_merkle_tree = encoding.encode(
+                merkle.from_bytes(self.generate_bytes(data_provider.data_size), self._slices_count),
+                key
+            )
         elif encryption_decision == 'leaf forgery' or encryption_decision == 'hash forgery':
             # extract correct plain data
             plain_leaves_data = [leaf.data for leaf in plain_merkle_tree.leaves]
