@@ -15,15 +15,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse
-
-from bdtsim.output import OutputFormatManager
-from .command_manager import SubCommand
+from typing import Any
 
 
-class ListOutputFormatsSubCommand(SubCommand):
-    help = 'print a list of supported output formats'
-
-    def __call__(self, args: argparse.Namespace) -> None:
-        for name in OutputFormatManager.output_formats.keys():
-            print(name)
+def to_bool(obj: Any) -> bool:
+    if isinstance(obj, bool):
+        return obj
+    str_value = str(obj).lower()
+    if str_value in ['true', 'yes', 'y', '1']:
+        return True
+    elif str_value in ['false', 'no', 'n', '0']:
+        return False
+    else:
+        raise ValueError('%s can not be converted to bool' % str_value)

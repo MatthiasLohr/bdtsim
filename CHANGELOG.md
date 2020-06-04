@@ -11,6 +11,8 @@
   * Improved output format support
     * added `list-output-formats` command
     * support for Graphviz dot output (#12)
+    * support for human readable output (#14)
+  * Value Transfer Tracking (#15)
 
 
 ## v0.1.2

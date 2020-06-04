@@ -9,7 +9,6 @@ site_favicon: favicon.ico
 nav:
   - Home: index.md
   - Quickstart: quickstart.md
-  - Simulation: simulation.md
   - Commands: commands.md
   - Protocols: protocols.md
   - Environments: environments.md

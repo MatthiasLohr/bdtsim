@@ -23,18 +23,36 @@ from bdtsim.simulation import Simulation
 
 
 class SimplePaymentPyEVMTests(unittest.TestCase):
-    def test_simple_payment_pyevm_direct(self):
+    def test_simple_payment_pyevm_prepaid(self):
         simulation = Simulation(
-            protocol=ProtocolManager.instantiate('SimplePayment-direct'),
+            protocol=ProtocolManager.instantiate('SimplePayment-prepaid'),
             environment=EnvironmentManager.instantiate('PyEVM', chain_id=61),
             data_provider=RandomDataProvider()
         )
         result = simulation.run()
         self.assertIsNotNone(result)
 
-    def test_simple_payment_pyevm_indirect(self):
+    def test_simple_payment_pyevm_prepaid_direct(self):
         simulation = Simulation(
-            protocol=ProtocolManager.instantiate('SimplePayment'),
+            protocol=ProtocolManager.instantiate('SimplePayment-prepaid-direct'),
+            environment=EnvironmentManager.instantiate('PyEVM', chain_id=61),
+            data_provider=RandomDataProvider()
+        )
+        result = simulation.run()
+        self.assertIsNotNone(result)
+
+    def test_simple_payment_pyevm_postpaid(self):
+        simulation = Simulation(
+            protocol=ProtocolManager.instantiate('SimplePayment-postpaid'),
+            environment=EnvironmentManager.instantiate('PyEVM', chain_id=61),
+            data_provider=RandomDataProvider()
+        )
+        result = simulation.run()
+        self.assertIsNotNone(result)
+
+    def test_simple_payment_pyevm_postpaid_direct(self):
+        simulation = Simulation(
+            protocol=ProtocolManager.instantiate('SimplePayment-postpaid-direct'),
             environment=EnvironmentManager.instantiate('PyEVM', chain_id=61),
             data_provider=RandomDataProvider()
         )

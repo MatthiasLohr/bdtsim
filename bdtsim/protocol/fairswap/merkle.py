@@ -110,6 +110,8 @@ class MerkleTreeNode(object):
 class MerkleTreeLeaf(MerkleTreeNode):
     def __init__(self, data: bytes) -> None:
         super(MerkleTreeLeaf, self).__init__()
+        if (len(data) % 32) != 0:
+            raise ValueError('data length has to be a multiple of 32')
         self._data = data
 
     @property

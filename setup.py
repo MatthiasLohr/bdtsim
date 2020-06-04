@@ -42,7 +42,7 @@ setup(
         'web3==5.10.0'
     ],
     python_requires='>=3.7.*, <4',
-    packages=find_packages(exclude=['tests']),
+    packages=find_packages(exclude=['tests', 'tests.*']),
     package_data={
         'bdtsim': ['*.sol']
     },

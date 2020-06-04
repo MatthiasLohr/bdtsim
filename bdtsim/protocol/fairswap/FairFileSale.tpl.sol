@@ -105,7 +105,7 @@ contract FileSale {
         require (vrfy(_indexOut, _Zout, _proofZout));
         bytes32 Xout = cryptSmall(_indexOut, _Zout);
         require (vrfy(_indexIn, _Zin1, _proofZin));
-        require (_proofZin[0] == _Zin2);
+        require (_proofZin[depth - 1] == _Zin2);
         require (Xout != keccak256(abi.encode(cryptSmall(_indexIn, _Zin1), cryptSmall(_indexIn+ 1, _Zin2))));
         selfdestruct(receiver);
     }

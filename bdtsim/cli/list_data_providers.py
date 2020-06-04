@@ -22,6 +22,8 @@ from .command_manager import SubCommand
 
 
 class ListDataProvidersSubCommand(SubCommand):
+    help = 'print a list of supported data providers'
+
     def __call__(self, args: argparse.Namespace) -> None:
         for name in DataProviderManager.data_providers.keys():
             print(name)
