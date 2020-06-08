@@ -275,6 +275,7 @@ class SimulationResult(object):
         all_honest_results = []
         seller_honest_results = []
         buyer_honest_results = []
+        nobody_honest_results = []
 
         for node in self.execution_result_root.final_nodes:
             if node.all_accounts_completely_honest():
@@ -283,12 +284,15 @@ class SimulationResult(object):
                 seller_honest_results.append(node.aggregation_summary)
             elif node.account_completely_honest(buyer):
                 buyer_honest_results.append(node.aggregation_summary)
+            else:
+                nobody_honest_results.append(node.aggregation_summary)
 
         important_results = []
         for honesty_str, results in [
             ('All Parties Honest', all_honest_results),
             ('Honest Seller, Cheating Buyer', seller_honest_results),
-            ('Honest Buyer, Cheating Seller', buyer_honest_results)
+            ('Cheating Seller, Honest Buyer', buyer_honest_results),
+            ('Cheating Seller, Cheating Buyer', buyer_honest_results)
         ]:
             for account in seller, buyer:
                 tx_fees_max_result = self._apply_aggr_func(max, results, account, 'tx_fees_max')
