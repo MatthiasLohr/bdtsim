@@ -29,8 +29,23 @@ logger = logging.getLogger(__name__)
 
 
 class SimplePayment(Protocol):
-    def __init__(self, use_contract: bool) -> None:
-        super(SimplePayment, self).__init__()
+    """Example implementation of SimplePayment (paying after exchange, direct payments)"""
+    def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
+                seller: Account, buyer: Account, price: int = 1000000000) -> None:
+        release_goods = protocol_path.decide(seller, 'release goods?', ['yes', 'no'])
+        if release_goods == 'yes':
+            pay = protocol_path.decide(buyer, 'pay?', ['yes', 'no'])
+            if pay == 'yes':
+                environment.send_direct_transaction(buyer, seller, price)
+            else:
+                pass  # buyer left protocol, having goods, without payment
+        else:
+            pass  # seller left protocol, no reaction from buyer
+
+
+class AbstractParameterizedSimplePayment(Protocol):
+    def __init__(self, use_contract: bool):
+        super(AbstractParameterizedSimplePayment, self).__init__()
         self._use_contract = use_contract
 
     def get_contract(self) -> SolidityContract:
@@ -46,7 +61,7 @@ class SimplePayment(Protocol):
         raise NotImplementedError()
 
 
-class SimplePaymentPrepaid(SimplePayment):
+class SimplePaymentPrepaid(AbstractParameterizedSimplePayment):
     def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
                 seller: Account, buyer: Account, price: int = 1000000000) -> None:
         if protocol_path.decide(buyer, description='Payment', variants=['paying', 'not paying']).is_honest():
@@ -61,7 +76,7 @@ class SimplePaymentPrepaid(SimplePayment):
             logger.debug('Decided to cheat')  # do nothing
 
 
-class SimplePaymentPostpaid(SimplePayment):
+class SimplePaymentPostpaid(AbstractParameterizedSimplePayment):
     def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
                 seller: Account, buyer: Account, price: int = 1000000000) -> None:
         if protocol_path.decide(seller, 'Give goods', ['yes', 'no']).is_honest():
@@ -73,6 +88,7 @@ class SimplePaymentPostpaid(SimplePayment):
                     environment.send_direct_transaction(buyer, seller, price)
 
 
+ProtocolManager.register('SimplePayment', SimplePayment)
 ProtocolManager.register('SimplePayment-prepaid', SimplePaymentPrepaid, use_contract=True)
 ProtocolManager.register('SimplePayment-prepaid-direct', SimplePaymentPrepaid, use_contract=False)
 ProtocolManager.register('SimplePayment-postpaid', SimplePaymentPostpaid, use_contract=True)

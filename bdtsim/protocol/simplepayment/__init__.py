@@ -15,8 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .simplepayment import SimplePayment
+from .simplepayment import SimplePayment, SimplePaymentPrepaid, SimplePaymentPostpaid
 
 __all__ = [
-    'SimplePayment'
+    'SimplePayment',
+    'SimplePaymentPrepaid',
+    'SimplePaymentPostpaid'
 ]

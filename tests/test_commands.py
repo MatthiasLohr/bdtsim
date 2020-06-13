@@ -32,6 +32,7 @@ class CommandTest(unittest.TestCase):
         self.assertEqual(p.returncode, 0)
         self.assertEqual(out.decode('utf-8').strip(), '\n'.join([
             'FairSwap-FileSale',
+            'SimplePayment',
             'SimplePayment-prepaid',
             'SimplePayment-prepaid-direct',
             'SimplePayment-postpaid',
@@ -57,6 +58,11 @@ class CommandTest(unittest.TestCase):
             'json',
             'yaml'
         ]))
+
+    def test_run_simplepayment(self):
+        p = subprocess.Popen(['bdtsim', 'run', 'SimplePayment', 'PyEVM'], stdout=subprocess.PIPE)
+        out, err = p.communicate()
+        self.assertEqual(p.returncode, 0)
 
     def test_run_simplepayment_prepaid(self):
         p = subprocess.Popen(['bdtsim', 'run', 'SimplePayment-prepaid', 'PyEVM'], stdout=subprocess.PIPE)
