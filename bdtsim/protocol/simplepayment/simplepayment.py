@@ -33,6 +33,7 @@ class SimplePayment(Protocol):
     def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
                 seller: Account, buyer: Account, price: int = 1000000000) -> None:
         release_goods = protocol_path.decide(seller, 'release goods?', ['yes', 'no'])
+        # [...] seller releases goods to buyer, not monitored by BDTsim
         if release_goods == 'yes':
             pay = protocol_path.decide(buyer, 'pay?', ['yes', 'no'])
             if pay == 'yes':
