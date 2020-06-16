@@ -35,73 +35,85 @@ class JSONOutputFormat(OutputFormat):
 
 
 class JSONEncoder(json.JSONEncoder):
-    def default(self, obj: Any) -> Any:
-        if isinstance(obj, Account):
+    def default(self, o: Any) -> Any:
+        if isinstance(o, Account):
             return {
-                'name': obj.name,
-                'wallet_address': obj.wallet_address
+                'name': o.name,
+                'wallet_address': o.wallet_address
             }
-        elif isinstance(obj, bytes):
-            return '0x' + obj.hex()
-        elif isinstance(obj, Decision):
+        elif isinstance(o, bytes):
+            return '0x' + o.hex()
+        elif isinstance(o, Decision):
             return {
-                'account': obj.account,
-                'description': obj.description,
-                'variant': obj.outcome,
-                'variants': obj.variants,
-                'timestamp': obj.timestamp
+                'account': o.account,
+                'description': o.description,
+                'variants': o.variants,
+                'honest_variants': o.honest_variants,
+                'outcome': o.outcome,
+                'timestamp': o.timestamp
             }
-        elif isinstance(obj, ResultNode):
+        elif isinstance(o, ResultNode):
             return {
-                'transactions': obj.tx_collection,
+                'aggregation_summary': o.aggregation_summary,
+                'transaction_log_collection': o.tx_collection,
                 'children': [{
                     'decision': decision,
-                    'execution_results': child
-                } for decision, child in obj.children.items()]
+                    'child': child
+                } for decision, child in o.children.items()],
             }
-        elif isinstance(obj, SimulationResult):
+        elif isinstance(o, SimulationResult):
             return {
-                'preparation_results': obj.preparation_transactions,
-                'execution_results': obj.execution_result_root,
-                'cleanup_results': obj.cleanup_transactions
+                'important_execution_results': o.get_important_execution_results(),
+                'preparation_transactions': o.preparation_transactions,
+                'execution_result_root': o.execution_result_root,
+                'cleanup_transaction': o.cleanup_transactions,
             }
-        elif isinstance(obj, TransactionLogCollection):
+        elif isinstance(o, TransactionLogCollection):
             return {
-                'transaction_lists': obj.tx_log_lists,
-                'aggregation': obj.aggregation
+                'aggregation': o.aggregation,
+                'transaction_log_lists': o.tx_log_lists
             }
-        elif isinstance(obj, TransactionLogCollection.Aggregation):
-            return list(obj.entries.values())
-        elif isinstance(obj, TransactionLogEntry):
+        elif isinstance(o, TransactionLogCollection.Aggregation):
+            return list(o.entries.values())
+        elif isinstance(o, TransactionLogCollection.Aggregation.Entry):
             return {
-                'tx': obj.tx_dict,
-                'receipt': obj.tx_receipt
+                'account': o.account,
+                'tx_fees_min': o.tx_fees_min,
+                'tx_fees_max': o.tx_fees_max,
+                'tx_fees_mean': o.tx_fees_mean,
+                'tx_count_min': o.tx_count_min,
+                'tx_count_max': o.tx_count_max,
+                'tx_count_mean': o.tx_count_mean,
+                'funds_diff_min': o.funds_diff_min,
+                'funds_diff_max': o.funds_diff_max,
+                'count': o.list_count
             }
-        elif isinstance(obj, TransactionLogCollection.Aggregation.Entry):
+        elif isinstance(o, TransactionLogEntry):
             return {
-                'account': obj.account,
-                'tx_fees_min': obj.tx_fees_min,
-                'tx_fees_man': obj.tx_fees_max,
-                'tx_fees_mean': obj.tx_fees_mean,
-                'tx_count_min': obj.tx_count_min,
-                'tx_count_man': obj.tx_count_max,
-                'tx_count_mean': obj.tx_count_mean
+                'account': o.account,
+                'transaction': o.tx_dict,
+                'transaction_receipt': o.tx_receipt,
+                'funds_diffs': [{
+                    'account': account,
+                    'funds_diff': diff
+                } for account, diff in o.funds_diff_collection.items()]
             }
-        elif isinstance(obj, TransactionLogList):
+        elif isinstance(o, TransactionLogList):
             return {
-                'transactions': obj.tx_log_list,
-                'aggregation': obj.aggregation
+                'aggregation': o.aggregation,
+                'transactions': o.tx_log_list
             }
-        elif isinstance(obj, TransactionLogList.Aggregation):
-            return list(obj.entries.values())
-        elif isinstance(obj, TransactionLogList.Aggregation.Entry):
+        elif isinstance(o, TransactionLogList.Aggregation):
+            return list(o.entries.values())
+        elif isinstance(o, TransactionLogList.Aggregation.Entry):
             return {
-                'account': obj.account,
-                'tx_fees': obj.tx_fees,
-                'tx_count': obj.tx_count
+                'account': o.account,
+                'tx_fees': o.tx_fees,
+                'tx_count': o.tx_count,
+                'funds_diff': o.funds_diff
             }
         else:
-            return super(JSONEncoder, self).default(obj)
+            return super(JSONEncoder, self).default(o)
 
 
 OutputFormatManager.register('json', JSONOutputFormat)

@@ -103,8 +103,8 @@ class TransactionLogCollection(object):
     class Aggregation(object):
         class Entry(object):
             def __init__(self, account: Account, tx_fees_min: int, tx_fees_max: int, tx_fees_sum: int,
-                         tx_count_min: int, tx_count_max: int, tx_count_sum: int, value_diff_min: int,
-                         value_diff_max: int, list_count: int,) -> None:
+                         tx_count_min: int, tx_count_max: int, tx_count_sum: int, funds_diff_min: int,
+                         funds_diff_max: int, list_count: int, ) -> None:
                 self.account = account
                 self.tx_fees_min = tx_fees_min
                 self.tx_fees_max = tx_fees_max
@@ -112,8 +112,8 @@ class TransactionLogCollection(object):
                 self.tx_count_min = tx_count_min
                 self.tx_count_max = tx_count_max
                 self.tx_count_sum = tx_count_sum
-                self.value_diff_min = value_diff_min
-                self.value_diff_max = value_diff_max
+                self.funds_diff_min = funds_diff_min
+                self.funds_diff_max = funds_diff_max
                 self.list_count = list_count
 
             def __str__(self) -> str:
@@ -122,14 +122,14 @@ class TransactionLogCollection(object):
                         self.account.name,
                         self.tx_fees_min,
                         self.tx_count_min,
-                        self.value_diff_min
+                        self.funds_diff_min
                     )
                 else:
                     return '%s: %d/%d/%d (%d/%d/%d transaction(s), value diff %d/%d)' % (
                         self.account.name,
                         self.tx_fees_min, self.tx_fees_mean, self.tx_fees_max,
                         self.tx_count_min, self.tx_count_mean, self.tx_count_max,
-                        self.value_diff_min, self.value_diff_max
+                        self.funds_diff_min, self.funds_diff_max
                     )
 
             @property
@@ -165,8 +165,8 @@ class TransactionLogCollection(object):
                         entry.tx_count_min = min(entry.tx_count_min, tx_list_aggregation.tx_count)
                         entry.tx_count_max = max(entry.tx_count_max, tx_list_aggregation.tx_count)
                         entry.tx_count_sum += tx_list_aggregation.tx_count
-                        entry.value_diff_min = min(entry.value_diff_min, tx_list_aggregation.funds_diff)
-                        entry.value_diff_max = max(entry.value_diff_max, tx_list_aggregation.funds_diff)
+                        entry.funds_diff_min = min(entry.funds_diff_min, tx_list_aggregation.funds_diff)
+                        entry.funds_diff_max = max(entry.funds_diff_max, tx_list_aggregation.funds_diff)
                         entry.list_count += 1
 
         def __iadd__(self, other: 'TransactionLogCollection.Aggregation') -> 'TransactionLogCollection.Aggregation':
@@ -182,8 +182,8 @@ class TransactionLogCollection(object):
                         local_entry.tx_count_min += remote_entry.tx_count_min
                         local_entry.tx_count_max += remote_entry.tx_count_max
                         local_entry.tx_count_sum += remote_entry.tx_count_sum
-                        local_entry.value_diff_min += remote_entry.value_diff_min
-                        local_entry.value_diff_max += remote_entry.value_diff_max
+                        local_entry.funds_diff_min += remote_entry.funds_diff_min
+                        local_entry.funds_diff_max += remote_entry.funds_diff_max
                         local_entry.list_count += remote_entry.list_count
                 return self
             else:
@@ -299,11 +299,11 @@ class SimulationResult(object):
                 if tx_fees_max_result is not None:
                     important_results.append(('%s - %s max fees' % (honesty_str, account.name), tx_fees_max_result))
 
-            profit_max_result = self._apply_aggr_func(max, results, seller, 'value_diff_max')
+            profit_max_result = self._apply_aggr_func(max, results, seller, 'funds_diff_max')
             if profit_max_result is not None:
                 important_results.append(('%s - Seller max profit' % honesty_str, profit_max_result))
 
-            expenses_max_result = self._apply_aggr_func(min, results, buyer, 'value_diff_min')
+            expenses_max_result = self._apply_aggr_func(min, results, buyer, 'funds_diff_min')
             if expenses_max_result is not None:
                 important_results.append(('%s - Buyer max expenses' % honesty_str, expenses_max_result))
 
