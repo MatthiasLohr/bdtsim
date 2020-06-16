@@ -1,6 +1,6 @@
 # Changelog
 
-## unreleased
+## v1.0.0
 
   * Docker image creation
   * Support for FairSwap protocol (#2)
