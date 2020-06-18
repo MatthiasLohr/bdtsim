@@ -1,5 +1,12 @@
 # Changelog
 
+## unreleased
+
+  * Updated web3py to 5.11.0
+  * Updated eth-tester to 0.5.0b1
+  * Updated py-evm to 0.3.0a17
+
+
 ## v1.0.0
 
   * Docker image creation
