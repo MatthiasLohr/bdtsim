@@ -12,9 +12,9 @@ contract Delgado {
   uint256 public constant PP = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F;
   uint256 _pubX;
   uint256 _pubY;
-  uint time = 600000000 seconds; //template
-  uint price = 10 wei; //template
+  uint price = {{ price }};
   uint public timeout;
+  uint public time = {{ time }} seconds;
   enum stage {created, initialized, finished}
   stage public phase = stage.created;
   address payable buyer;
