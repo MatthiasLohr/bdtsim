@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import tempfile
 from typing import List, Optional
 from uuid import uuid4
 
@@ -46,12 +47,15 @@ class GraphvizDotOutputFormat(OutputFormat):
         """
         super(GraphvizDotOutputFormat, self).__init__()
         self._output_filename = output_filename
-        self._view = view
+        self._view = to_bool(view)
         self._cleanup = cleanup
         self._output_format = output_format
         self._graphviz_renderer = graphviz_renderer
         self._graphviz_formatter = graphviz_formatter
         self._show_edges_details = to_bool(show_edges_details)
+
+        if self._view and self._output_filename is None:
+            self._output_filename = tempfile.mktemp(prefix='bdtsim-', suffix='.dot')
 
     def render(self, simulation_result: SimulationResult) -> None:
         graph = self._generate_graph(simulation_result)
