@@ -2,7 +2,7 @@
 
 ## unreleased
 
-  * Updated web3py to 5.11.0
+  * Updated web3py to 5.11.1
   * Updated eth-tester to 0.5.0b1
   * Updated py-evm to 0.3.0a17
 
