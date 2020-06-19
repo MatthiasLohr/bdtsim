@@ -2,9 +2,10 @@
 
 ## unreleased
 
-  * Updated web3py to 5.11.1
-  * Updated eth-tester to 0.5.0b1
-  * Updated py-evm to 0.3.0a17
+  * Dependency Update: web3py 5.11.1
+  * Dependency Update: eth-tester 0.5.0b1
+  * Dependency Update: py-evm 0.3.0a17
+  * Fix: Complain about unrecognized parameters 
 
 
 ## v1.0.0
