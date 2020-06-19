@@ -20,7 +20,10 @@ from typing import Any, BinaryIO
 
 class DataProvider(object):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        pass
+        if len(args):
+            raise TypeError('Unrecognized positional argument "%s" for DataProvider' % str(args[0]))
+        if len(kwargs):
+            raise TypeError('Unrecognized keyword argument "%s" for DataProvider' % str(list(kwargs.keys())[0]))
 
     @property
     def data_size(self) -> int:
