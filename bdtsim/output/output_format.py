@@ -22,7 +22,10 @@ from .simulation_result import SimulationResult
 
 class OutputFormat(object):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        pass
+        if len(args):
+            raise TypeError('Unrecognized positional argument "%s" for OutputFormat' % str(args[0]))
+        if len(kwargs):
+            raise TypeError('Unrecognized keyword argument "%s" for OutputFormat' % str(list(kwargs.keys())[0]))
 
     def render(self, simulation_result: SimulationResult) -> None:
         raise NotImplementedError()

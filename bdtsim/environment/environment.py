@@ -37,7 +37,14 @@ logger = logging.getLogger(__name__)
 
 class Environment(object):
     def __init__(self, web3_provider: BaseProvider, chain_id: Optional[int] = None, gas_price: Optional[int] = None,
-                 gas_price_strategy: Optional[Callable[[Web3, Optional[TxParams]], Wei]] = None) -> None:
+                 gas_price_strategy: Optional[Callable[[Web3, Optional[TxParams]], Wei]] = None,
+                 *args: Any, **kwargs: Any) -> None:
+
+        if len(args):
+            raise TypeError('Unrecognized positional argument "%s" for Environment' % str(args[0]))
+        if len(kwargs):
+            raise TypeError('Unrecognized keyword argument "%s" for Environment' % str(list(kwargs.keys())[0]))
+
         self._web3 = Web3(web3_provider)
 
         if chain_id is None:

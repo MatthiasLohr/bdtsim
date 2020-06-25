@@ -26,7 +26,10 @@ from bdtsim.protocol_path import ProtocolPath
 
 class Protocol(object):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        pass
+        if len(args):
+            raise TypeError('Unrecognized positional argument "%s" for Protocol' % str(args[0]))
+        if len(kwargs):
+            raise TypeError('Unrecognized keyword argument "%s" for Protocol' % str(list(kwargs.keys())[0]))
 
     def prepare_simulation(self, environment: Environment, operator: Account) -> None:
         pass

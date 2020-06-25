@@ -134,7 +134,7 @@ contract FileSale {
 
     // function to verify Merkle Tree proofs
     function vrfy(uint _index, bytes32 _value, bytes32[depth] memory _proof) public view returns (bool) {
-        for (uint8 i = 0; i < depth; i++) {
+        for (uint i = 0; i < depth; i++) {
             if ((_index & 1 << i) >>i == 1)
                 _value = keccak256(abi.encodePacked(_proof[depth - i - 1], _value));
             else
