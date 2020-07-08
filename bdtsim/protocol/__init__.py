@@ -19,6 +19,7 @@ from .protocol import Protocol
 from .protocol_manager import ProtocolManager
 from .exceptions import ProtocolError, ProtocolInitializationError, ProtocolExecutionError
 from .fairswap import FairSwap
+from .delgado import Delgado
 from .simplepayment import SimplePayment, SimplePaymentPrepaid, SimplePaymentPostpaid
 
 __all__ = [
@@ -26,5 +27,6 @@ __all__ = [
     'ProtocolManager',
     'ProtocolError', 'ProtocolInitializationError', 'ProtocolExecutionError',
     'FairSwap',
-    'SimplePayment', 'SimplePaymentPrepaid', 'SimplePaymentPostpaid'
+    'SimplePayment', 'SimplePaymentPrepaid', 'SimplePaymentPostpaid',
+    'Delgado'
 ]

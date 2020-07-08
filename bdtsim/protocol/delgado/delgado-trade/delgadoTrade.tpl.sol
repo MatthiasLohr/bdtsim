@@ -1,6 +1,6 @@
 pragma solidity >=0.6.1;
 
-import "./EllipticCurve.sol";
+import "bdtsim/protocol/delgado/delgado-trade/EllipticCurve.sol";
 
 
 contract Delgado {

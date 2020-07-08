@@ -12,7 +12,7 @@ contract Delgado {
   uint256 public constant PP = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F;
   uint256 _pubX;
   uint256 _pubY;
-  uint time = 600000000 seconds; //template
+  uint time = 60 seconds; //template
   uint price = 10 wei; //template
   uint public timeout;
   enum stage {created, initialized, finished}

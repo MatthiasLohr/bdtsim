@@ -36,7 +36,8 @@ class CommandTest(unittest.TestCase):
             'SimplePayment-prepaid',
             'SimplePayment-prepaid-direct',
             'SimplePayment-postpaid',
-            'SimplePayment-postpaid-direct'
+            'SimplePayment-postpaid-direct',
+            'Delgado-FileSale'
         ]))
 
     def test_list_data_providers(self):
