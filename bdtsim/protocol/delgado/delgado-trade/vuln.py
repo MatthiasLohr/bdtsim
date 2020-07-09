@@ -1,3 +1,4 @@
+# flake8: noqa
 from ecdsa import SigningKey,SECP256k1
 from hashlib import sha1
 

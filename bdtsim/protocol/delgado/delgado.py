@@ -1,7 +1,7 @@
 import logging
 from jinja2 import Template
 from web3 import Web3
-from ecdsa import SigningKey, SECP256k1  # type: ignore
+from ecdsa import SigningKey, SECP256k1  # type: ignore   seems to be not  PEP 561 compliant
 from typing import Any, Optional
 import random
 
@@ -67,7 +67,7 @@ class Delgado(Protocol):
         #    seller, 'File Encryption/Transfer', ['expected','unexpected key','unexpected file']
         # )
         # TODO data exchange beforehand - simulate or not?
-        sk = SigningKey.generate(curve=SECP256k1)  # private key         
+        sk = SigningKey.generate(curve=SECP256k1)  # private key
         # exchange with buyer
         vk = sk.verifying_key      # public key
         pubkX = vk.pubkey.point.x()
