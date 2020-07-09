@@ -79,7 +79,7 @@ class Delgado(Protocol):
         # TODO
         # === 2c: Seller answers challenges and sends SIG
         # TODO
-        # === 3: Buyer: deploy smart contract
+        # === 3: Buyer: extract pubX and pubY from SIG-> deploy smart contract
         construct_contract_decision = protocol_path.decide(seller, 'InitializeContract', ['dummy'])
         logging.debug(construct_contract_decision.description)
         # actual contract deployment
