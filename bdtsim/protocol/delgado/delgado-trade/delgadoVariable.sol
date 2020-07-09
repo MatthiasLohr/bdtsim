@@ -34,7 +34,10 @@ contract Delgado {
         _;
     }
     
-function BuyerInitTrade(bytes32 sessionID ,uint256 pubX,uint256 pubY, address payable s) payable public{
+function BuyerInitTrade(uint256 pubX,uint256 pubY, address payable s) payable public{
+     bytes32 sessionID = calculateSessionID(msg.sender, s, pubY);
+     require(sessions[sessionID].stage == Stage.created);
+
     require(msg.value >= price,"price wrong");
     sessions[sessionID] = FileSaleSession(
             Stage.initialized,
@@ -62,6 +65,11 @@ function refund(bytes32 sessionID) public{
     sessions[sessionID].buyer.transfer(sessions[sessionID].balance);
     sessions[sessionID].stage = Stage.finished;
 }
+
+function calculateSessionID(address buyer, address seller, uint pubY) pure private returns(bytes32) {
+        return keccak256(abi.encodePacked(buyer, seller, pubY));
+    }
+
   /// @param privKey The private key
   /// @return (qx, qy) The Public Key
   function derivePubKey(uint256 privKey) public pure returns (uint256, uint256) {
