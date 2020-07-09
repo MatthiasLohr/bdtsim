@@ -32,12 +32,12 @@ class CommandTest(unittest.TestCase):
         self.assertEqual(p.returncode, 0)
         self.assertEqual(out.decode('utf-8').strip(), '\n'.join([
             'FairSwap-FileSale',
+            'Delgado-FileSale',
             'SimplePayment',
             'SimplePayment-prepaid',
             'SimplePayment-prepaid-direct',
             'SimplePayment-postpaid',
-            'SimplePayment-postpaid-direct',
-            'Delgado-FileSale'
+            'SimplePayment-postpaid-direct'
         ]))
 
     def test_list_data_providers(self):
