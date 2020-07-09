@@ -1,7 +1,8 @@
 import logging
 from jinja2 import Template
 from web3 import Web3
-from ecdsa import SigningKey, SECP256k1  # type: ignore   seems to be not  PEP 561 compliant
+from ecdsa import SigningKey, SECP256k1  # type: ignore
+# seems to be not  PEP 561 compliant
 from typing import Any, Optional
 import random
 
