@@ -26,4 +26,4 @@ See the [Contribution Guidelines](https://gitlab.com/MatthiasLohr/bdtsim/-/blob/
 This project is published under the Apache License, Version 2.0.
 See [LICENSE.md](https://gitlab.com/MatthiasLohr/bdtsim/-/blob/master/LICENSE.md) for more information.
 
-Copyright (c) by Matthias Lohr <mail@mlohr.com>
+Copyright (c) by [Matthias Lohr](https://mlohr.com/) <mail@mlohr.com>
