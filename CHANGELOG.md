@@ -5,6 +5,7 @@
   * Dependency Update: web3py 5.11.1
   * Dependency Update: eth-tester 0.5.0b1
   * Dependency Update: py-evm 0.3.0a17
+  * Protocol: FairSwap with Reusable Smart Contract (#18)
   * Fix: Complain about unrecognized parameters
   * Fix: When `-o view True` is given without an output filename use temporary file
   * Fix: Allow slices-count >= 256 in FairSwap contract
