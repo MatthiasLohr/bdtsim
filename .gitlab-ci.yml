@@ -5,6 +5,7 @@ stages:
   - test
   - build
   - deploy
+  - release
 
 unittests:
   stage: test
@@ -72,6 +73,7 @@ upload to PyPI:
 
 create release:
   image: registry.gitlab.com/gitlab-org/release-cli
+  stage: release
   rules:
     - if: '$CI_COMMIT_TAG != null'
   script:
