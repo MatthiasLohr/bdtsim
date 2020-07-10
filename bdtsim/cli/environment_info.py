@@ -18,6 +18,7 @@
 import argparse
 from typing import Dict
 
+from bdtsim.account import operator, seller, buyer
 from bdtsim.environment import EnvironmentManager
 from .command_manager import SubCommand
 
@@ -49,4 +50,14 @@ class EnvironmentInfoSubCommand(SubCommand):
             print('Sync Status: syncing (%d/%d)' % (syncing.currentBlock, syncing.highestBlock))
 
         print('Chain ID: %s' % str(environment.web3.eth.chainId))
+
+        for account in operator, seller, buyer:
+            balance = environment.web3.eth.getBalance(account.wallet_address)
+            print('Account balance % 8s: % 20i (~%.2f Eth, %i transactions)' % (
+                account.name,
+                balance,
+                (balance / 1000000000000000000),
+                environment.web3.eth.getTransactionCount(account.wallet_address)
+            ))
+
         return 0
