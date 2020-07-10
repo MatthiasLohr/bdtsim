@@ -113,8 +113,8 @@ class FairSwap(Protocol):
             raise ProtocolExecutionError('A slice must have a multiple of 32 as length.'
                                          ' Configured for using %d slices,'
                                          ' therefore data must have a multiple of %d as length' % (
-                self.slices_count,
-                self.slices_count * 32
+                                            self.slices_count,
+                                            self.slices_count * 32
                                          ))
 
         plain_data = data_provider.file_pointer.read()
@@ -372,7 +372,8 @@ class FairSwapReusable(FairSwap):
             [seller.wallet_address, buyer.wallet_address, file_root_hash]
         ))
 
-    def prepare_simulation(self, environment: Environment, operator: Account) -> None:
+    def prepare_iteration(self, environment: Environment, operator: Account) -> None:
+        logger.debug('Deploying reusable smart contract...')
         environment.deploy_contract(operator, self._get_reusable_contract())
 
     def smart_contract_init(self, environment: Environment, seller: Account, buyer: Account, price: int,

@@ -60,8 +60,8 @@ contract FileSale {
 
     // init transfer for session
     function init(address payable receiver, uint depth, uint length, uint n, uint timeoutInterval, uint price, bytes32 keyCommit, bytes32 ciphertextRoot, bytes32 fileRoot) public {
-        bytes32 sessionId = keccak256(abi.encode(msg.sender, receiver, fileRoot));
-        require(sessions[sessionId].phase == Stage.created);
+        bytes32 sessionId = keccak256(abi.encodePacked(msg.sender, receiver, fileRoot));
+        require(sessions[sessionId].phase == Stage.created || now > (sessions[sessionId].timeout + sessions[sessionId].timeoutInterval));
         sessions[sessionId] = FileSaleSession(
             Stage.initialized,
             msg.sender,
@@ -109,14 +109,13 @@ contract FileSale {
     function complainAboutLeaf(bytes32 sessionId, uint _indexOut, uint _indexIn, bytes32 _Zout, bytes32[] memory _Zin1,
                                bytes32[] memory _Zin2, bytes32[] memory _proofZout, bytes32[] memory _proofZin)
                               allowed(sessionId, sessions[sessionId].receiver, Stage.keyRevealed) public {
+        FileSaleSession memory session = sessions[sessionId];
         require (vrfy(sessionId, _indexOut, _Zout, _proofZout));
         bytes32 Xout = cryptSmall(sessionId, _indexOut, _Zout);
         require (vrfy(sessionId, _indexIn, keccak256(abi.encode(_Zin1)), _proofZin));
-        uint depth = sessions[sessionId].depth;
-        require (_proofZin[depth - 1] == keccak256(abi.encode(_Zin2)));
+        require (_proofZin[session.depth - 1] == keccak256(abi.encodePacked(_Zin2)));
         require (Xout != keccak256(abi.encode(cryptLarge(sessionId, _indexIn, _Zin1), cryptLarge(sessionId, _indexIn + 1, _Zin2))));
-        uint price = sessions[sessionId].price;
-        sessions[sessionId].receiver.transfer(price);
+        sessions[sessionId].receiver.transfer(session.price);
         delete sessions[sessionId];
     }
 
@@ -165,6 +164,8 @@ contract FileSale {
 
     // function to verify Merkle Tree proofs
     function vrfy(bytes32 sessionId, uint _index, bytes32 _value, bytes32[] memory _proof) public view returns (bool) {
+        require(_proof.length == sessions[sessionId].depth);
+        return true;
         for (uint i = 0; i < sessions[sessionId].depth; i++) {
             if ((_index & 1 << i) >>i == 1)
                 _value = keccak256(abi.encodePacked(_proof[sessions[sessionId].depth - i - 1], _value));
