@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.0.1
+## v1.1.0
 
   * Dependency Update: web3py 5.11.1
   * Dependency Update: eth-tester 0.5.0b1
