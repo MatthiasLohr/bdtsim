@@ -19,7 +19,7 @@ import copy
 import itertools
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from bdtsim.account import Account, seller, buyer
+from bdtsim.account import Account
 from bdtsim.funds_diff_collection import FundsDiffCollection
 from bdtsim.protocol_path import Decision
 
@@ -266,10 +266,13 @@ class AggregationAttributeHelper(object):
 
 
 class SimulationResult(object):
-    def __init__(self) -> None:
+    def __init__(self, operator: Account, seller: Account, buyer: Account) -> None:
         self.preparation_transactions = TransactionLogList()
         self.execution_result_root = ResultNode()
         self.cleanup_transactions = TransactionLogList()
+        self.operator = operator
+        self.seller = seller
+        self.buyer = buyer
 
     def get_important_execution_results(self) -> List[Tuple[str, TransactionLogCollection.Aggregation]]:
         all_honest_results = []
@@ -280,9 +283,9 @@ class SimulationResult(object):
         for node in self.execution_result_root.final_nodes:
             if node.all_accounts_completely_honest():
                 all_honest_results.append(node.aggregation_summary)
-            elif node.account_completely_honest(seller):
+            elif node.account_completely_honest(self.seller):
                 seller_honest_results.append(node.aggregation_summary)
-            elif node.account_completely_honest(buyer):
+            elif node.account_completely_honest(self.buyer):
                 buyer_honest_results.append(node.aggregation_summary)
             else:
                 nobody_honest_results.append(node.aggregation_summary)
@@ -294,16 +297,16 @@ class SimulationResult(object):
             ('Cheating Seller, Honest Buyer', buyer_honest_results),
             ('Cheating Seller, Cheating Buyer', buyer_honest_results)
         ]:
-            for account in seller, buyer:
+            for account in self.seller, self.buyer:
                 tx_fees_max_result = self._apply_aggr_func(max, results, account, 'tx_fees_max')
                 if tx_fees_max_result is not None:
                     important_results.append(('%s - %s max fees' % (honesty_str, account.name), tx_fees_max_result))
 
-            profit_max_result = self._apply_aggr_func(max, results, seller, 'funds_diff_max')
+            profit_max_result = self._apply_aggr_func(max, results, self.seller, 'funds_diff_max')
             if profit_max_result is not None:
                 important_results.append(('%s - Seller max profit' % honesty_str, profit_max_result))
 
-            expenses_max_result = self._apply_aggr_func(min, results, buyer, 'funds_diff_min')
+            expenses_max_result = self._apply_aggr_func(min, results, self.buyer, 'funds_diff_min')
             if expenses_max_result is not None:
                 important_results.append(('%s - Buyer max expenses' % honesty_str, expenses_max_result))
 

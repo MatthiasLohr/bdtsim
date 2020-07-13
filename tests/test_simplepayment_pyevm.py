@@ -16,6 +16,8 @@
 # limitations under the License.
 
 import unittest
+
+from bdtsim.account import AccountFile
 from bdtsim.data_provider import RandomDataProvider
 from bdtsim.environment import EnvironmentManager
 from bdtsim.protocol import ProtocolManager
@@ -23,11 +25,22 @@ from bdtsim.simulation import Simulation
 
 
 class SimplePaymentPyEVMTests(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super(SimplePaymentPyEVMTests, self).__init__(*args, **kwargs)
+        account_file = AccountFile()
+        self.operator = account_file.operator
+        self.seller = account_file.seller
+        self.buyer = account_file.buyer
+
     def test_simple_payment_pyevm_prepaid(self):
         simulation = Simulation(
             protocol=ProtocolManager.instantiate('SimplePayment-prepaid'),
-            environment=EnvironmentManager.instantiate('PyEVM', chain_id=61),
-            data_provider=RandomDataProvider()
+            environment=EnvironmentManager.instantiate('PyEVM', operator=self.operator, seller=self.seller,
+                                                       buyer=self.buyer, chain_id=61),
+            data_provider=RandomDataProvider(),
+            operator=self.operator,
+            seller=self.seller,
+            buyer=self.buyer
         )
         result = simulation.run()
         self.assertIsNotNone(result)
@@ -35,8 +48,12 @@ class SimplePaymentPyEVMTests(unittest.TestCase):
     def test_simple_payment_pyevm_prepaid_direct(self):
         simulation = Simulation(
             protocol=ProtocolManager.instantiate('SimplePayment-prepaid-direct'),
-            environment=EnvironmentManager.instantiate('PyEVM', chain_id=61),
-            data_provider=RandomDataProvider()
+            environment=EnvironmentManager.instantiate('PyEVM', operator=self.operator, seller=self.seller,
+                                                       buyer=self.buyer, chain_id=61),
+            data_provider=RandomDataProvider(),
+            operator=self.operator,
+            seller=self.seller,
+            buyer=self.buyer
         )
         result = simulation.run()
         self.assertIsNotNone(result)
@@ -44,8 +61,12 @@ class SimplePaymentPyEVMTests(unittest.TestCase):
     def test_simple_payment_pyevm_postpaid(self):
         simulation = Simulation(
             protocol=ProtocolManager.instantiate('SimplePayment-postpaid'),
-            environment=EnvironmentManager.instantiate('PyEVM', chain_id=61),
-            data_provider=RandomDataProvider()
+            environment=EnvironmentManager.instantiate('PyEVM', operator=self.operator, seller=self.seller,
+                                                       buyer=self.buyer, chain_id=61),
+            data_provider=RandomDataProvider(),
+            operator=self.operator,
+            seller=self.seller,
+            buyer=self.buyer
         )
         result = simulation.run()
         self.assertIsNotNone(result)
@@ -53,8 +74,12 @@ class SimplePaymentPyEVMTests(unittest.TestCase):
     def test_simple_payment_pyevm_postpaid_direct(self):
         simulation = Simulation(
             protocol=ProtocolManager.instantiate('SimplePayment-postpaid-direct'),
-            environment=EnvironmentManager.instantiate('PyEVM', chain_id=61),
-            data_provider=RandomDataProvider()
+            environment=EnvironmentManager.instantiate('PyEVM', operator=self.operator, seller=self.seller,
+                                                       buyer=self.buyer, chain_id=61),
+            data_provider=RandomDataProvider(),
+            operator=self.operator,
+            seller=self.seller,
+            buyer=self.buyer
         )
         result = simulation.run()
         self.assertIsNotNone(result)

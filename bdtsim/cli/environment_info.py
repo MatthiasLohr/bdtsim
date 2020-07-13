@@ -18,7 +18,7 @@
 import argparse
 from typing import Dict
 
-from bdtsim.account import operator, seller, buyer
+from bdtsim.account import AccountFile
 from bdtsim.environment import EnvironmentManager
 from .command_manager import SubCommand
 
@@ -33,12 +33,16 @@ class EnvironmentInfoSubCommand(SubCommand):
                             default=[], metavar=('KEY', 'VALUE'), help='Pass additional parameters to the environment')
 
     def __call__(self, args: argparse.Namespace) -> int:
+        account_file = AccountFile(path=args.account_file)
         environment_parameters: Dict[str, str] = {}
         for key, value in args.environment_parameters:
             environment_parameters[key.replace('-', '_')] = value
 
         environment = EnvironmentManager.instantiate(
-            args.environment,
+            name=args.environment,
+            operator=account_file.operator,
+            seller=account_file.seller,
+            buyer=account_file.buyer,
             **environment_parameters
         )
 
@@ -51,7 +55,7 @@ class EnvironmentInfoSubCommand(SubCommand):
 
         print('Chain ID: %s' % str(environment.web3.eth.chainId))
 
-        for account in operator, seller, buyer:
+        for account in account_file.operator, account_file.seller, account_file.buyer:
             balance = environment.web3.eth.getBalance(account.wallet_address)
             print('Account balance % 8s (%s): % 20i (~%.2f Eth, %i transactions)' % (
                 account.name,
