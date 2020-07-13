@@ -7,6 +7,7 @@
   * Dependency Update: py-evm 0.3.0a17
   * Protocol: FairSwap with Reusable Smart Contract (#18)
   * Feature: `environment-info` prints account balances (#21)
+  * Feature: Added parameter for `environment-info` and `run` to define accounts to be used (#22)
   * Fix: Complain about unrecognized parameters
   * Fix: When `-o view True` is given without an output filename use temporary file
   * Fix: Allow slices-count >= 256 in FairSwap contract
