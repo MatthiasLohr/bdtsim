@@ -53,8 +53,9 @@ class EnvironmentInfoSubCommand(SubCommand):
 
         for account in operator, seller, buyer:
             balance = environment.web3.eth.getBalance(account.wallet_address)
-            print('Account balance % 8s: % 20i (~%.2f Eth, %i transactions)' % (
+            print('Account balance % 8s (%s): % 20i (~%.2f Eth, %i transactions)' % (
                 account.name,
+                account.wallet_address,
                 balance,
                 (balance / 1000000000000000000),
                 environment.web3.eth.getTransactionCount(account.wallet_address)
