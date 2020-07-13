@@ -29,6 +29,7 @@ class EnvironmentInfoSubCommand(SubCommand):
     def __init__(self, parser: argparse.ArgumentParser) -> None:
         super(EnvironmentInfoSubCommand, self).__init__(parser)
         parser.add_argument('environment', choices=EnvironmentManager.environments.keys())
+        parser.add_argument('--account-file', help='Specify account configuration file to be used')
         parser.add_argument('-e', '--environment-parameter', nargs=2, action='append', dest='environment_parameters',
                             default=[], metavar=('KEY', 'VALUE'), help='Pass additional parameters to the environment')
 

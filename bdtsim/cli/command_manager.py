@@ -38,7 +38,6 @@ class CommandManager(object):
         self._argument_parser.add_argument('-l', '--log-level', default='WARNING',
                                            choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
                                            help='set log level for bdtsim')
-        self._argument_parser.add_argument('--account-file', help='Specify an accounts file to be used')
         self._command_parser = self._argument_parser.add_subparsers(title='command', dest='command', required=True)
         self._subcommands: Dict[str, SubCommand] = {}
 

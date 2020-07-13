@@ -35,6 +35,7 @@ class RunSubCommand(SubCommand):
         parser.add_argument('protocol', choices=ProtocolManager.protocols.keys(), help='protocol to be simulated')
         parser.add_argument('environment', choices=EnvironmentManager.environments.keys(),
                             help='environment in which the simulation will take place')
+        parser.add_argument('--account-file', help='Specify an accounts file to be used')
         parser.add_argument('--data-provider', choices=DataProviderManager.data_providers.keys(),
                             default='RandomDataProvider', help='set the data provider/data source for the simulation')
         parser.add_argument('-f', '--output-format', choices=OutputFormatManager.output_formats.keys(),
