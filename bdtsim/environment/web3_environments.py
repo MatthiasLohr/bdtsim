@@ -22,19 +22,23 @@ from web3.middleware.geth_poa import geth_poa_middleware
 from web3.providers.base import JSONBaseProvider
 from web3.types import TxParams, Wei
 
+from bdtsim.account import Account
 from .environment import Environment
 from .environment_manager import EnvironmentManager
 
 
 class Web3Environment(Environment):
-    def __init__(self, web3_provider_class: Type[JSONBaseProvider], chain_id: Optional[int] = None,
-                 gas_price: Optional[int] = None,
+    def __init__(self, web3_provider_class: Type[JSONBaseProvider], operator: Account, seller: Account, buyer: Account,
+                 chain_id: Optional[int] = None, gas_price: Optional[int] = None,
                  gas_price_strategy: Optional[Callable[[Web3, Optional[TxParams]], Wei]] = None,
                  inject_poa_middleware: bool = False, **kwargs: Any) -> None:
 
         # noinspection PyArgumentList
         super(Web3Environment, self).__init__(
-            web3_provider_class(**kwargs),  # type: ignore
+            web3_provider=web3_provider_class(**kwargs),  # type: ignore
+            operator=operator,
+            seller=seller,
+            buyer=buyer,
             chain_id=chain_id,
             gas_price=gas_price,
             gas_price_strategy=gas_price_strategy

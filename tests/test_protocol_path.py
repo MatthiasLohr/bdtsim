@@ -16,8 +16,12 @@
 # limitations under the License.
 
 import unittest
-from bdtsim.account import seller, buyer
+from bdtsim.account import Account
 from bdtsim.protocol_path import Decision, ProtocolPath
+
+
+seller = Account('Seller', '0x3f2c7f45cb3014e2b9d12b7fb331bdfdad6170ce5e4a0d94890aa64162569756')
+buyer = Account('Buyer', '0x0633ee528dcfb901af1888d91ce451fc59a71ae7438832966811eb68ed97c173')
 
 
 class DecisionTest(unittest.TestCase):

@@ -18,6 +18,7 @@
 import argparse
 from typing import Dict
 
+from bdtsim.account import AccountFile
 from bdtsim.data_provider import DataProviderManager
 from bdtsim.environment import EnvironmentManager
 from bdtsim.protocol import ProtocolManager
@@ -70,8 +71,13 @@ class RunSubCommand(SubCommand):
             **protocol_parameters
         )
 
+        account_file = AccountFile(path=args.account_file)
+
         environment = EnvironmentManager.instantiate(
-            args.environment,
+            name=args.environment,
+            operator=account_file.operator,
+            seller=account_file.seller,
+            buyer=account_file.buyer,
             **environment_parameters
         )
 
@@ -84,7 +90,10 @@ class RunSubCommand(SubCommand):
             protocol=protocol,
             environment=environment,
             data_provider=data_provider,
-            price=args.price
+            operator=account_file.operator,
+            seller=account_file.seller,
+            buyer=account_file.buyer,
+            price=args.price,
         )
 
         output_format = OutputFormatManager.instantiate(

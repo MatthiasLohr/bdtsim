@@ -82,8 +82,8 @@ class ExecutionTransactionMonitor(object):
 
 
 class ResultCollector(object):
-    def __init__(self) -> None:
-        self.simulation_result = SimulationResult()
+    def __init__(self, operator: Account, seller: Account, buyer: Account) -> None:
+        self.simulation_result = SimulationResult(operator, seller, buyer)
 
     def monitor_preparation(self, environment: Environment) -> SimpleTransactionMonitor:
         return SimpleTransactionMonitor(environment, self.simulation_result.preparation_transactions)
