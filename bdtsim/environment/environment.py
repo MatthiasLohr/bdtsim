@@ -27,7 +27,7 @@ from web3.gas_strategies.time_based import fast_gas_price_strategy
 from web3.providers.base import BaseProvider
 from web3.types import TxParams, Wei
 
-from bdtsim.account import Account, buyer, seller, operator
+from bdtsim.account import Account
 from bdtsim.contract import SolidityContract
 from bdtsim.funds_diff_collection import FundsDiffCollection
 
@@ -36,7 +36,8 @@ logger = logging.getLogger(__name__)
 
 
 class Environment(object):
-    def __init__(self, web3_provider: BaseProvider, chain_id: Optional[int] = None, gas_price: Optional[int] = None,
+    def __init__(self, web3_provider: BaseProvider, operator: Account, seller: Account, buyer: Account,
+                 chain_id: Optional[int] = None, gas_price: Optional[int] = None,
                  gas_price_strategy: Optional[Callable[[Web3, Optional[TxParams]], Wei]] = None,
                  *args: Any, **kwargs: Any) -> None:
 
@@ -46,6 +47,10 @@ class Environment(object):
             raise TypeError('Unrecognized keyword argument "%s" for Environment' % str(list(kwargs.keys())[0]))
 
         self._web3 = Web3(web3_provider)
+
+        self._operator = operator
+        self._seller = seller
+        self._buyer = buyer
 
         if chain_id is None:
             self._chain_id = self._web3.eth.chainId
@@ -139,7 +144,7 @@ class Environment(object):
 
         # collect current account balances
         balances_before: Dict[Account, int] = {}
-        for tmp_account in seller, buyer, operator:
+        for tmp_account in self.seller, self.buyer, self.operator:
             balances_before.update({tmp_account: self._web3.eth.getBalance(tmp_account.wallet_address, 'latest')})
 
         logger.debug('Submitting transaction %s...' % str(tx_dict))
@@ -160,7 +165,7 @@ class Environment(object):
 
         # collect current account balances
         funds_diff_collection = FundsDiffCollection()
-        for tmp_account in seller, buyer, operator:
+        for tmp_account in self.seller, self.buyer, self.operator:
             balance_after = self._web3.eth.getBalance(tmp_account.wallet_address, 'latest')
             balance_diff = balance_after - balances_before.get(tmp_account)
             if balance_diff != 0:
@@ -186,6 +191,18 @@ class Environment(object):
                     datetime.fromtimestamp(timeout).isoformat()
                 ))
                 time.sleep(3)
+
+    @property
+    def operator(self) -> Account:
+        return self._operator
+
+    @property
+    def seller(self) -> Account:
+        return self._seller
+
+    @property
+    def buyer(self) -> Account:
+        return self._buyer
 
     @property
     def web3(self) -> Web3:

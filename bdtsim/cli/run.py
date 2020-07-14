@@ -18,6 +18,7 @@
 import argparse
 from typing import Dict
 
+from bdtsim.account import AccountFile
 from bdtsim.data_provider import DataProviderManager
 from bdtsim.environment import EnvironmentManager
 from bdtsim.protocol import ProtocolManager
@@ -34,6 +35,7 @@ class RunSubCommand(SubCommand):
         parser.add_argument('protocol', choices=ProtocolManager.protocols.keys(), help='protocol to be simulated')
         parser.add_argument('environment', choices=EnvironmentManager.environments.keys(),
                             help='environment in which the simulation will take place')
+        parser.add_argument('--account-file', help='Specify an accounts file to be used')
         parser.add_argument('--data-provider', choices=DataProviderManager.data_providers.keys(),
                             default='RandomDataProvider', help='set the data provider/data source for the simulation')
         parser.add_argument('-f', '--output-format', choices=OutputFormatManager.output_formats.keys(),
@@ -70,8 +72,13 @@ class RunSubCommand(SubCommand):
             **protocol_parameters
         )
 
+        account_file = AccountFile(path=args.account_file)
+
         environment = EnvironmentManager.instantiate(
-            args.environment,
+            name=args.environment,
+            operator=account_file.operator,
+            seller=account_file.seller,
+            buyer=account_file.buyer,
             **environment_parameters
         )
 
@@ -84,7 +91,10 @@ class RunSubCommand(SubCommand):
             protocol=protocol,
             environment=environment,
             data_provider=data_provider,
-            price=args.price
+            operator=account_file.operator,
+            seller=account_file.seller,
+            buyer=account_file.buyer,
+            price=args.price,
         )
 
         output_format = OutputFormatManager.instantiate(

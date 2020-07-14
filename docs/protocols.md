@@ -43,7 +43,8 @@ The FairSwap protocol was presented in the following research paper:
 > In Proceedings of the ACM Conference on Computer and Communications Security.
 > [https://doi.org/10.1145/3243734.3243857](https://doi.org/10.1145/3243734.3243857)
 
-It is available within BDTsim with the name `FairSwap-FileSale`.
+It is available within BDTsim with the name `FairSwap`.
+There is also a protocol `FairSwap-Reusable`, which deploys a reusable variant of the FairSwap smart contract.
 
 Original example smart contract repository: [https://github.com/lEthDev/FairSwap](https://github.com/lEthDev/FairSwap).
 Use kindly permitted by Lisa Eckey (16. April 2020).
@@ -70,7 +71,7 @@ Buyer Complaint Types:
 #### Example Protocol Execution
 
 ```
-bdtsim -l DEBUG run FairSwap-FileSale PyEVM -p slices-count 8
+bdtsim -l DEBUG run FairSwap PyEVM -p slices-count 8
 ```
 
 ### OptiSwap

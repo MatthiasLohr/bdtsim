@@ -15,26 +15,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Optional
+import os
+import pathlib
+import platform
+from typing import Any, Optional, Union
 
+import yaml
 from eth_typing.evm import ChecksumAddress
-from web3 import Web3
+from hexbytes.main import HexBytes
+from web3.auto import w3 as web3
 
 
 class Account(object):
-    def __init__(self, name: str, wallet_address: Optional[str] = None, wallet_private_key: Optional[str] = None)\
-            -> None:
-        if wallet_address is None and wallet_private_key is None:
-            raise ValueError('You have to provide at least wallet_address OR wallet_private_key')
-        elif wallet_address is not None and wallet_private_key is not None:
-            eth_account = Web3().eth.account.from_key(wallet_private_key)
-            if eth_account.address != wallet_address:
-                raise ValueError('wallet_private_key does not match wallet_address')
-        elif wallet_address is None and wallet_private_key is not None:
-            wallet_address = Web3().eth.account.from_key(wallet_private_key).address
+    def __init__(self, name: str, wallet_private_key: Union[bytes, str]) -> None:
+        if wallet_private_key is None:
+            raise ValueError('You have to provide the private key for the wallet!')
+        if isinstance(wallet_private_key, str):
+            if wallet_private_key.startswith('0x'):
+                self._wallet_private_key = HexBytes.fromhex(wallet_private_key[2:])
+            else:
+                self._wallet_private_key = HexBytes.fromhex(wallet_private_key)
+        elif isinstance(wallet_private_key, bytes):
+            self._wallet_private_key = wallet_private_key
+        else:
+            raise ValueError('Type not supported')
+
         self._name = name
-        self._wallet_address: ChecksumAddress = Web3.toChecksumAddress(wallet_address)
-        self._wallet_private_key = wallet_private_key
+        self._wallet_address: ChecksumAddress = web3.eth.account.from_key(wallet_private_key).address
 
     @property
     def name(self) -> str:
@@ -45,7 +52,7 @@ class Account(object):
         return self._wallet_address
 
     @property
-    def wallet_private_key(self) -> Optional[str]:
+    def wallet_private_key(self) -> bytes:
         return self._wallet_private_key
 
     def __str__(self) -> str:
@@ -73,20 +80,87 @@ class Account(object):
         return hash((self.wallet_address, self.name))
 
 
-operator = Account(
-    name='Operator',
-    wallet_address='0x3ed8424aaE568b3f374e94a139D755982800a4a2',
-    wallet_private_key='0xe67518b4d5255ec708d2bf9cd4222adda89fcc07037c614d7787a694fbb47692'
-)
+class AccountFile(object):
+    def __init__(self, path: Optional[str] = None):
+        if path is None:
+            path = self.get_default_path()
 
-seller = Account(
-    name='Seller',
-    wallet_address='0x5Afa5874959ff249103c2043fB45d68B2768Fef8',
-    wallet_private_key='0x3df2d74ceb3c58a8fdb1f0ecf45e2ceb10511469d9c20691333d666fa557899a'
-)
+        if os.path.isfile(path):
+            with open(path, 'r') as f:
+                data = yaml.load(f, Loader=yaml.SafeLoader)
+            self._operator = Account(
+                name=data['accounts']['operator']['name'],
+                wallet_private_key=data['accounts']['operator']['privateKey']
+            )
+            self._seller = Account(
+                name=data['accounts']['seller']['name'],
+                wallet_private_key=data['accounts']['seller']['privateKey']
+            )
+            self._buyer = Account(
+                name=data['accounts']['buyer']['name'],
+                wallet_private_key=data['accounts']['buyer']['privateKey']
+            )
+        else:
+            self._operator = Account(name='Operator', wallet_private_key=web3.eth.account.create().privateKey)
+            self._seller = Account(name='Seller', wallet_private_key=web3.eth.account.create().privateKey)
+            self._buyer = Account(name='Buyer', wallet_private_key=web3.eth.account.create().privateKey)
+            self._path = self.get_default_path()
+            self.write()
 
-buyer = Account(
-    name='Buyer',
-    wallet_address='0x00c382926f098566EA6F1707296eC342E7C8A5DC',
-    wallet_private_key='0x7d96e8fbe712cf25f141adb6bc5e3244d7a19d9c406ab6ed6a097585d01b93ac'
-)
+    @property
+    def operator(self) -> Account:
+        return self._operator
+
+    @operator.setter
+    def operator(self, operator: Account) -> None:
+        self._operator = operator
+
+    @property
+    def seller(self) -> Account:
+        return self._seller
+
+    @seller.setter
+    def seller(self, seller: Account) -> None:
+        self._seller = seller
+
+    @property
+    def buyer(self) -> Account:
+        return self._buyer
+
+    @buyer.setter
+    def buyer(self, buyer: Account) -> None:
+        self._buyer = buyer
+
+    @staticmethod
+    def get_default_path() -> str:
+        system = platform.system()
+        if system in ('Linux', 'Darwin'):
+            return os.path.join(str(pathlib.Path.home()), '.config', 'bdtsim', 'accounts.yaml')
+        elif system == 'Windows':
+            app_data_dir = os.getenv('APPDATA')
+            if app_data_dir is not None:
+                return os.path.join(app_data_dir, 'bdtsim', 'accounts.yaml')
+            else:
+                return os.path.join(str(pathlib.Path.home()), 'bdtsim', 'accounts.yaml')
+        else:
+            return os.path.join(str(pathlib.Path.home()), 'bdtsim', 'accounts.yaml')
+
+    def write(self) -> None:
+        os.makedirs(os.path.dirname(self._path), exist_ok=True)
+        with open(self._path, 'w') as f:
+            yaml.dump({
+                'accounts': {
+                    'operator': {
+                        'name': self._operator.name,
+                        'privateKey': self._operator.wallet_private_key.hex()
+                    },
+                    'seller': {
+                        'name': self._seller.name,
+                        'privateKey': self._seller.wallet_private_key.hex()
+                    },
+                    'buyer': {
+                        'name': self._buyer.name,
+                        'privateKey': self._buyer.wallet_private_key.hex()
+                    }
+                }
+            }, f)

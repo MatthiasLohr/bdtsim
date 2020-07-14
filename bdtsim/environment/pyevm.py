@@ -24,7 +24,7 @@ from eth_tester.backends import pyevm  # type: ignore
 from web3 import EthereumTesterProvider, Web3
 from web3.types import TxParams, Wei
 
-from bdtsim.account import buyer, operator, seller
+from bdtsim.account import Account
 from .environment import Environment
 from .environment_manager import EnvironmentManager
 
@@ -33,7 +33,8 @@ logger = logging.getLogger(__name__)
 
 
 class PyEVMEnvironment(Environment):
-    def __init__(self, chain_id: Optional[int] = None, gas_price: Optional[int] = None,
+    def __init__(self, operator: Account, seller: Account, buyer: Account, chain_id: Optional[int] = None,
+                 gas_price: Optional[int] = None,
                  gas_price_strategy: Optional[Callable[[Web3, Optional[TxParams]], Wei]] = None,
                  tx_wait_timeout: int = 120) -> None:
         if chain_id is not None and chain_id != 61:
@@ -46,13 +47,16 @@ class PyEVMEnvironment(Environment):
             gas_price_strategy = pyevm_gas_price_strategy
 
         super(PyEVMEnvironment, self).__init__(
-            EthereumTesterProvider(self._eth_tester_instance),
+            operator=operator,
+            seller=seller,
+            buyer=buyer,
+            web3_provider=EthereumTesterProvider(self._eth_tester_instance),
             chain_id=chain_id,
             gas_price=gas_price,
             gas_price_strategy=gas_price_strategy
         )
 
-        for account_index, recipient in [(0, operator), (1, seller), (2, buyer)]:
+        for account_index, recipient in [(0, self.operator), (1, self.seller), (2, self.buyer)]:
             account = self._eth_tester_instance.get_accounts()[account_index]
             self._eth_tester_instance.send_transaction({
                 'from': account,

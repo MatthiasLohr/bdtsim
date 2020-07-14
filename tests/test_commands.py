@@ -31,7 +31,8 @@ class CommandTest(unittest.TestCase):
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
         self.assertEqual(out.decode('utf-8').strip(), '\n'.join([
-            'FairSwap-FileSale',
+            'FairSwap',
+            'FairSwap-Reusable',
             'SimplePayment',
             'SimplePayment-prepaid',
             'SimplePayment-prepaid-direct',
@@ -84,8 +85,19 @@ class CommandTest(unittest.TestCase):
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
 
-    def test_run_fairswap_file_sale(self):
-        p = subprocess.Popen(['bdtsim', 'run', 'FairSwap-FileSale', 'PyEVM', '-d', 'size', '256'],
+    def test_run_fairswap(self):
+        p = subprocess.Popen(['bdtsim', 'run', 'FairSwap', 'PyEVM', '-d', 'size', '256'],
                              stdout=subprocess.PIPE)
+        out, err = p.communicate()
+        self.assertEqual(p.returncode, 0)
+
+    def test_run_fairswap_reusable(self):
+        p = subprocess.Popen(['bdtsim', 'run', 'FairSwap-Reusable', 'PyEVM', '-d', 'size', '256'],
+                             stdout=subprocess.PIPE)
+        out, err = p.communicate()
+        self.assertEqual(p.returncode, 0)
+
+    def test_environment_info_pyevm(self):
+        p = subprocess.Popen(['bdtsim', 'environment-info', 'PyEVM'], stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
