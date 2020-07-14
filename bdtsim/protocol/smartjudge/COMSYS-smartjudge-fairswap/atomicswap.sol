@@ -53,7 +53,7 @@ contract AtomicSwap{
 
     constructor(address _managmentAddress) public {
       managmentAddress = _managmentAddress;
-      emit address_event(managmentAddress);
+      emit address_event(managmentAddress); 
     }
 
     function publish_result(uint32 _id, address _honest_party) private{
