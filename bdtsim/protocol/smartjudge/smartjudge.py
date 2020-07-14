@@ -15,18 +15,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .protocol import Protocol
-from .protocol_manager import ProtocolManager
-from .exceptions import ProtocolError, ProtocolInitializationError, ProtocolExecutionError
-from .fairswap import FairSwap
-from .simplepayment import SimplePayment, SimplePaymentPrepaid, SimplePaymentPostpaid
-from .smartjudge import SmartJudge
+import logging
 
-__all__ = [
-    'Protocol',
-    'ProtocolManager',
-    'ProtocolError', 'ProtocolInitializationError', 'ProtocolExecutionError',
-    'FairSwap',
-    'SimplePayment', 'SimplePaymentPrepaid', 'SimplePaymentPostpaid',
-    'SmartJudge'
-]
+from bdtsim.account import Account
+from bdtsim.data_provider import DataProvider
+from bdtsim.environment import Environment
+from bdtsim.protocol import Protocol, ProtocolManager
+from bdtsim.protocol_path import ProtocolPath
+
+
+logger = logging.getLogger(__name__)
+
+
+class SmartJudge(Protocol):
+    def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
+                seller: Account, buyer: Account, price: int = 1000000000) -> None:
+        pass
+
+
+ProtocolManager.register('SmartJudge-FairSwap', SmartJudge)

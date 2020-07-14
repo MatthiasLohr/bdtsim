@@ -1,5 +1,9 @@
 # Changelog
 
+## unreleased
+
+  * Protocol: Support for SmartJudge (#20)
+
 ## v1.1.0
 
   * Dependency Update: web3py 5.11.1
