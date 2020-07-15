@@ -28,7 +28,7 @@ from web3.providers.base import BaseProvider
 from web3.types import TxParams, Wei
 
 from bdtsim.account import Account
-from bdtsim.contract import SolidityContract
+from bdtsim.contract import Contract
 from bdtsim.funds_diff_collection import FundsDiffCollection
 
 
@@ -67,9 +67,6 @@ class Environment(object):
         else:
             self._web3.eth.setGasPriceStrategy(fast_gas_price_strategy)
 
-        self._contract: Optional[SolidityContract] = None
-        self._contract_address: Optional[str] = None
-
         self._transaction_callback: Optional[
             Callable[[Account, Dict[str, Any], Dict[str, Any], FundsDiffCollection], None]
         ] = None
@@ -82,24 +79,34 @@ class Environment(object):
     def gas_price(self) -> Optional[int]:
         return self._gas_price
 
-    def deploy_contract(self, account: Account, contract: SolidityContract, allow_failure: bool = False,
+    def deploy_contract(self, account: Account, contract: Contract, allow_failure: bool = False,
                         *args: Any, **kwargs: Any) -> None:
+        """Deploys the given contract to the environment.
+
+        Calling this method will set the address property of the contract object on success.
+
+        Args:
+            account (Account): Account to be used for deployment.
+            contract (Contract): Contract object containing the contract to be deployed.
+            allow_failure (bool): Do not throw an Exception when the deployment transaction fails.
+            *args (Any): Positional arguments for the contract's constructor.
+            **kwargs (Any): Keyword arguments for the contract's constructor.
+
+        Returns:
+            None
+        """
         web3_contract = self._web3.eth.contract(abi=contract.abi, bytecode=contract.bytecode)
         tx_receipt = self._send_transaction(
             account=account,
             factory=web3_contract.constructor(*args, **kwargs),
             allow_failure=allow_failure
         )
-        self._contract_address = tx_receipt['contractAddress']
-        logger.debug('New contract address: %s' % self._contract_address)
-        self._contract = contract
+        contract.address = tx_receipt['contractAddress']
 
-    def send_contract_transaction(self, account: Account, method: str, *args: Any, value: int = 0,
-                                  allow_failure: bool = False, **kwargs: Any) -> Any:
-        if self._contract is None:
-            raise RuntimeError('No contract available!')
+    def send_contract_transaction(self, contract: Contract, account: Account, method: str, *args: Any,
+                                  value: int = 0, allow_failure: bool = False, **kwargs: Any) -> Any:
         logger.debug('Preparing contract transaction %s(%s)' % (method, ', '.join([str(a) for a in [*args]])))
-        web3_contract = self._web3.eth.contract(address=self._contract_address, abi=self._contract.abi)
+        web3_contract = self._web3.eth.contract(address=contract.address, abi=contract.abi)
         contract_method = getattr(web3_contract.functions, method)
         factory = contract_method(*args, **kwargs)
         self._send_transaction(

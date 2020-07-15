@@ -26,36 +26,45 @@ SOLC_VERSION = 'v0.6.1'
 logger = logging.getLogger(__name__)
 
 
-class SolidityContract(object):
+class Contract(object):
+    def __init__(self, abi: Dict[str, Any], bytecode: str, address: Optional[str] = None) -> None:
+        self._abi = abi
+        self._bytecode = bytecode
+        self._address = address
+
+    @property
+    def abi(self) -> Dict[str, Any]:
+        return self._abi
+
+    @property
+    def bytecode(self) -> str:
+        return self._bytecode
+
+    @property
+    def address(self) -> Optional[str]:
+        return self._address
+
+    @address.setter
+    def address(self, address: str) -> None:
+        self._address = address
+
+
+class SolidityContract(Contract):
     def __init__(self, contract_name: str, contract_file: Optional[str] = None,
                  contract_code: Optional[str] = None) -> None:
 
         if contract_file is not None and contract_code is not None:
             raise ValueError('contract_file and contract_code cannot be set at the same time')
 
-        self._contract_name = contract_name
         if contract_file is not None:
             with open(contract_file, 'r') as f:
-                self._contract_code = f.read()
-        elif contract_code is not None:
-            self._contract_code = contract_code
-        else:
-            raise ValueError('contract_file and contract_code cannot be None at the same time')
+                contract_code = f.read()
 
-        self._abi: Optional[Dict[str, Any]] = None
-        self._bytecode: Optional[str] = None
+        if contract_code is None or len(contract_code) == 0:
+            raise ValueError('No contract code given')
 
-    @property
-    def abi(self) -> Dict[str, Any]:
-        if self._abi is None:
-            self._abi, self._bytecode = self.compile(self._contract_name, self._contract_code)
-        return self._abi
-
-    @property
-    def bytecode(self) -> str:
-        if self._bytecode is None:
-            self._abi, self._bytecode = self.compile(self._contract_name, self._contract_code)
-        return self._bytecode
+        abi, bytecode = self.compile(contract_name, contract_code)
+        super(SolidityContract, self).__init__(abi, bytecode)
 
     @staticmethod
     def compile(contract_name: str, contract_code: str, solc_version: str = SOLC_VERSION) -> Tuple[Dict[str, Any], str]:
