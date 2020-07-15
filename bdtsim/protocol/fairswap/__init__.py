@@ -20,3 +20,7 @@ from .fairswap import FairSwap
 __all__ = [
     'FairSwap'
 ]
+
+__pdoc__ = {
+    'lEthDev-FairSwap': False
+}

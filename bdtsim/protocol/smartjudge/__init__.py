@@ -20,3 +20,8 @@ from .smartjudge import SmartJudge
 __all__ = [
     'SmartJudge'
 ]
+
+__pdoc__ = {
+    'COMSYS-smartjudge': False,
+    'COMSYS-smartjudge-fairswap': False
+}
