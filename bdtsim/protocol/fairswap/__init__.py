@@ -15,10 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .fairswap import FairSwap
+from .fairswap import FairSwap, FairSwapReusable
 
 __all__ = [
-    'FairSwap'
+    'FairSwap',
+    'FairSwapReusable'
 ]
 
 __pdoc__ = {

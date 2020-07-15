@@ -18,7 +18,7 @@
 from .protocol import Protocol
 from .protocol_manager import ProtocolManager
 from .exceptions import ProtocolError, ProtocolInitializationError, ProtocolExecutionError
-from .fairswap import FairSwap
+from .fairswap import FairSwap, FairSwapReusable
 from .simplepayment import SimplePayment, SimplePaymentPrepaid, SimplePaymentPostpaid
 from .smartjudge import SmartJudge
 
@@ -26,7 +26,7 @@ __all__ = [
     'Protocol',
     'ProtocolManager',
     'ProtocolError', 'ProtocolInitializationError', 'ProtocolExecutionError',
-    'FairSwap',
+    'FairSwap', 'FairSwapReusable',
     'SimplePayment', 'SimplePaymentPrepaid', 'SimplePaymentPostpaid',
     'SmartJudge'
 ]
