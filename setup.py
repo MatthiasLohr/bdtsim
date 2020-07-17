@@ -37,7 +37,7 @@ setup(
         'hexbytes==0.2.0',
         'Jinja2==2.11.2',
         'py-evm==0.3.0a17',
-        'py-solc-x==0.8.2',
+        'py-solc-x==0.10.1',
         'PyYAML==5.3.1',
         'web3==5.11.1'
     ],
