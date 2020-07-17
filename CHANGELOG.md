@@ -1,5 +1,11 @@
 # Changelog
 
+## unreleased
+
+  * Dependency Update: 
+  * Achieved Raspberry Pi support (32/64 bit),
+    for details see [https://gitlab.com/MatthiasLohr/bdtsim/-/wikis/Raspberry-Pi](https://gitlab.com/MatthiasLohr/bdtsim/-/wikis/Raspberry-Pi)
+
 ## v1.1.0
 
   * Dependency Update: web3py 5.11.1
