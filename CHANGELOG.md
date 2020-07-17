@@ -2,7 +2,7 @@
 
 ## v1.1.1
 
-  * Dependency Update: 
+  * Dependency Update: py-solc-x to 0.10.1
   * Achieved Raspberry Pi support (32/64 bit),
     for details see [https://gitlab.com/MatthiasLohr/bdtsim/-/wikis/Raspberry-Pi](https://gitlab.com/MatthiasLohr/bdtsim/-/wikis/Raspberry-Pi)
 
