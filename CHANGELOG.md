@@ -1,6 +1,6 @@
 # Changelog
 
-## unreleased
+## v1.1.1
 
   * Dependency Update: 
   * Achieved Raspberry Pi support (32/64 bit),
