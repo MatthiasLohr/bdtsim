@@ -3,6 +3,7 @@
 ## unreleased
 
   * Protocol: Support for SmartJudge (#20)
+  * Dependency Update: py-solc-x  0.10.1
 
 ## v1.1.0
 

@@ -16,8 +16,10 @@
 # limitations under the License.
 
 import logging
+from typing import Any
 
 from bdtsim.account import Account
+from bdtsim.contract import SolidityContract
 from bdtsim.data_provider import DataProvider
 from bdtsim.environment import Environment
 from bdtsim.protocol import Protocol, ProtocolManager
@@ -28,6 +30,24 @@ logger = logging.getLogger(__name__)
 
 
 class SmartJudge(Protocol):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+
+        self._mediator_contract = SolidityContract(
+            contract_name='Mediator',
+            contract_file=self.contract_path(__file__, 'mediator.sol'),
+            solc_version='0.4.26'
+        )
+
+        self._verifier_contract = SolidityContract(
+            contract_name='fileSale',
+            contract_file=self.contract_path(__file__, 'verifier-fairswap.sol'),
+            solc_version='0.4.26'
+        )
+
+    def prepare_iteration(self, environment: Environment, operator: Account) -> None:
+        environment.deploy_contract(operator, self._mediator_contract)
+
     def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
                 seller: Account, buyer: Account, price: int = 1000000000) -> None:
         pass
