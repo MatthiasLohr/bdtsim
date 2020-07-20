@@ -16,7 +16,6 @@
 # limitations under the License.
 
 import logging
-import os
 from typing import Any, Dict, Optional, Tuple
 
 import solcx  # type: ignore
