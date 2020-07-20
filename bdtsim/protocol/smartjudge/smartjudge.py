@@ -16,6 +16,7 @@
 # limitations under the License.
 
 import logging
+import os
 from typing import Any
 
 from bdtsim.account import Account
@@ -42,7 +43,10 @@ class SmartJudge(Protocol):
         self._verifier_contract = SolidityContract(
             contract_name='fileSale',
             contract_file=self.contract_path(__file__, 'verifier-fairswap.sol'),
-            solc_version='0.4.26'
+            solc_version='0.4.26',
+            compiler_kwargs={
+                'import_remappings': '=%s' % os.path.dirname(self.contract_path(__file__, 'verifier-fairswap.sol'))
+            }
         )
 
     def prepare_iteration(self, environment: Environment, operator: Account) -> None:

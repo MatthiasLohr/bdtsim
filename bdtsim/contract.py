@@ -64,10 +64,6 @@ class SolidityContract(Contract):
             logger.debug('Preparing to compile contract "%s" from file %s' % (contract_name, contract_file))
             with open(contract_file, 'r') as f:
                 contract_code = f.read()
-
-            compiler_kwargs.update({
-                'import_remappings': ['=%s/' % os.path.dirname(contract_file)]
-            })
         else:
             logger.debug('Preparing to compile contract "%s" with given code' % contract_name)
 
