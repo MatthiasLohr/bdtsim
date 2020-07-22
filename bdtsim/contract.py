@@ -16,8 +16,12 @@
 # limitations under the License.
 
 import logging
-from typing import Any, Dict, Optional, Tuple
+import os
+import shutil
+import tempfile
+from typing import Any, Dict, Generator, Optional, Tuple
 
+import jinja2
 import solcx  # type: ignore
 
 
@@ -86,3 +90,82 @@ class SolidityContract(Contract):
             **compiler_kwargs
         )['<stdin>:' + contract_name]
         return compile_result.get('abi'), compile_result.get('bin')
+
+
+class SolidityContractCollection(object):
+    def __init__(self, solc_version: Optional[str] = None):
+        if solc_version is not None:
+            self._solc_version = solc_version
+        else:
+            self._solc_version = SOLC_DEFAULT_VERSION
+
+        self._tmpdir = tempfile.mkdtemp(prefix='bdtsim-')
+        self._contract_sources: Dict[str, str] = {}
+        self._contract_instances: Dict[str, SolidityContract] = {}
+
+    def __del__(self) -> None:
+        shutil.rmtree(self._tmpdir)
+
+    def add_contract_file(self, contract_name: str, contract_path: str,
+                          contract_filename: Optional[str] = None) -> None:
+        if contract_filename is None:
+            contract_filename = os.path.basename(contract_path)
+        shutil.copyfile(contract_path, os.path.join(self._tmpdir, contract_filename))
+        self._contract_sources.update({contract_name: contract_filename})
+
+    def add_contract_code(self, contract_name: str, contract_code: str,
+                          contract_filename: Optional[str] = None) -> None:
+        if contract_filename is None:
+            contract_filename = '%s.sol' % contract_name
+        with open(os.path.join(self._tmpdir, contract_filename), 'w') as f:
+            f.write(contract_code)
+        self._contract_sources.update({contract_name: contract_filename})
+
+    def add_contract_template_file(self, contract_name: str, contract_template_path: str, context: Dict[str, Any],
+                                   contract_filename: Optional[str] = None) -> None:
+        if contract_filename is None:
+            if contract_template_path.endswith('.tpl.sol'):
+                contract_filename = os.path.basename(contract_template_path)[:-7] + '.sol'
+            else:
+                contract_filename = '%.sol' % contract_name
+
+        with open(contract_template_path, 'r') as f:
+            contract_template_code = f.read()
+
+        self.add_contract_template_code(contract_name, contract_template_code, context, contract_filename)
+
+    def add_contract_template_code(self, contract_name: str, contract_template_code: str, context: Dict[str, Any],
+                                   contract_filename: Optional[str] = None) -> None:
+        if contract_filename is None:
+            contract_filename = '%s.sol' % contract_name
+
+        contract_template = jinja2.Template(contract_template_code)
+
+        with open(os.path.join(self._tmpdir, contract_filename), 'w') as f:
+            f.write(contract_template.render(**context))
+
+        self._contract_sources.update({contract_name: contract_filename})
+
+    def get(self, contract_name: str) -> SolidityContract:
+        contract_instance = self._contract_instances.get(contract_name)
+        if contract_instance is None:
+            contract_filename = self._contract_sources.get(contract_name)
+            if contract_filename is None:
+                raise ValueError('Contract is not registered')
+            contract_instance = SolidityContract(
+                contract_name=contract_name,
+                contract_file=os.path.join(self._tmpdir, contract_filename),
+                solc_version=self._solc_version,
+                compiler_kwargs={
+                    'import_remappings': self.get_import_remappings()
+                }
+            )
+            self._contract_instances.update({contract_name: contract_instance})
+            return contract_instance
+        else:
+            return contract_instance
+
+    def get_import_remappings(self) -> Generator[str, None, None]:
+        yield '.=%s' % self._tmpdir
+        for filename in self._contract_sources.values():
+            yield '%s=%s' % (filename, os.path.join(self._tmpdir, filename))

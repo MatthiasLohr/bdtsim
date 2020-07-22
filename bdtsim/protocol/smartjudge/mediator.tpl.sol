@@ -40,8 +40,8 @@ contract Mediator{
     uint256 verification_fee_made;
   }
 
-  uint256 SECURITY_DEPOSIT = 400000; // 400000 gas worst case costs until verification for Alice
-  uint64 TIMEOUT_BLOCKS = 6 * 60 * 24; // 24 hours
+  uint256 SECURITY_DEPOSIT = {{ security_deposit }}; // 400000 gas worst case costs until verification for Alice
+  uint64 TIMEOUT_BLOCKS = {{ timeout }}; // 24 hours
 
   mapping(uint32 => Agreement) agreements;
   mapping(uint32 => Verification) verifications;
