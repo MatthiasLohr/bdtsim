@@ -18,14 +18,14 @@
 import logging
 import time
 from datetime import datetime
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Generator, List, Optional, Union
 
 from web3 import Web3
 from web3.datastructures import AttributeDict
 from web3.exceptions import TimeExhausted
 from web3.gas_strategies.time_based import fast_gas_price_strategy
 from web3.providers.base import BaseProvider
-from web3.types import TxParams, Wei
+from web3.types import TxParams, Wei, LogReceipt
 
 from bdtsim.account import Account
 from bdtsim.contract import Contract
@@ -190,6 +190,35 @@ class Environment(object):
         if self.transaction_callback is not None:
             self.transaction_callback(account, tx_dict, dict(tx_receipt), funds_diff_collection)
         return tx_receipt
+
+    def event_filter(self, contract: Contract, event_name: str, event_args: Optional[List[Any]] = None,
+                     from_block: Union[str, int] = 'latest', to_block: Union[str, int] = 'latest',
+                     address: Optional[str] = None, argument_filters: Optional[Dict[str, Any]] = None,
+                     ) -> Generator[LogReceipt, None, None]:
+        if event_args is None:
+            event_args = []
+
+        if isinstance(from_block, int):
+            if from_block < 0:
+                from_block = self._web3.eth.getBlock('latest')['number'] + from_block
+
+        if isinstance(to_block, int):
+            if to_block < 0:
+                to_block = self._web3.eth.getBlock('latest')['number'] + to_block
+
+        web3_contract = self._web3.eth.contract(address=contract.address, abi=contract.abi)
+        event_class = getattr(web3_contract.events, event_name)
+        event_instance = event_class(*event_args)
+        event_filter = event_instance.createFilter(
+            fromBlock=from_block,
+            toBlock=to_block,
+            address=address,
+            argument_filters=argument_filters
+        )
+        while True:
+            for event in event_filter.get_new_entries():
+                yield event
+            time.sleep(0.1)
 
     def wait(self, seconds: int) -> None:
         timeout = self._web3.eth.getBlock('latest').timestamp + seconds
