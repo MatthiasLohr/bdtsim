@@ -25,7 +25,7 @@ from web3.datastructures import AttributeDict
 from web3.exceptions import TimeExhausted
 from web3.gas_strategies.time_based import fast_gas_price_strategy
 from web3.providers.base import BaseProvider
-from web3.types import TxParams, Wei, LogReceipt
+from web3.types import TxParams, Wei
 
 from bdtsim.account import Account
 from bdtsim.contract import Contract
@@ -194,7 +194,7 @@ class Environment(object):
     def event_filter(self, contract: Contract, event_name: str, event_args: Optional[List[Any]] = None,
                      from_block: Union[str, int] = 'latest', to_block: Union[str, int] = 'latest',
                      address: Optional[str] = None, argument_filters: Optional[Dict[str, Any]] = None,
-                     ) -> Generator[LogReceipt, None, None]:
+                     ) -> Generator[AttributeDict[str, Any], None, None]:
         if event_args is None:
             event_args = []
 

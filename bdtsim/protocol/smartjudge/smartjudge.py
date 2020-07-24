@@ -24,7 +24,7 @@ from bdtsim.account import Account
 from bdtsim.contract import SolidityContractCollection
 from bdtsim.data_provider import DataProvider
 from bdtsim.environment import Environment
-from bdtsim.protocol import Protocol, ProtocolManager
+from bdtsim.protocol import Protocol, ProtocolManager, ProtocolExecutionError
 from bdtsim.protocol_path import ProtocolPath
 
 
@@ -64,12 +64,27 @@ class SmartJudge(Protocol):
     def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
                 seller: Account, buyer: Account, price: int = 1000000000) -> None:
 
-        # === seller prepares new trade
+        # === buyer prepares new trade
+        logger.debug('Buyer prepares new trade')
         agreement_hash = Web3.soliditySha3(['bytes'], [b'abc'])
-        logger.debug('Going to create a transaction with agreement hash %s' % agreement_hash.hex())
-        environment.send_contract_transaction(self._mediator_contract, seller, 'create', agreement_hash)
+        environment.send_contract_transaction(self._mediator_contract, buyer, 'create', agreement_hash,
+                                              value=self._security_deposit * environment.gas_price)
+        trade_id = None
+        for event in environment.event_filter(self._mediator_contract, 'TradeID', from_block=-1):
+            trade_id = event['args']['_id']
+            logger.debug('This trade has id %i' % trade_id)
+            break
 
-        # === buyer accepts trade
+        acceptance_decision = protocol_path.decide(seller, 'Accept transfer', ['yes', 'no'])
+        if acceptance_decision == 'yes':
+            logger.debug('Seller accepts transfer')
+            # TODO implement
+        elif acceptance_decision == 'no':
+            logger.debug('Seller does not accept transfer')
+            environment.wait(self._timeout)
+            environment.send_contract_transaction(self._mediator_contract, buyer, 'abort', trade_id)
+        else:
+            raise ProtocolExecutionError('Unhandled decision outcome')
 
 
 ProtocolManager.register('SmartJudge-FairSwap', SmartJudge)
