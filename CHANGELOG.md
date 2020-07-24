@@ -3,6 +3,7 @@
 ## unreleased
 
   * Protocol: Support for SmartJudge (#20)
+  * Fix: Use gasPriceStrategy for determining gas price when available
 
 ## v1.1.1
 

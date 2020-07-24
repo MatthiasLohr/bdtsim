@@ -76,8 +76,15 @@ class Environment(object):
         return self._chain_id
 
     @property
-    def gas_price(self) -> Optional[int]:
-        return self._gas_price
+    def gas_price(self) -> int:
+        if self._gas_price is not None:
+            return self._gas_price
+        else:
+            gas_price = self._web3.eth.generateGasPrice()
+            if gas_price is not None:
+                return gas_price
+            else:
+                raise RuntimeError('Could not determine gas price')
 
     def deploy_contract(self, account: Account, contract: Contract, allow_failure: bool = False,
                         *args: Any, **kwargs: Any) -> None:
