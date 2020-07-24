@@ -17,7 +17,6 @@
 
 import logging
 import math
-import random
 from typing import Any, List, Optional, Union, cast
 
 from hexbytes.main import HexBytes
@@ -30,6 +29,7 @@ from bdtsim.data_provider import DataProvider
 from bdtsim.environment import Environment
 from bdtsim.protocol import Protocol, ProtocolManager, ProtocolInitializationError, ProtocolExecutionError
 from bdtsim.protocol_path import ProtocolPath
+from bdtsim.util.bytes import generate_bytes
 from . import merkle, encoding
 
 
@@ -132,7 +132,7 @@ class FairSwap(Protocol):
 
         plain_data = data_provider.file_pointer.read()
         plain_merkle_tree = merkle.from_bytes(plain_data, self.slices_count)
-        key = self.generate_bytes(32, 1337)
+        key = generate_bytes(32, 1337)
 
         # === 1a: Seller: encrypt file for transmission
         encryption_decision = protocol_path.decide(
@@ -142,7 +142,7 @@ class FairSwap(Protocol):
             encrypted_merkle_tree = encoding.encode(plain_merkle_tree, key)
         elif encryption_decision == 'completely different':
             encrypted_merkle_tree = encoding.encode(
-                merkle.from_bytes(self.generate_bytes(data_provider.data_size), self.slices_count),
+                merkle.from_bytes(generate_bytes(data_provider.data_size), self.slices_count),
                 key
             )
         elif encryption_decision == 'leaf forgery' or encryption_decision == 'hash forgery':
@@ -181,14 +181,14 @@ class FairSwap(Protocol):
         elif deployment_decision == 'commitment to wrong key':
             transfer_plain_root_hash = plain_merkle_tree.digest
             transfer_ciphertext_root_hash = encrypted_merkle_tree.digest
-            transfer_key = self.generate_bytes(32, avoid=key)
+            transfer_key = generate_bytes(32, avoid=key)
         elif deployment_decision == 'unexpected file root hash':
-            transfer_plain_root_hash = self.generate_bytes(32, avoid=plain_merkle_tree.digest)
+            transfer_plain_root_hash = generate_bytes(32, avoid=plain_merkle_tree.digest)
             transfer_ciphertext_root_hash = encrypted_merkle_tree.digest
             transfer_key = key
         elif deployment_decision == 'incorrect ciphertext root hash':
             transfer_plain_root_hash = plain_merkle_tree.digest
-            transfer_ciphertext_root_hash = self.generate_bytes(32, avoid=encrypted_merkle_tree.digest)
+            transfer_ciphertext_root_hash = generate_bytes(32, avoid=encrypted_merkle_tree.digest)
             transfer_key = key
         else:
             raise NotImplementedError()
@@ -292,15 +292,6 @@ class FairSwap(Protocol):
             return '0x%s' % value.hex()
         else:
             raise ValueError('Type not supported')
-
-    @staticmethod
-    def generate_bytes(length: int = 32, seed: Optional[int] = None, avoid: Optional[bytes] = None) -> bytes:
-        if seed is not None:
-            random.seed(seed)
-        tmp = avoid
-        while tmp is None or tmp == avoid:
-            tmp = bytes(bytearray(random.getrandbits(8) for _ in range(length)))
-        return tmp
 
     def smart_contract_init(self, environment: Environment, seller: Account, buyer: Account, price: int,
                             slice_length: int, file_root_hash: bytes, ciphertext_root_hash: bytes,
