@@ -5,11 +5,11 @@ import {Verifier, Mediator} from "mediator.sol";
 contract fileSale {
 
     // This can be set dynamically for each trade. In that case, these parameters have to be included
-    // in the inital agreement, revealed in verify_initial_agreement() and stored in the Verification struct.
+    // in the initial agreement, revealed in verify_initial_agreement() and stored in the Verification struct.
     // In order to be able to set a worst-case execution cost for the verifier, this size has to be bound though.
-    uint constant depth = 3;
-    uint constant length = 1;
-    uint constant n = 16384;
+    uint constant depth = {{ merkle_tree_depth }};
+    uint constant length = {{ slice_length }}; // length in bytes32
+    uint constant n = {{ slices_count }};
 
     enum stage {pre, created, initialized}
     struct Verification{
