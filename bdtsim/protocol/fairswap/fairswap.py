@@ -18,7 +18,7 @@
 import logging
 import math
 import random
-from typing import Any, Optional, Union
+from typing import Any, List, Optional, Union, cast
 
 from hexbytes.main import HexBytes
 from jinja2 import Template
@@ -37,7 +37,8 @@ logger = logging.getLogger(__name__)
 
 
 class FairSwap(Protocol):
-    CONTRACT_TEMPLATE_FILE = 'FairFileSale.tpl.sol'
+    SINGLE_USE_CONTRACT_TEMPLATE_FILE = 'FairFileSale.tpl.sol'
+    REUSABLE_CONTRACT_FILE = 'FairFileSale-reusable.sol'
     CONTRACT_NAME = 'FileSale'
 
     def __init__(self, slices_count: int = 8, timeout: int = 600, *args: Any, **kwargs: Any) -> None:
@@ -50,15 +51,15 @@ class FairSwap(Protocol):
         """
         super(FairSwap, self).__init__(*args, **kwargs)
 
-        self._slices_count = int(slices_count)
-        if self._slices_count < 1:
+        self.slices_count = int(slices_count)
+        if self.slices_count < 1:
             raise ProtocolInitializationError('n must be an int >= 1')
 
-        if not math.log2(self._slices_count).is_integer():
+        if not math.log2(self.slices_count).is_integer():
             raise ProtocolInitializationError('slice_count must be a power of 2')
-        self._merkle_tree_depth = int(math.log2(self._slices_count)) + 1
+        self.merkle_tree_depth = int(math.log2(self.slices_count)) + 1
 
-        self._timeout = int(timeout)
+        self.timeout = int(timeout)
 
     def _get_contract(self, buyer: Account, price: int, slice_length: int, file_root_hash: bytes,
                       ciphertext_root_hash: bytes, key_hash: bytes) -> SolidityContract:
@@ -74,14 +75,14 @@ class FairSwap(Protocol):
         Returns:
             SolidityContract: Actual smart contract to be deployed with pre-filled values
         """
-        with open(self.contract_path(__file__, FairSwap.CONTRACT_TEMPLATE_FILE)) as f:
+        with open(self.contract_path(__file__, FairSwap.SINGLE_USE_CONTRACT_TEMPLATE_FILE)) as f:
             contract_template = Template(f.read())
 
         contract_code_rendered = contract_template.render(
-            merkle_tree_depth=self._merkle_tree_depth,
+            merkle_tree_depth=self.merkle_tree_depth,
             slice_length=slice_length,
-            slices_count=self._slices_count,
-            timeout=self._timeout,
+            slices_count=self.slices_count,
+            timeout=self.timeout,
             receiver=buyer.wallet_address,
             price=price,
             key_commitment=self.hex(key_hash),
@@ -107,17 +108,17 @@ class FairSwap(Protocol):
             None:
         """
         # initial assignments and checks
-        slice_length = int(data_provider.data_size / self._slices_count)
+        slice_length = int(data_provider.data_size / self.slices_count)
         if slice_length % 32 > 0:
             raise ProtocolExecutionError('A slice must have a multiple of 32 as length.'
                                          ' Configured for using %d slices,'
                                          ' therefore data must have a multiple of %d as length' % (
-                                             self._slices_count,
-                                             self._slices_count * 32
+                                            self.slices_count,
+                                            self.slices_count * 32
                                          ))
 
         plain_data = data_provider.file_pointer.read()
-        plain_merkle_tree = merkle.from_bytes(plain_data, self._slices_count)
+        plain_merkle_tree = merkle.from_bytes(plain_data, self.slices_count)
         key = self.generate_bytes(32, 1337)
 
         # === 1a: Seller: encrypt file for transmission
@@ -128,7 +129,7 @@ class FairSwap(Protocol):
             encrypted_merkle_tree = encoding.encode(plain_merkle_tree, key)
         elif encryption_decision == 'completely different':
             encrypted_merkle_tree = encoding.encode(
-                merkle.from_bytes(self.generate_bytes(data_provider.data_size), self._slices_count),
+                merkle.from_bytes(self.generate_bytes(data_provider.data_size), self.slices_count),
                 key
             )
         elif encryption_decision == 'leaf forgery' or encryption_decision == 'hash forgery':
@@ -179,22 +180,24 @@ class FairSwap(Protocol):
         else:
             raise NotImplementedError()
 
-        # actual contract deployment
-        environment.deploy_contract(seller, self._get_contract(
+        # init FairSwap protocol (deploy contract in single use case/ call init method in reusable case)
+        self.smart_contract_init(
+            environment=environment,
+            seller=seller,
             buyer=buyer,
             price=price,
             slice_length=int(slice_length / 32),
             file_root_hash=transfer_plain_root_hash,
             ciphertext_root_hash=transfer_ciphertext_root_hash,
             key_hash=Web3.solidityKeccak(['bytes32'], [transfer_key])
-        ))
+        )
 
         # === 2: Buyer: Accept Contract/Pay Price ===
         if (plain_merkle_tree.digest == transfer_plain_root_hash
                 and encrypted_merkle_tree.digest == transfer_ciphertext_root_hash):
             acceptance_decision = protocol_path.decide(buyer, 'Accept', variants=['yes', 'leave'])
             if acceptance_decision == 'yes':
-                environment.send_contract_transaction(buyer, 'accept', value=price)
+                self.smart_contract_accept(environment, seller, buyer, transfer_plain_root_hash, price)
             elif acceptance_decision == 'leave':
                 return
             else:
@@ -205,69 +208,66 @@ class FairSwap(Protocol):
         # === 3: Seller: Reveal key ===
         key_revelation_decision = protocol_path.decide(seller, 'Key Revelation', ['yes', 'leave'])
         if key_revelation_decision == 'yes':
-            environment.send_contract_transaction(seller, 'revealKey', transfer_key)
+            self.smart_contract_reveal_key(environment, seller, buyer, transfer_plain_root_hash, transfer_key)
         elif key_revelation_decision == 'leave':
             logger.debug('Seller: Leaving without Key Revelation')
             if protocol_path.decide(buyer, 'Refund', variants=['yes', 'no']) == 'yes':
                 logger.debug('Buyer: Waiting for timeout to request refund')
-                environment.wait(self._timeout + 1)
-                environment.send_contract_transaction(buyer, 'refund')
+                environment.wait(self.timeout + 1)
+                self.smart_contract_refund(environment, seller, buyer, transfer_plain_root_hash, buyer)
             return
         else:
             raise NotImplementedError()
 
         # === 4: Buyer: Send Ok/Complain/Leave
         root_hash_enc = encrypted_merkle_tree.leaves[-2].data
-        if encoding.crypt(root_hash_enc, 3 * self._slices_count - 2, transfer_key) != plain_merkle_tree.digest:
+        if encoding.crypt(root_hash_enc, 3 * self.slices_count - 2, transfer_key) != plain_merkle_tree.digest:
             if protocol_path.decide(buyer, 'complain about root', ['yes']) == 'yes':
                 logger.debug('Buyer: Complaining about incorrect file root hash')
                 root_hash_leaf = encrypted_merkle_tree.leaves[-2]
                 proof = encrypted_merkle_tree.get_proof(root_hash_leaf)
-                environment.send_contract_transaction(buyer, 'complainAboutRoot', root_hash_leaf.data, proof)
+                self.smart_contract_complain_about_root(environment, seller, buyer, transfer_plain_root_hash,
+                                                        root_hash_leaf.data, proof)
                 return
         else:
             decrypted_merkle_tree, errors = encoding.decode(encrypted_merkle_tree, transfer_key)
             if len(errors) == 0:
                 if protocol_path.decide(buyer, 'Confirm', variants=['yes', 'leave'],
                                         honest_variants=['yes', 'leave']) == 'yes':
-                    environment.send_contract_transaction(buyer, 'noComplain')
+                    self.smart_contract_no_complain(environment, seller, buyer, transfer_plain_root_hash)
                     return
             elif isinstance(errors[-1], encoding.LeafDigestMismatchError):
                 if protocol_path.decide(buyer, 'Complain about Leaf', ['yes']) == 'yes':
                     error: encoding.NodeDigestMismatchError = errors[-1]
-                    environment.send_contract_transaction(
-                        buyer,
-                        'complainAboutLeaf',
-                        error.index_out,
-                        error.index_in,
-                        error.out.data,
-                        error.in1.data_as_list(),
-                        error.in2.data_as_list(),
-                        encrypted_merkle_tree.get_proof(error.out),
-                        encrypted_merkle_tree.get_proof(error.in1)
+                    self.smart_contract_complain_about_leaf(
+                        environment=environment,
+                        seller=seller,
+                        buyer=buyer,
+                        file_root_hash=transfer_plain_root_hash,
+                        error=error,
+                        proof_out=encrypted_merkle_tree.get_proof(error.out),
+                        proof_in1=encrypted_merkle_tree.get_proof(error.in1)
                     )
                     return
             else:
                 if protocol_path.decide(buyer, 'Complain about Node', ['yes']) == 'yes':
                     error = errors[-1]
-                    environment.send_contract_transaction(
-                        buyer,
-                        'complainAboutNode',
-                        error.index_out,
-                        error.index_in,
-                        error.out.data,
-                        error.in1.data,
-                        error.in2.data,
-                        encrypted_merkle_tree.get_proof(error.out),
-                        encrypted_merkle_tree.get_proof(error.in1)
+                    self.smart_contract_complain_about_node(
+                        environment=environment,
+                        seller=seller,
+                        buyer=buyer,
+                        file_root_hash=transfer_plain_root_hash,
+                        error=error,
+                        proof_out=encrypted_merkle_tree.get_proof(error.out),
+                        proof_in1=encrypted_merkle_tree.get_proof(error.in1)
                     )
                     return
 
         # === 5: Seller: Finalize (when Buyer leaves in 4)
         if protocol_path.decide(seller, 'Request Payout', variants=['yes', 'no'],
                                 honest_variants=['yes', 'no']) == 'yes':
-            environment.wait(self._timeout + 1)
-            environment.send_contract_transaction(seller, 'refund')
+            environment.wait(self.timeout + 1)
+            self.smart_contract_refund(environment, seller, buyer, transfer_plain_root_hash, seller)
 
     @staticmethod
     def hex(value: Union[HexBytes, bytes, bytearray]) -> str:
@@ -289,5 +289,176 @@ class FairSwap(Protocol):
             tmp = bytes(bytearray(random.getrandbits(8) for _ in range(length)))
         return tmp
 
+    def smart_contract_init(self, environment: Environment, seller: Account, buyer: Account, price: int,
+                            slice_length: int, file_root_hash: bytes, ciphertext_root_hash: bytes,
+                            key_hash: bytes) -> None:
+        environment.deploy_contract(seller, self._get_contract(
+            buyer=buyer,
+            price=price,
+            slice_length=slice_length,
+            file_root_hash=file_root_hash,
+            ciphertext_root_hash=ciphertext_root_hash,
+            key_hash=key_hash
+        ))
 
-ProtocolManager.register('FairSwap-FileSale', FairSwap)
+    @staticmethod
+    def smart_contract_accept(environment: Environment, seller: Account, buyer: Account, file_root_hash: bytes,
+                              price: int) -> None:
+        environment.send_contract_transaction(buyer, 'accept', value=price)
+
+    @staticmethod
+    def smart_contract_reveal_key(environment: Environment, seller: Account, buyer: Account, file_root_hash: bytes,
+                                  key: bytes) -> None:
+        environment.send_contract_transaction(seller, 'revealKey', key)
+
+    @staticmethod
+    def smart_contract_refund(environment: Environment, seller: Account, buyer: Account, file_root_hash: bytes,
+                              beneficiary: Account) -> None:
+        environment.send_contract_transaction(beneficiary, 'refund')
+
+    @staticmethod
+    def smart_contract_no_complain(environment: Environment, seller: Account, buyer: Account,
+                                   file_root_hash: bytes) -> None:
+        environment.send_contract_transaction(buyer, 'noComplain')
+
+    @staticmethod
+    def smart_contract_complain_about_root(environment: Environment, seller: Account, buyer: Account,
+                                           file_root_hash: bytes, witness: bytes, proof: List[bytes]) -> None:
+        environment.send_contract_transaction(buyer, 'complainAboutRoot', witness, proof)
+
+    @staticmethod
+    def smart_contract_complain_about_leaf(environment: Environment, seller: Account, buyer: Account,
+                                           file_root_hash: bytes, error: encoding.NodeDigestMismatchError,
+                                           proof_out: List[bytes], proof_in1: List[bytes]) -> None:
+        environment.send_contract_transaction(
+            buyer,
+            'complainAboutLeaf',
+            error.index_out,
+            error.index_in,
+            error.out.data,
+            error.in1.data_as_list(),
+            error.in2.data_as_list(),
+            proof_out,
+            proof_in1
+        )
+
+    @staticmethod
+    def smart_contract_complain_about_node(environment: Environment, seller: Account, buyer: Account,
+                                           file_root_hash: bytes, error: encoding.NodeDigestMismatchError,
+                                           proof_out: List[bytes], proof_in1: List[bytes]) -> None:
+        environment.send_contract_transaction(
+            buyer,
+            'complainAboutNode',
+            error.index_out,
+            error.index_in,
+            error.out.data,
+            error.in1.data,
+            error.in2.data,
+            proof_out,
+            proof_in1
+        )
+
+
+class FairSwapReusable(FairSwap):
+    def _get_reusable_contract(self) -> SolidityContract:
+        with open(self.contract_path(__file__, FairSwap.REUSABLE_CONTRACT_FILE)) as f:
+            contract_code = f.read()
+        return SolidityContract(FairSwap.CONTRACT_NAME, contract_code=contract_code)
+
+    @staticmethod
+    def get_session_id(seller: Account, buyer: Account, file_root_hash: bytes) -> bytes:
+        return cast(bytes, Web3.solidityKeccak(
+            ['address', 'address', 'bytes32'],
+            [seller.wallet_address, buyer.wallet_address, file_root_hash]
+        ))
+
+    def prepare_iteration(self, environment: Environment, operator: Account) -> None:
+        logger.debug('Deploying reusable smart contract...')
+        environment.deploy_contract(operator, self._get_reusable_contract())
+
+    def smart_contract_init(self, environment: Environment, seller: Account, buyer: Account, price: int,
+                            slice_length: int, file_root_hash: bytes, ciphertext_root_hash: bytes,
+                            key_hash: bytes) -> None:
+        environment.send_contract_transaction(
+            seller,
+            'init',
+            buyer.wallet_address,
+            self.merkle_tree_depth,
+            slice_length,
+            self.slices_count,
+            self.timeout,
+            price,
+            key_hash,
+            ciphertext_root_hash,
+            file_root_hash
+        )
+
+    @staticmethod
+    def smart_contract_accept(environment: Environment, seller: Account, buyer: Account, file_root_hash: bytes,
+                              price: int) -> None:
+        session_id = FairSwapReusable.get_session_id(seller, buyer, file_root_hash)
+        environment.send_contract_transaction(buyer, 'accept', session_id, value=price)
+
+    @staticmethod
+    def smart_contract_reveal_key(environment: Environment, seller: Account, buyer: Account, file_root_hash: bytes,
+                                  key: bytes) -> None:
+        session_id = FairSwapReusable.get_session_id(seller, buyer, file_root_hash)
+        environment.send_contract_transaction(seller, 'revealKey', session_id, key)
+
+    @staticmethod
+    def smart_contract_refund(environment: Environment, seller: Account, buyer: Account, file_root_hash: bytes,
+                              beneficiary: Account) -> None:
+        session_id = FairSwapReusable.get_session_id(seller, buyer, file_root_hash)
+        environment.send_contract_transaction(beneficiary, 'refund', session_id)
+
+    @staticmethod
+    def smart_contract_no_complain(environment: Environment, seller: Account, buyer: Account,
+                                   file_root_hash: bytes) -> None:
+        session_id = FairSwapReusable.get_session_id(seller, buyer, file_root_hash)
+        environment.send_contract_transaction(buyer, 'noComplain', session_id)
+
+    @staticmethod
+    def smart_contract_complain_about_root(environment: Environment, seller: Account, buyer: Account,
+                                           file_root_hash: bytes, witness: bytes, proof: List[bytes]) -> None:
+        session_id = FairSwapReusable.get_session_id(seller, buyer, file_root_hash)
+        environment.send_contract_transaction(buyer, 'complainAboutRoot', session_id, witness, proof)
+
+    @staticmethod
+    def smart_contract_complain_about_leaf(environment: Environment, seller: Account, buyer: Account,
+                                           file_root_hash: bytes, error: encoding.NodeDigestMismatchError,
+                                           proof_out: List[bytes], proof_in1: List[bytes]) -> None:
+        session_id = FairSwapReusable.get_session_id(seller, buyer, file_root_hash)
+        environment.send_contract_transaction(
+            buyer,
+            'complainAboutLeaf',
+            session_id,
+            error.index_out,
+            error.index_in,
+            error.out.data,
+            error.in1.data_as_list(),
+            error.in2.data_as_list(),
+            proof_out,
+            proof_in1
+        )
+
+    @staticmethod
+    def smart_contract_complain_about_node(environment: Environment, seller: Account, buyer: Account,
+                                           file_root_hash: bytes, error: encoding.NodeDigestMismatchError,
+                                           proof_out: List[bytes], proof_in1: List[bytes]) -> None:
+        session_id = FairSwapReusable.get_session_id(seller, buyer, file_root_hash)
+        environment.send_contract_transaction(
+            buyer,
+            'complainAboutNode',
+            session_id,
+            error.index_out,
+            error.index_in,
+            error.out.data,
+            error.in1.data,
+            error.in2.data,
+            proof_out,
+            proof_in1
+        )
+
+
+ProtocolManager.register('FairSwap', FairSwap)
+ProtocolManager.register('FairSwap-Reusable', FairSwapReusable)

@@ -45,6 +45,6 @@ in cooperation with
 This project is published under the Apache License, Version 2.0.
 See [LICENSE.md](https://gitlab.com/MatthiasLohr/bdtsim/-/blob/master/LICENSE.md) for more information.
 
-Copyright &copy; by [Matthias Lohr](https://mlohr.com/) <mail@mlohr.com>
+Copyright &copy; by [Matthias Lohr](https://mlohr.com/) &lt;[mail@mlohr.com](mailto:mail@mlohr.com)&gt;
 
 The BDTsim logo was created and provided by Zeyd Boukhers.

@@ -11,6 +11,25 @@ Below you can find more detailed information about available sub-commands:
 
 The following options are available:
 
+  * `--account-file <filename>`: Specify account configuration file to be used.
+    When not provided, wallets will be generated randomly and saved. File locations are
+
+    * Linux: `$HOME/.config/bdtsim/accounts.yaml`
+    * Windows: `%APPDATA%\bdtsim\accounts.yaml`
+
+    File should look like:
+```yaml
+accounts:
+  operator:
+    name: Operator
+    privateKey: <operators's private key>
+  seller:
+    name: Seller
+    privateKey: <seller's private key>
+  buyer:
+    name: Buyer
+    privateKey: <buyer's private key>
+```
   * `-e <key> <value>`/`--environment-parameter <key> <value>`: Pass parameters (key/values pairs) to the selected environment.
     Please read the [environments documentation](environments.md) for a list of supported parameters, dependent on the selected environment.
     You can use `-e <key> <value>` multiple times to pass multiple key value pairs.
@@ -50,6 +69,8 @@ Please read the [protocols documentation](protocols.md) for more details.
 
 The following additional parameters are available:
 
+  * `--account-file <filename>`: Specify account configuration file to be used.
+    For details see [environment-info command](#environment-info)
   * `--data-provider DATA_PROVIDER`: set the [data provider](data_providers.md) to be used during the simulation
   * `-f OUTPUT_FORMAT`, `--output-format OUTPUT_FORMAT`: set the desired [output format](output_formats.md) for simulation results
   * `--price PRICE`: set the price for the asset to be traded

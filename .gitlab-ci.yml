@@ -5,6 +5,7 @@ stages:
   - test
   - build
   - deploy
+  - release
 
 unittests:
   stage: test
@@ -69,6 +70,20 @@ upload to PyPI:
     - pip install twine
   script:
     - twine upload --non-interactive dist/*
+
+create release:
+  image: registry.gitlab.com/gitlab-org/release-cli
+  stage: release
+  rules:
+    - if: '$CI_COMMIT_TAG != null'
+  script:
+    - >
+      release-cli create --name $CI_COMMIT_TAG --description "# Changelog$(cat CHANGELOG.md | awk '/## '$CI_COMMIT_TAG'/{flag=1;next}/##/{flag=0}flag')"
+      --tag-name $CI_COMMIT_TAG --ref $CI_COMMIT_SHA
+      --assets-links-name "Package Files on PyPI"
+      --assets-links-url "https://pypi.org/project/bdtsim/$CI_COMMIT_TAG/#files"
+  needs:
+    - upload to PyPI
 
 create docker image:
   stage: deploy

@@ -22,10 +22,14 @@ from eth_tester import EthereumTester, PyEVMBackend
 from eth_utils.crypto import keccak
 from web3 import Web3, EthereumTesterProvider
 
-from bdtsim.account import buyer
+from bdtsim.account import Account
 from bdtsim.protocol.fairswap import FairSwap
 from bdtsim.protocol.fairswap.encoding import encode, decode, B032, crypt
 from bdtsim.protocol.fairswap.merkle import MerkleTreeNode, MerkleTreeLeaf, from_bytes
+
+
+seller = Account('Seller', '0x3f2c7f45cb3014e2b9d12b7fb331bdfdad6170ce5e4a0d94890aa64162569756')
+buyer = Account('Buyer', '0x0633ee528dcfb901af1888d91ce451fc59a71ae7438832966811eb68ed97c173')
 
 
 class FairSwapTest(unittest.TestCase):
@@ -34,6 +38,19 @@ class FairSwapTest(unittest.TestCase):
         self.assertEqual(keccak(data), Web3.solidityKeccak(['bytes32'], [data]))
         self.assertEqual(keccak(data), Web3.solidityKeccak(['bytes32[1]'], [[data]]))
         self.assertEqual(keccak(data), Web3.keccak(data))
+
+        # Solidity code: keccak256(abi.encodePacked(sender, receiver, fileRoot))
+        self.assertEqual(
+            '0xfd243b66fa5fbc879ac836d18db4eb27017f597aec84f636ed53b6bc37e9aa92',
+            Web3.solidityKeccak(
+                ['address', 'address', 'bytes'],
+                [
+                    '0x5Afa5874959ff249103c2043fB45d68B2768Fef8',
+                    '0x00c382926f098566EA6F1707296eC342E7C8A5DC',
+                    '0x93b99fa1376f0985e9b52743de4621b1f25cf5933c7bcb719d549e83e4cdaba4'
+                ]
+            ).hex()
+        )
 
 
 class MerkleTest(unittest.TestCase):

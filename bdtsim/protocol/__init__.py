@@ -26,7 +26,7 @@ __all__ = [
     'Protocol',
     'ProtocolManager',
     'ProtocolError', 'ProtocolInitializationError', 'ProtocolExecutionError',
-    'FairSwap',
+    'FairSwap', 'FairSwapReusable',
     'SimplePayment', 'SimplePaymentPrepaid', 'SimplePaymentPostpaid',
-    'Delgado'
+    'Delgado', 'DelgadoReusable'
 ]
