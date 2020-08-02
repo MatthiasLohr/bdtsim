@@ -10,9 +10,8 @@ contract Delgado {
   uint256 public constant AA = 0;
   uint256 public constant BB = 7;
   uint256 public constant PP = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F;
-  uint time = {{ time }} seconds; //template
-  uint price = {{ price }} wei; //template
   enum Stage {created, initialized,finished}
+  uint time = 60 seconds;
 
   struct FileSaleSession {
           Stage stage;
@@ -35,10 +34,10 @@ contract Delgado {
     }
     
 function BuyerInitTrade(uint256 pubX,uint256 pubY, address payable s) payable public{
-     bytes32 sessionID = calculateSessionID(msg.sender, s, pubY);
+     bytes32 sessionID = calculateSessionID(s,msg.sender, pubY);
      require(sessions[sessionID].stage == Stage.created);
 
-    require(msg.value >= price,"price wrong");
+    //require(msg.value >= price,"price wrong");
     sessions[sessionID] = FileSaleSession(
             Stage.initialized,
             s,
@@ -46,22 +45,20 @@ function BuyerInitTrade(uint256 pubX,uint256 pubY, address payable s) payable pu
             pubX,
             pubY,
             msg.value,
-            now + time
-        );
+            now + time);
 }
 
-function SellerRevealKey(bytes32 sessionID, uint256 privKey) allowed(sessionID, sessions[sessionID].seller,Stage.initialized) public{
+function SellerRevealKey(bytes32 sessionID, uint256 privKey) allowed(sessionID, sessions[sessionID].seller ,Stage.initialized) public{
     (uint256 x,uint256 y) = derivePubKey(privKey);
     require(x == sessions[sessionID].pubX,"x wrong");
     require(y == sessions[sessionID].pubY,"y wrong");
     msg.sender.transfer(sessions[sessionID].balance);
     sessions[sessionID].stage = Stage.finished;
-    
 }
 
 function refund(bytes32 sessionID) public{
     require (now > sessions[sessionID].nextDeadline,"timeout not reached");
-    require(sessions[sessionID].stage > Stage.initialized,"stage wrong");
+    //require(sessions[sessionID].stage > Stage.initialized,"stage wrong"); TODO
     sessions[sessionID].buyer.transfer(sessions[sessionID].balance);
     sessions[sessionID].stage = Stage.finished;
 }

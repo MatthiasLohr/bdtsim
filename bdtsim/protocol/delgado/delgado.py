@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class Delgado(Protocol):
     CONTRACT_TEMPLATE_FILE = 'delgado-trade/delgadoTrade.tpl.sol'
-    REUSABLE_CONTRACT_FILE = 'delgado-trade/delgadoVariable.tpl.sol'
+    REUSABLE_CONTRACT_FILE = 'delgado-trade/delgadoVariable.sol'
     CONTRACT_NAME = 'Delgado'
 
     def __init__(self,  timeout: int = 600, *args: Any, **kwargs: Any) -> None:
@@ -48,7 +48,7 @@ class Delgado(Protocol):
 
     def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
                 seller: Account, buyer: Account, price: int = 1000000000) -> None:
-        """Execute a file transfer using the FairSwap protocol / FileSale contract.
+        """Execute a file transfer using the Delgado protocol.
 
         Args:
             protocol_path (ProtocolPath):
@@ -69,11 +69,12 @@ class Delgado(Protocol):
         #    seller, 'File Encryption/Transfer', ['expected','unexpected key','unexpected file']
         # )
         # TODO data exchange beforehand - simulate or not?
-        sk = SigningKey.generate(curve=SECP256k1)  # private key
+        sk = SigningKey.generate(curve=SECP256k1)  # TODO make these per session private key
         # exchange with buyer
         vk = sk.verifying_key      # public key
         pubkX = vk.pubkey.point.x()
         pubkY = vk.pubkey.point.y()
+
         # === 2a: Seller send encrypted
         # TODO
         # === 2b: Buyer challenges Seller
@@ -142,7 +143,7 @@ class DelgadoReusable(Delgado):
     @staticmethod
     def get_session_id(seller: Account, buyer: Account, pubY: int) -> bytes:
         return cast(bytes, Web3.solidityKeccak(
-            ['address', 'address', 'int'],
+            ['address', 'address', 'uint256'],
             [seller.wallet_address, buyer.wallet_address, pubY]
         ))
 
@@ -152,12 +153,9 @@ class DelgadoReusable(Delgado):
 
     def smart_contract_init(self, environment: Environment, seller: Account, buyer: Account,
                             pubkX: int, pubkY: int, price: int) -> None:
-        environment.deploy_contract(buyer, self._get_contract(
-            price=price,
-        ))
         logger.debug("pubX: %d, pubY: %d, seller: %s", pubkX, pubkY, seller.wallet_address)
         environment.send_contract_transaction(
-            buyer, 'BuyerInitTrade', pubkX, pubkY, Web3.toChecksumAddress(seller.wallet_address), value=price)
+            buyer, 'BuyerInitTrade', pubkX, pubkY, seller.wallet_address, value=price)
 
     @staticmethod
     def smart_contract_reveal_key(environment: Environment, seller: Account, buyer: Account,
