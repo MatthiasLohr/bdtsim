@@ -33,7 +33,8 @@ class CommandTest(unittest.TestCase):
         self.assertEqual(out.decode('utf-8').strip(), '\n'.join([
             'FairSwap',
             'FairSwap-Reusable',
-	    'Delgado-FileSale',
+            'Delgado',
+            'Delgado-Reusable',
             'SimplePayment',
             'SimplePayment-prepaid',
             'SimplePayment-prepaid-direct',

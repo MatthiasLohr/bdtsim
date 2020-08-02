@@ -10,8 +10,8 @@ contract Delgado {
   uint256 public constant AA = 0;
   uint256 public constant BB = 7;
   uint256 public constant PP = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F;
-  uint time = 60 seconds; //template
-  uint price = 10 wei; //template
+  uint time = {{ time }} seconds; //template
+  uint price = {{ price }} wei; //template
   enum Stage {created, initialized,finished}
 
   struct FileSaleSession {
