@@ -211,26 +211,77 @@ class SmartJudge(Protocol):
             return
 
         # === Mediator State: ACCEPTED ===
-        revelation_decision = protocol_path.decide(seller, 'reveal key?', ['yes', 'incorrect', 'leave'])
-        if revelation_decision == 'yes':
+        revelation_decision = protocol_path.decide(seller, 'reveal key?', ['correct', 'incorrect', 'skip'],
+                                                   ['correct', 'skip'])
+        if revelation_decision == 'correct':
             logger.debug('Seller: revealing correct key')
             transfer_key: Optional[bytes] = key
         elif revelation_decision == 'incorrect':
             logger.debug('Seller: revealing incorrect key')
             transfer_key = generate_bytes(len(key), avoid=key)
-        elif revelation_decision == 'leave':
-            logger.debug('Seller: Not revealing any key')
+        elif revelation_decision == 'skip':
+            logger.debug('Seller: Not revealing key (now)')
             transfer_key = None
         else:
             raise NotImplementedError()
 
-        if transfer_key is not None and transfer_key == key:
+        if transfer_key is not None:
+            logger.debug('Buyer: trying to decrypt file')
+            decrypted_merkle_tree, errors = encoding.decode(encrypted_merkle_tree, transfer_key)
+            if decrypted_merkle_tree.digest == plain_merkle_tree.digest:
+                logger.debug('Buyer: decryption successful')
+                finish_decision = protocol_path.decide(buyer, 'finish?', ['yes', 'no'])
+                if finish_decision == 'yes':
+                    environment.send_contract_transaction(self._mediator_contract, buyer, 'finish', trade_id)
+                    return
+            else:
+                logger.debug('Buyer: decryption not successful')
+
+        contest_decision = protocol_path.decide(seller, 'contest/reveal', ['correct', 'incorrect'])
+        if contest_decision == 'correct':
+            logger.debug('Seller: contesting with correct key')
+            contest_key = key
+        elif contest_decision == 'incorrect':
+            logger.debug('Seller: contesting with incorrect key')
+            contest_key = generate_bytes(len(key), avoid=key)
+        else:
+            raise NotImplementedError()
+        environment.send_contract_transaction(self._mediator_contract, seller, 'contest', trade_id, contest_key)
+
+        # === Mediator State: CONTENDED ===
+        decrypted_merkle_tree, errors = encoding.decode(encrypted_merkle_tree, contest_key)
+        if decrypted_merkle_tree.digest == plain_merkle_tree.digest:
             finish_decision = protocol_path.decide(buyer, 'finish?', ['yes', 'no'])
             if finish_decision == 'yes':
+                logger.debug('Buyer: confirming (correct) contest witness/finishing')
                 environment.send_contract_transaction(self._mediator_contract, buyer, 'finish', trade_id)
                 return
-
-        # TODO implement
+            elif finish_decision == 'no':
+                logger.debug('Buyer: not confirming (correct) contest witness')
+                logger.debug('Seller: wait for timeout')
+                environment.wait(self._timeout)
+                environment.send_contract_transaction(self._mediator_contract, seller, 'timeout', trade_id)
+                return
+            else:
+                raise NotImplementedError()
+        else:
+            logger.debug('Buyer: retrieved unexpected file')
+            environment.send_contract_transaction(self._mediator_contract, buyer, 'init_verification', trade_id,
+                                                  self._verifier_id, conditions_hash)
+            verify_initial_agreement_decision = protocol_path.decide(seller, 'verify initial agreement',
+                                                                     ['correct', 'incorrect', 'leave'])
+            if verify_initial_agreement_decision == 'correct':
+                pass  # TODO implement
+            elif verify_initial_agreement_decision == 'incorrect':
+                pass  # TODO implement
+            elif verify_initial_agreement_decision == 'leave':
+                logger.debug('Seller: not verifying initial agreement')
+                logger.debug('Buyer: requesting refund')
+                environment.wait(self._timeout)
+                environment.send_contract_transaction(self._verifier_contract, buyer, 'refund', trade_id)
+                return
+            else:
+                raise NotImplementedError()
 
 
 ProtocolManager.register('SmartJudge-FairSwap', SmartJudge)
