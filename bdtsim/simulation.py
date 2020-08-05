@@ -17,12 +17,13 @@
 
 import logging
 from queue import Queue
+from typing import Optional
 
 from bdtsim.account import Account
 from bdtsim.data_provider import DataProvider
 from bdtsim.environment import Environment
 from bdtsim.protocol import Protocol
-from bdtsim.protocol_path import ProtocolPath
+from bdtsim.protocol_path import ProtocolPath, ProtocolPathCoercion
 from bdtsim.output import SimulationResult, ResultCollector
 
 
@@ -31,13 +32,15 @@ logger = logging.getLogger(__name__)
 
 class Simulation(object):
     def __init__(self, protocol: Protocol, environment: Environment, data_provider: DataProvider, operator: Account,
-                 seller: Account, buyer: Account, price: int = 1000000000) -> None:
+                 seller: Account, buyer: Account, protocol_path_coercion: Optional[ProtocolPathCoercion] = None,
+                 price: int = 1000000000) -> None:
         self._protocol = protocol
         self._environment = environment
         self._data_provider = data_provider
         self._operator = operator
         self._seller = seller
         self._buyer = buyer
+        self._protocol_path_coercion: ProtocolPathCoercion = protocol_path_coercion or ProtocolPathCoercion()
         self._price = price
 
         self._protocol_path_queue: Queue[ProtocolPath] = Queue()
@@ -50,7 +53,7 @@ class Simulation(object):
             self._protocol.prepare_simulation(self._environment, self._operator)
         logger.debug('Finished preparing the environment for simulation')
 
-        self._protocol_path_queue.put(ProtocolPath())
+        self._protocol_path_queue.put(ProtocolPath(coercion=self._protocol_path_coercion))
         logger.debug('Starting simulation loop')
         while not self._protocol_path_queue.empty():
             protocol_path = self._protocol_path_queue.get(block=False)

@@ -71,6 +71,8 @@ The following additional parameters are available:
 
   * `--account-file <filename>`: Specify account configuration file to be used.
     For details see [environment-info command](#environment-info)
+  * `--protocol-path`: Limit protocol paths to be simulated
+    ([more information/parameter format](commands_run_protocol_path.md)).
   * `--data-provider DATA_PROVIDER`: set the [data provider](data_providers.md) to be used during the simulation
   * `-f OUTPUT_FORMAT`, `--output-format OUTPUT_FORMAT`: set the desired [output format](output_formats.md) for simulation results
   * `--price PRICE`: set the price for the asset to be traded
