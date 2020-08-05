@@ -119,7 +119,7 @@ contract fileSale {
 
         require( vrfy(id, _indexIn, keccak256(_Zin1), _proofZin));
         
-        require (_proofZin[0] == keccak256(_Zin2));
+        require (_proofZin[depth - 1] == keccak256(_Zin2));
 
         if (Xout != keccak256(cryptLarge(id, _indexIn, _Zin1), cryptLarge(id, _indexIn+1, _Zin2))) {
             v.phase = stage.pre;
@@ -139,7 +139,7 @@ contract fileSale {
         require( vrfy(id, _indexOut, _Zout, _proofZout));
 
         require( vrfy(id, _indexIn, _Zin1, _proofZin));
-        require(_proofZin[0] == _Zin2);
+        require(_proofZin[depth - 1] == _Zin2);
         
         bytes32 Xout = cryptSmall(id, _indexOut, _Zout);
 
@@ -192,9 +192,9 @@ contract fileSale {
 
         for (uint i = 0; i < depth; i++){
             if ((_index & 1<<i)>>i == 1){
-                _value = keccak256(_proof[i], _value);
+                _value = keccak256(_proof[depth - i - 1], _value);
             } else {
-                _value = keccak256(_value, _proof[i]);
+                _value = keccak256(_value, _proof[depth - i - 1]);
             }
         }
         return (_value == v.ciphertextRoot);
