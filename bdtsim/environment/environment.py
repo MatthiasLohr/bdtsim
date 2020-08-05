@@ -185,7 +185,11 @@ class Environment(object):
             if balance_diff != 0:
                 funds_diff_collection += FundsDiffCollection({tmp_account: balance_diff})
 
+        # adjustment for paid transaction fees (should NOT be contained in FundsDiffCollection, therefore re-adding)
         funds_diff_collection += FundsDiffCollection({account: tx_receipt['gasUsed'] * 1000000000})
+
+        if not funds_diff_collection.is_neutral:
+            logger.debug('Funds diff: %s' % ', '.join(['%s: %i' % (k, v) for k, v in funds_diff_collection.items()]))
 
         if self.transaction_callback is not None:
             self.transaction_callback(account, tx_dict, dict(tx_receipt), funds_diff_collection)
