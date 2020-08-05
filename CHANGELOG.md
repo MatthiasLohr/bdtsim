@@ -1,5 +1,9 @@
 # Changelog
 
+## unreleased
+
+  * Added `--protocol-path` parameter for limiting protocol paths to be executed (#23)
+
 ## v1.1.1
 
   * Dependency Update: py-solc-x to 0.10.1
