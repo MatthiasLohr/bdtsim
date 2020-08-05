@@ -136,11 +136,17 @@ class Decision(object):
         )
 
 
+class ProtocolPathCoercion(List[Optional[List[str]]]):
+    pass
+
+
 class ProtocolPath(object):
     """One possible path through a protocol iteration."""
 
-    def __init__(self, initial_decisions: Optional[List[Decision]] = None) -> None:
+    def __init__(self, initial_decisions: Optional[List[Decision]] = None,
+                 coercion: Optional[ProtocolPathCoercion] = None) -> None:
         self._initial_decisions: List[Decision] = initial_decisions or []
+        self._coercion = coercion or ProtocolPathCoercion()
         self._new_decisions: List[Decision] = []
         self._decisions_index: int = 0
         self._decision_callback: Optional[Callable[[Decision], None]] = None
