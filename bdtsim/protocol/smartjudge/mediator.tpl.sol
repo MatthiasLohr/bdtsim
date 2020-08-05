@@ -250,8 +250,6 @@ contract Mediator{
 
     if( a.agreement_hash == sha3(abi.encodePacked(verifier_id, initial_witness)) ){
 
-        emit TradeID(55);
-
         contentions[id].verifier_id = verifier_id;
         Verifier used_verifier = Verifier(verifications[verifier_id].contract_address);
 
