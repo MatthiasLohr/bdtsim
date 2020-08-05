@@ -16,7 +16,7 @@
 # limitations under the License.
 
 import time
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, List, Optional, cast
 
 from .account import Account
 
@@ -136,22 +136,40 @@ class Decision(object):
         )
 
 
+class ProtocolPathCoercion(List[Optional[List[str]]]):
+    pass
+
+
 class ProtocolPath(object):
     """One possible path through a protocol iteration."""
 
-    def __init__(self, initial_decisions: Optional[List[Decision]] = None) -> None:
+    def __init__(self, initial_decisions: Optional[List[Decision]] = None,
+                 coercion: Optional[ProtocolPathCoercion] = None) -> None:
         self._initial_decisions: List[Decision] = initial_decisions or []
+        self._coercion: ProtocolPathCoercion = coercion or ProtocolPathCoercion()
         self._new_decisions: List[Decision] = []
         self._decisions_index: int = 0
         self._decision_callback: Optional[Callable[[Decision], None]] = None
 
     def decide(self, account: Account, description: str, variants: List[str],
                honest_variants: Optional[List[str]] = None) -> Decision:
-        if len(self.decisions) == self._decisions_index:
-            # we have no decision yet, creating a new one
+        if len(self.decisions) == self._decisions_index:  # we have no decision yet
+            # check for outcome coercion
+            outcome: Optional[str] = None
+            if len(self._coercion) <= self._decisions_index or self._coercion[self._decisions_index] is None:
+                outcome = variants[0]
+            else:
+                for variant in variants:
+                    if variant in cast('List[str]', self._coercion[self._decisions_index]):
+                        outcome = variant
+                        break
+                if outcome is None:
+                    raise RuntimeError('No accepted outcome available. Choose from: %s' % ', '.join(variants))
+
+            # create decision object
             self._new_decisions.append(Decision(
                 account=account,
-                outcome=variants[0],
+                outcome=outcome,
                 variants=variants,
                 honest_variants=honest_variants,
                 timestamp=time.time(),
@@ -200,8 +218,15 @@ class ProtocolPath(object):
         for new_decision_index in range(len(self.new_decisions)):
             decision_head = self.new_decisions[new_decision_index]
             for variant in decision_head.variants:
+                # filter current variant
                 if decision_head.outcome == variant:
                     continue
+                # filter coercions
+                if (len(self._coercion) > new_decision_index
+                        and self._coercion[new_decision_index] is not None
+                        and variant not in cast('List[str]', self._coercion[new_decision_index])):
+                    continue
+                # add alternative protocol path
                 alternatives.append(ProtocolPath(
                     self.initial_decisions + self.new_decisions[:new_decision_index] + [Decision(
                         account=decision_head.account,
