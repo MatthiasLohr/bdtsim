@@ -66,6 +66,7 @@ class PyEVMEnvironment(Environment):
             })
 
     def wait(self, seconds: int) -> None:
+        logger.debug('Waiting for %i seconds (simulated)' % seconds)
         timeout = self._web3.eth.getBlock('latest').timestamp + seconds
         self._eth_tester_instance.time_travel(timeout)
 
