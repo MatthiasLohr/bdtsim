@@ -253,6 +253,10 @@ class ProtocolPath(object):
                 return False
         return True
 
+    @property
+    def coercion_str(self):
+        return ','.join([d.outcome for d in self.decisions])
+
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, ProtocolPath):
             return self.initial_decisions == other.initial_decisions and self.new_decisions == other.new_decisions
