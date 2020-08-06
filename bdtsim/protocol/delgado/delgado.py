@@ -24,14 +24,15 @@ class Delgado(Protocol):
     def __init__(self,  timeout: int = 600, *args: Any, **kwargs: Any) -> None:
         super(Delgado, self).__init__(*args, **kwargs)
         self._timeout = int(timeout)
+        self._sk = SigningKey.generate(curve=SECP256k1)
+        _vk = self._sk.verifying_key
+        self._pubkX = _vk.pubkey.point.x()
+        self._pubkY = _vk.pubkey.point.y()
 
     def _get_contract(self, price: int) -> SolidityContract:
         """
         Args:
-            buyer (Account): Account which has to pay and will receive the data
             price (int): Price of the data to be traded in Wei
-            pubkey
-            key_hash (bytes): bytes32 keccak hash of key to be used
 
         Returns:
             SolidityContract: Actual smart contract to be deployed with pre-filled values
@@ -40,7 +41,6 @@ class Delgado(Protocol):
             contract_template = Template(f.read())
         contract_code_rendered = contract_template.render(
             time=self._timeout,
-            # receiver=buyer.wallet_address,
             price=price,
         )
 
@@ -61,19 +61,7 @@ class Delgado(Protocol):
         Returns:
             None:
         """
-        # initial assignments and checks
-
-        # plain_data = data_provider.file_pointer.read()
-        # === 1: Seller: encrypt file for transmission
-        # encryption_decision = protocol_path.decide(
-        #    seller, 'File Encryption/Transfer', ['expected','unexpected key','unexpected file']
-        # )
         # TODO data exchange beforehand - simulate or not?
-        sk = SigningKey.generate(curve=SECP256k1)  # TODO make these per session private key
-        # exchange with buyer
-        vk = sk.verifying_key      # public key
-        pubkX = vk.pubkey.point.x()
-        pubkY = vk.pubkey.point.y()
 
         # === 2a: Seller send encrypted
         # TODO
@@ -82,25 +70,22 @@ class Delgado(Protocol):
         # === 2c: Seller answers challenges and sends SIG
         # TODO
         # === 3: Buyer: extract pubX and pubY from SIG-> deploy smart contract
-        construct_contract_decision = protocol_path.decide(buyer, 'InitializeAndDeployContract', ['dummy'])
-        logging.debug(construct_contract_decision.description)
-        # actual contract deployment
-        self.smart_contract_init(environment, seller, buyer, pubkX, pubkY, price)
+        # Currently done in init due to no actual transmission
 
+        # contract deployment and initializasion
+        self.smart_contract_init(environment, seller, buyer, self._timeout, self._pubkX, self._pubkY, price)
         # === 5: Seller: Reveal key ===
-        key_revelation_decision = protocol_path.decide(seller, 'Key Revelation', ['yes', 'leave'])
+        key_revelation_decision = protocol_path.decide(seller, 'Key Revelation', ['yes', 'no'])
         if key_revelation_decision == 'yes':
-            pN = int(sk.to_string().hex(), 16)
-            self.smart_contract_reveal_key(environment, seller, buyer, pN, pubkY)
-        elif key_revelation_decision == 'leave':
+            pN = int(self._sk.to_string().hex(), 16)
+            self.smart_contract_reveal_key(environment, seller, buyer, pN, self._pubkY)
+        elif key_revelation_decision == 'no':
             logger.debug('Seller: Leaving without Key Revelation')
             if protocol_path.decide(buyer, 'Refund', variants=['yes', 'no']) == 'yes':
                 logger.debug('Buyer: Waiting for timeout to request refund')
                 environment.wait(self._timeout + 1)
-                self.smart_contract_refund(environment, seller, buyer, pubkY, buyer)
+                self.smart_contract_refund(environment, seller, buyer, self._pubkY, buyer)
                 return
-        else:
-            raise NotImplementedError()
 
         # === 6: Buyer: Check key ===
         # TODO
@@ -114,7 +99,7 @@ class Delgado(Protocol):
             tmp = bytes(bytearray(random.getrandbits(8) for _ in range(length)))
         return tmp
 
-    def smart_contract_init(self, environment: Environment, seller: Account, buyer: Account,
+    def smart_contract_init(self, environment: Environment, seller: Account, buyer: Account, timeout: int,
                             pubkX: int, pubkY: int, price: int) -> None:
         environment.deploy_contract(buyer, self._get_contract(
             price=price,
@@ -151,11 +136,11 @@ class DelgadoReusable(Delgado):
         logger.debug('Deploying reusable smart contract...')
         environment.deploy_contract(operator, self._get_reusable_contract())
 
-    def smart_contract_init(self, environment: Environment, seller: Account, buyer: Account,
+    def smart_contract_init(self, environment: Environment, seller: Account, buyer: Account, timeout: int,
                             pubkX: int, pubkY: int, price: int) -> None:
         logger.debug("pubX: %d, pubY: %d, seller: %s", pubkX, pubkY, seller.wallet_address)
         environment.send_contract_transaction(
-            buyer, 'BuyerInitTrade', pubkX, pubkY, seller.wallet_address, value=price)
+            buyer, 'BuyerInitTrade', pubkX, pubkY, timeout, seller.wallet_address, value=price)
 
     @staticmethod
     def smart_contract_reveal_key(environment: Environment, seller: Account, buyer: Account,

@@ -11,7 +11,6 @@ contract Delgado {
   uint256 public constant BB = 7;
   uint256 public constant PP = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F;
   enum Stage {created, initialized,finished}
-  uint time = 60 seconds;
 
   struct FileSaleSession {
           Stage stage;
@@ -33,7 +32,7 @@ contract Delgado {
         _;
     }
     
-function BuyerInitTrade(uint256 pubX,uint256 pubY, address payable s) payable public{
+function BuyerInitTrade(uint256 pubX,uint256 pubY, uint time, address payable s) payable public{
      bytes32 sessionID = calculateSessionID(s,msg.sender, pubY);
      require(sessions[sessionID].stage == Stage.created);
 
@@ -48,7 +47,7 @@ function BuyerInitTrade(uint256 pubX,uint256 pubY, address payable s) payable pu
             now + time);
 }
 
-function SellerRevealKey(bytes32 sessionID, uint256 privKey) allowed(sessionID, sessions[sessionID].seller ,Stage.initialized) public{
+function SellerRevealKey(bytes32 sessionID, uint256 privKey)  public allowed(sessionID, sessions[sessionID].seller ,Stage.initialized){
     (uint256 x,uint256 y) = derivePubKey(privKey);
     require(x == sessions[sessionID].pubX,"x wrong");
     require(y == sessions[sessionID].pubY,"y wrong");
@@ -58,7 +57,7 @@ function SellerRevealKey(bytes32 sessionID, uint256 privKey) allowed(sessionID, 
 
 function refund(bytes32 sessionID) public{
     require (now > sessions[sessionID].nextDeadline,"timeout not reached");
-    //require(sessions[sessionID].stage > Stage.initialized,"stage wrong"); TODO
+    require(sessions[sessionID].stage >= Stage.initialized,"stage wrong");
     sessions[sessionID].buyer.transfer(sessions[sessionID].balance);
     sessions[sessionID].stage = Stage.finished;
 }
