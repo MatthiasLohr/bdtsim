@@ -23,11 +23,7 @@ class Delgado(Protocol):
 
     def __init__(self,  timeout: int = 600, *args: Any, **kwargs: Any) -> None:
         super(Delgado, self).__init__(*args, **kwargs)
-        self._timeout = int(timeout)
-        self._sk = SigningKey.generate(curve=SECP256k1)
-        _vk = self._sk.verifying_key
-        self._pubkX = _vk.pubkey.point.x()
-        self._pubkY = _vk.pubkey.point.y()
+        self._timeout = int(timeout)  
 
     def _get_contract(self, price: int) -> SolidityContract:
         """
@@ -71,6 +67,11 @@ class Delgado(Protocol):
         # TODO
         # === 3: Buyer: extract pubX and pubY from SIG-> deploy smart contract
         # Currently done in init due to no actual transmission
+
+        self._sk = SigningKey.generate(curve=SECP256k1)
+        _vk = self._sk.verifying_key
+        self._pubkX = _vk.pubkey.point.x()
+        self._pubkY = _vk.pubkey.point.y()
 
         # contract deployment and initializasion
         self.smart_contract_init(environment, seller, buyer, self._timeout, self._pubkX, self._pubkY, price)
@@ -132,7 +133,7 @@ class DelgadoReusable(Delgado):
             [seller.wallet_address, buyer.wallet_address, pubY]
         ))
 
-    def prepare_iteration(self, environment: Environment, operator: Account) -> None:
+    def prepare_simulation(self, environment: Environment, operator: Account) -> None:
         logger.debug('Deploying reusable smart contract...')
         environment.deploy_contract(operator, self._get_reusable_contract())
 

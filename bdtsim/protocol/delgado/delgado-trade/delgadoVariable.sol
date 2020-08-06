@@ -57,7 +57,7 @@ function SellerRevealKey(bytes32 sessionID, uint256 privKey)  public allowed(ses
 
 function refund(bytes32 sessionID) public{
     require (now > sessions[sessionID].nextDeadline,"timeout not reached");
-    require(sessions[sessionID].stage >= Stage.initialized,"stage wrong");
+    require(sessions[sessionID].stage == Stage.initialized,"stage wrong");
     sessions[sessionID].buyer.transfer(sessions[sessionID].balance);
     sessions[sessionID].stage = Stage.finished;
 }
