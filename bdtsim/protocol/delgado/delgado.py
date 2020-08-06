@@ -23,7 +23,7 @@ class Delgado(Protocol):
 
     def __init__(self,  timeout: int = 600, *args: Any, **kwargs: Any) -> None:
         super(Delgado, self).__init__(*args, **kwargs)
-        self._timeout = int(timeout)  
+        self._timeout = int(timeout)
 
     def _get_contract(self, price: int) -> SolidityContract:
         """
