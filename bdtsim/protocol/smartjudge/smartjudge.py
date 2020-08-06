@@ -276,8 +276,14 @@ class SmartJudge(Protocol):
             if verify_initial_agreement_decision == 'correct':
                 environment.send_contract_transaction(self._verifier_contract, seller, 'verify_initial_agreement',
                                                       trade_id, encrypted_merkle_tree.digest, plain_merkle_tree.digest)
+                # If witness (key) released during contest, verify_initial_agreement will end trade
+                if Web3.soliditySha3(
+                        ['bytes32', 'bytes32', 'bytes32'],
+                        [contest_key, encrypted_merkle_tree.digest, plain_merkle_tree.digest]
+                ) != conditions_hash:
+                    return
 
-                # TODO implement
+                # TODO implement - do we need more here?
             elif verify_initial_agreement_decision == 'incorrect ciphertext digest':
                 environment.send_contract_transaction(
                     self._verifier_contract,
@@ -287,7 +293,8 @@ class SmartJudge(Protocol):
                     generate_bytes(len(encrypted_merkle_tree.digest), avoid=encrypted_merkle_tree.digest),
                     plain_merkle_tree.digest
                 )
-                # TODO implement
+                return
+                # TODO implement and/or check if return is enough
             elif verify_initial_agreement_decision == 'incorrect plain digest':
                 environment.send_contract_transaction(
                     self._verifier_contract,
@@ -297,7 +304,8 @@ class SmartJudge(Protocol):
                     encrypted_merkle_tree.digest,
                     generate_bytes(len(plain_merkle_tree.digest), avoid=plain_merkle_tree.digest)
                 )
-                # TODO implement
+                return
+                # TODO implement and/or check if return is enough
             elif verify_initial_agreement_decision == 'leave':
                 logger.debug('Seller: not verifying initial agreement')
                 logger.debug('Buyer: requesting refund')
@@ -329,7 +337,7 @@ class SmartJudge(Protocol):
                     return
             else:
                 if protocol_path.decide(buyer, 'Complain about Leaf', ['yes']) == 'yes':
-                    error: encoding.NodeDigestMismatchError = errors[-1]
+                    error = errors[-1]
                     environment.send_contract_transaction(
                         self._verifier_contract,
                         buyer,
