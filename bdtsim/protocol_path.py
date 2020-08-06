@@ -254,7 +254,7 @@ class ProtocolPath(object):
         return True
 
     @property
-    def coercion_str(self):
+    def coercion_str(self) -> str:
         return ','.join([d.outcome for d in self.decisions])
 
     def __eq__(self, other: Any) -> bool:

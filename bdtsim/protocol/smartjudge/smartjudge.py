@@ -246,7 +246,8 @@ class SmartJudge(Protocol):
             contest_key = generate_bytes(len(key), avoid=key)
         else:
             raise NotImplementedError()
-        environment.send_contract_transaction(self._mediator_contract, seller, 'contest', trade_id, contest_key)
+        environment.send_contract_transaction(self._mediator_contract, seller, 'contest', trade_id, contest_key,
+                                              value=self._worst_case_cost * environment.gas_price)
 
         # === Mediator State: CONTENDED ===
         decrypted_merkle_tree, errors = encoding.decode(encrypted_merkle_tree, contest_key)
@@ -267,13 +268,36 @@ class SmartJudge(Protocol):
         else:
             logger.debug('Buyer: retrieved unexpected file')
             environment.send_contract_transaction(self._mediator_contract, buyer, 'init_verification', trade_id,
-                                                  self._verifier_id, conditions_hash)
+                                                  self._verifier_id, conditions_hash,
+                                                  value=self._worst_case_cost * environment.gas_price)
             verify_initial_agreement_decision = protocol_path.decide(seller, 'verify initial agreement',
-                                                                     ['correct', 'incorrect', 'leave'])
+                                                                     ['correct', 'incorrect ciphertext digest',
+                                                                      'incorrect plain digest', 'leave'])
             if verify_initial_agreement_decision == 'correct':
-                pass  # TODO implement
-            elif verify_initial_agreement_decision == 'incorrect':
-                pass  # TODO implement
+                environment.send_contract_transaction(self._verifier_contract, seller, 'verify_initial_agreement',
+                                                      trade_id, encrypted_merkle_tree.digest, plain_merkle_tree.digest)
+
+                # TODO implement
+            elif verify_initial_agreement_decision == 'incorrect ciphertext digest':
+                environment.send_contract_transaction(
+                    self._verifier_contract,
+                    seller,
+                    'verify_initial_agreement',
+                    trade_id,
+                    generate_bytes(len(encrypted_merkle_tree.digest), avoid=encrypted_merkle_tree.digest),
+                    plain_merkle_tree.digest
+                )
+                # TODO implement
+            elif verify_initial_agreement_decision == 'incorrect plain digest':
+                environment.send_contract_transaction(
+                    self._verifier_contract,
+                    seller,
+                    'verify_initial_agreement',
+                    trade_id,
+                    encrypted_merkle_tree.digest,
+                    generate_bytes(len(plain_merkle_tree.digest), avoid=plain_merkle_tree.digest)
+                )
+                # TODO implement
             elif verify_initial_agreement_decision == 'leave':
                 logger.debug('Seller: not verifying initial agreement')
                 logger.debug('Buyer: requesting refund')
@@ -282,6 +306,43 @@ class SmartJudge(Protocol):
                 return
             else:
                 raise NotImplementedError()
+
+            # buyer sends complaint
+            if len(errors) == 0 and decrypted_merkle_tree.digest != plain_merkle_tree.digest:
+                logger.debug('Buyer: complain about root')
+            elif isinstance(errors[-1], encoding.LeafDigestMismatchError):
+                if protocol_path.decide(buyer, 'Complain about Leaf', ['yes']) == 'yes':
+                    error: encoding.NodeDigestMismatchError = errors[-1]
+                    environment.send_contract_transaction(
+                        self._verifier_contract,
+                        buyer,
+                        'complainAboutLeaf',
+                        trade_id,
+                        error.index_out,
+                        error.index_in,
+                        error.out.data,
+                        error.in1.data_as_list(),
+                        error.in2.data_as_list(),
+                        encrypted_merkle_tree.get_proof(error.out),
+                        encrypted_merkle_tree.get_proof(error.in1)
+                    )
+                    return
+            else:
+                if protocol_path.decide(buyer, 'Complain about Leaf', ['yes']) == 'yes':
+                    error: encoding.NodeDigestMismatchError = errors[-1]
+                    environment.send_contract_transaction(
+                        self._verifier_contract,
+                        buyer,
+                        'complainAboutNode',
+                        trade_id,
+                        error.index_out,
+                        error.index_in,
+                        error.out.data,
+                        error.in1.data_as_list(),
+                        error.in2.data_as_list(),
+                        encrypted_merkle_tree.get_proof(error.out),
+                        encrypted_merkle_tree.get_proof(error.in1)
+                    )
 
 
 ProtocolManager.register('SmartJudge-FairSwap', SmartJudge)
