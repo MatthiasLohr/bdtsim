@@ -62,7 +62,7 @@ class EnvironmentInfoSubCommand(SubCommand):
                 account.name,
                 account.wallet_address,
                 balance,
-                (balance / 1000000000000000000),
+                (balance / 1000000000000000000),  # TODO use scale method, see #25
                 environment.web3.eth.getTransactionCount(account.wallet_address)
             ))
 

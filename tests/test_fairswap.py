@@ -23,6 +23,7 @@ from eth_utils.crypto import keccak
 from web3 import Web3, EthereumTesterProvider
 
 from bdtsim.account import Account
+from bdtsim.protocol import DEFAULT_ASSET_PRICE
 from bdtsim.protocol.fairswap import FairSwap
 from bdtsim.protocol.fairswap.encoding import encode, decode, B032, crypt
 from bdtsim.protocol.fairswap.merkle import MerkleTreeNode, MerkleTreeLeaf, from_bytes
@@ -82,7 +83,7 @@ class ContractTest(unittest.TestCase):
         web3 = Web3(EthereumTesterProvider(EthereumTester(PyEVMBackend())))
         contract_object = FairSwap(slice_count)._get_contract(
             buyer=buyer,
-            price=1000000000,
+            price=DEFAULT_ASSET_PRICE,
             slice_length=32,
             file_root_hash=file_root_hash,
             ciphertext_root_hash=ciphertext_root_hash,

@@ -5,7 +5,9 @@
   * Protocol: Support for SmartJudge (#20)
   * Feature: Added event filtering support for environments
   * Feature: Added `--protocol-path` parameter for limiting protocol paths to be executed (#23)
+  * Feature: Output Format: Add scaling support (#25)
   * Fix: Use gasPriceStrategy for determining gas price when available
+  * Fix: Set default price to 1 ETH (#24)
 
 ## v1.1.1
 

@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .protocol import Protocol
+from .protocol import Protocol, DEFAULT_ASSET_PRICE
 from .protocol_manager import ProtocolManager
 from .exceptions import ProtocolError, ProtocolInitializationError, ProtocolExecutionError
 from .fairswap import FairSwap, FairSwapReusable
@@ -23,7 +23,7 @@ from .simplepayment import SimplePayment, SimplePaymentPrepaid, SimplePaymentPos
 from .smartjudge import SmartJudge
 
 __all__ = [
-    'Protocol',
+    'Protocol', 'DEFAULT_ASSET_PRICE',
     'ProtocolManager',
     'ProtocolError', 'ProtocolInitializationError', 'ProtocolExecutionError',
     'FairSwap', 'FairSwapReusable',

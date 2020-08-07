@@ -21,7 +21,7 @@ from typing import Dict
 from bdtsim.account import AccountFile
 from bdtsim.data_provider import DataProviderManager
 from bdtsim.environment import EnvironmentManager
-from bdtsim.protocol import ProtocolManager
+from bdtsim.protocol import ProtocolManager, DEFAULT_ASSET_PRICE
 from bdtsim.output import OutputFormatManager
 from bdtsim.simulation import Simulation
 from bdtsim.util.argparse import ProtocolPathCoercionParameter
@@ -43,7 +43,8 @@ class RunSubCommand(SubCommand):
                             default='RandomDataProvider', help='set the data provider/data source for the simulation')
         parser.add_argument('-f', '--output-format', choices=OutputFormatManager.output_formats.keys(),
                             default='human-readable', help='set the desired output format for simulation results')
-        parser.add_argument('--price', type=int, default=1000000000, help='set the price for the asset to be traded')
+        parser.add_argument('--price', type=int, default=DEFAULT_ASSET_PRICE,
+                            help='set the price for the asset to be traded (in Wei)')
         parser.add_argument('-p', '--protocol-parameter', nargs=2, action='append', dest='protocol_parameters',
                             default=[], metavar=('KEY', 'VALUE'), help='pass additional parameters to the protocol')
         parser.add_argument('-e', '--environment-parameter', nargs=2, action='append', dest='environment_parameters',
