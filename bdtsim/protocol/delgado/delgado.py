@@ -10,7 +10,7 @@ from bdtsim.account import Account
 from bdtsim.contract import SolidityContract
 from bdtsim.data_provider import DataProvider
 from bdtsim.environment import Environment
-from bdtsim.protocol import Protocol, ProtocolManager
+from bdtsim.protocol import Protocol, ProtocolManager, DEFAULT_ASSET_PRICE
 from bdtsim.protocol_path import ProtocolPath
 
 logger = logging.getLogger(__name__)
@@ -43,7 +43,7 @@ class Delgado(Protocol):
         return SolidityContract(Delgado.CONTRACT_NAME, contract_code=contract_code_rendered)
 
     def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
-                seller: Account, buyer: Account, price: int = 1000000000) -> None:
+                seller: Account, buyer: Account, price: int = DEFAULT_ASSET_PRICE) -> None:
         """Execute a file transfer using the Delgado protocol.
 
         Args:
@@ -66,7 +66,6 @@ class Delgado(Protocol):
         # === 2c: Seller answers challenges and sends SIG
         # TODO
         # === 3: Buyer: extract pubX and pubY from SIG-> deploy smart contract
-        # Currently done in init due to no actual transmission
 
         self._sk = SigningKey.generate(curve=SECP256k1)
         _vk = self._sk.verifying_key

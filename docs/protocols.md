@@ -84,11 +84,24 @@ Use kindly permitted by Lisa Eckey (16. April 2020).
 
 ### Delgado-Segura
 
-*(not implemented yet)*
-
-Delgado-Segura Paper:
+The Delgado protocol was presented in the following research paper:
 
 > Delgado-Segura, S., Pérez-Solà, C., Navarro-Arribas, G., & Herrera-Joancomartí, J. (2017).
 > A fair protocol for data trading based on Bitcoin transactions.
 > Future Generation Computer Systems.
 > [https://doi.org/10.1016/j.future.2017.08.021](https://doi.org/10.1016/j.future.2017.08.021)
+
+It is available within BDTsim with the name `Delgado`.
+There is also a protocol `Delgado-Reusable`, which deploys a reusable variant of the FairSwap smart contract.
+
+Protocol Assumptions:
+
+  * Both seller and buyer initialized the data trade like it is described in the paper.
+
+Disclaimer: the author noted that the protocol is vulnerable to sybil attacks and reveals information of your data to interested buyers.
+
+#### Example Protocol Execution
+
+```
+bdtsim -l DEBUG run Delgado PyEVM
+```
