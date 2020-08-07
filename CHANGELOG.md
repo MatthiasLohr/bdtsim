@@ -3,6 +3,7 @@
 ## unreleased
 
   * Added `--protocol-path` parameter for limiting protocol paths to be executed (#23)
+  * Set default price to 1 ETH (#24)
 
 ## v1.1.1
 
