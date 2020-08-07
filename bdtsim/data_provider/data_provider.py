@@ -20,6 +20,12 @@ from typing import Any, BinaryIO
 
 class DataProvider(object):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize DataProvider
+
+        Args:
+            *args (Any): Collector for unrecognized positional arguments
+            **kwargs (Any): Collector for unrecognized keyword arguments
+        """
         if len(args):
             raise TypeError('Unrecognized positional argument "%s" for DataProvider' % str(args[0]))
         if len(kwargs):

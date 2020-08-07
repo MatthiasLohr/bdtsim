@@ -29,6 +29,12 @@ DEFAULT_ASSET_PRICE = 1000000000000000000  # 1 ETH
 
 class Protocol(object):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize Protocol
+
+        Args:
+            *args (Any): Collector for unrecognized positional arguments
+            **kwargs (Any): Collector for unrecognized keyword arguments
+        """
         if len(args):
             raise TypeError('Unrecognized positional argument "%s" for Protocol' % str(args[0]))
         if len(kwargs):
