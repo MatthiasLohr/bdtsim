@@ -43,15 +43,44 @@ class OutputFormat(object):
         self._gas_scaling = gas_scaling
 
     def render(self, simulation_result: SimulationResult) -> None:
+        """Render a simulation result. Should be overwritten by OutputFormat subclasses.
+
+        Args:
+            simulation_result (SimulationResult): simulation result to be rendered
+
+        Returns:
+            None
+        """
         raise NotImplementedError()
 
     def scale_wei(self, value: int, scaling: Optional[Union[int, float, str]]) -> Union[float, int]:
+        """
+
+        Args:
+            value (int): value (Wei) to be scaled
+            scaling (Union[int, float, str]): If int/float provided, it will be multiplied with the value to be scaled.
+                For str, common unit prefixes (https://en.wikipedia.org/wiki/Unit_prefix) are allowed as well as
+                Ethereum unit prefixes (Wei, GWei, Eth).
+
+        Returns:
+            Union[float, int]: scaled Wei value
+        """
         if scaling is not None:
             return self.scale_wei_static(value, scaling)
         else:
             return self.scale_wei_static(value, self._wei_scaling)
 
     def scale_gas(self, value: int, scaling: Optional[Union[int, float, str]]) -> Union[float, int]:
+        """
+
+        Args:
+            value (int): value (Gas) to be scaled
+            scaling (Union[int, float, str]): If int/float provided, it will be multiplied with the value to be scaled.
+                For str, common unit prefixes (https://en.wikipedia.org/wiki/Unit_prefix) are allowed.
+
+        Returns:
+            Union[float, int]: scaled Gas value
+        """
         if scaling is not None:
             return self.scale_gas_static(value, scaling)
         else:
@@ -59,6 +88,17 @@ class OutputFormat(object):
 
     @staticmethod
     def scale_wei_static(value: int, scaling: Union[int, float, str]) -> Union[float, int]:
+        """
+
+        Args:
+            value (int): value (Wei) to be scaled
+            scaling (Union[int, float, str]): If int/float provided, it will be multiplied with the value to be scaled.
+                For str, common unit prefixes (https://en.wikipedia.org/wiki/Unit_prefix) are allowed as well as
+                Ethereum unit prefixes (Wei, GWei, Eth).
+
+        Returns:
+            Union[float, int]: scaled Wei value
+        """
         if isinstance(scaling, int) or isinstance(scaling, float):
             factor = 1 / scaling
         elif isinstance(scaling, str):
@@ -81,6 +121,16 @@ class OutputFormat(object):
 
     @staticmethod
     def scale_gas_static(value: int, scaling: Union[int, float, str]) -> Union[float, int]:
+        """
+
+        Args:
+            value (int): value (Gas) to be scaled
+            scaling (Union[int, float, str]): If int/float provided, it will be multiplied with the value to be scaled.
+                For str, common unit prefixes (https://en.wikipedia.org/wiki/Unit_prefix) are allowed.
+
+        Returns:
+            Union[float, int]: scaled Gas value
+        """
         if isinstance(scaling, int) or isinstance(scaling, float):
             factor = 1 / scaling
         elif isinstance(scaling, str):
@@ -96,6 +146,14 @@ class OutputFormat(object):
 
     @staticmethod
     def get_unit_factor(unit: str) -> Union[float, int]:
+        """Get the factor associated with the provided unit prefix (https://en.wikipedia.org/wiki/Unit_prefix)
+
+        Args:
+            unit (str): Unit prefix
+
+        Returns:
+            Union[float, int]: Factor associated with the provided unit prefix
+        """
         if unit == '':
             return 1
 
