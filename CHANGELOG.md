@@ -1,5 +1,11 @@
 # Changelog
 
+## unreleased
+
+  * Added `--protocol-path` parameter for limiting protocol paths to be executed (#23)
+  * Set default price to 1 ETH (#24)
+  * Output Format: Add scaling support (#25)
+
 ## v1.1.1
 
   * Dependency Update: py-solc-x to 0.10.1

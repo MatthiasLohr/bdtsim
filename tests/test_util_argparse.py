@@ -15,18 +15,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .protocol import Protocol, DEFAULT_ASSET_PRICE
-from .protocol_manager import ProtocolManager
-from .exceptions import ProtocolError, ProtocolInitializationError, ProtocolExecutionError
-from .fairswap import FairSwap
-from .delgado import Delgado
-from .simplepayment import SimplePayment, SimplePaymentPrepaid, SimplePaymentPostpaid
+import unittest
 
-__all__ = [
-    'Protocol', 'DEFAULT_ASSET_PRICE',
-    'ProtocolManager',
-    'ProtocolError', 'ProtocolInitializationError', 'ProtocolExecutionError',
-    'FairSwap', 'FairSwapReusable',
-    'SimplePayment', 'SimplePaymentPrepaid', 'SimplePaymentPostpaid',
-    'Delgado', 'DelgadoReusable'
-]
+from bdtsim.util.argparse import ProtocolPathCoercionParameter
+
+
+class ProtocolPathCoercionParameterTest(unittest.TestCase):
+    def test_value(self):
+        parser = ProtocolPathCoercionParameter()
+
+        coercion = parser(None)
+        self.assertEqual(coercion, [])
+
+        coercion = parser('outcome1')
+        self.assertEqual(coercion, [['outcome1']])
+
+        coercion = parser('outcome1,outcome2,outcome3')
+        self.assertEqual(coercion, [['outcome1'], ['outcome2'], ['outcome3']])
+
+        coercion = parser('outcome1|outcome2,*,outcome3')
+        self.assertEqual(coercion, [['outcome1', 'outcome2'], None, ['outcome3']])

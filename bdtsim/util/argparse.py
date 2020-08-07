@@ -15,18 +15,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .protocol import Protocol, DEFAULT_ASSET_PRICE
-from .protocol_manager import ProtocolManager
-from .exceptions import ProtocolError, ProtocolInitializationError, ProtocolExecutionError
-from .fairswap import FairSwap
-from .delgado import Delgado
-from .simplepayment import SimplePayment, SimplePaymentPrepaid, SimplePaymentPostpaid
+from typing import Optional
 
-__all__ = [
-    'Protocol', 'DEFAULT_ASSET_PRICE',
-    'ProtocolManager',
-    'ProtocolError', 'ProtocolInitializationError', 'ProtocolExecutionError',
-    'FairSwap', 'FairSwapReusable',
-    'SimplePayment', 'SimplePaymentPrepaid', 'SimplePaymentPostpaid',
-    'Delgado', 'DelgadoReusable'
-]
+from bdtsim.protocol_path import ProtocolPathCoercion
+
+
+class ProtocolPathCoercionParameter(object):
+    def __init__(self) -> None:
+        pass
+
+    def __call__(self, value: Optional[str]) -> ProtocolPathCoercion:
+        coercion = ProtocolPathCoercion()
+        if value is None:
+            return coercion
+        for decision in value.split(','):
+            if decision == '*':
+                coercion.append(None)
+            else:
+                coercion.append(list(decision.split('|')))
+        return coercion

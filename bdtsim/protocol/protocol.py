@@ -24,8 +24,17 @@ from bdtsim.environment import Environment
 from bdtsim.protocol_path import ProtocolPath
 
 
+DEFAULT_ASSET_PRICE = 1000000000000000000  # 1 ETH
+
+
 class Protocol(object):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize Protocol
+
+        Args:
+            *args (Any): Collector for unrecognized positional arguments
+            **kwargs (Any): Collector for unrecognized keyword arguments
+        """
         if len(args):
             raise TypeError('Unrecognized positional argument "%s" for Protocol' % str(args[0]))
         if len(kwargs):
@@ -38,7 +47,21 @@ class Protocol(object):
         pass
 
     def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
-                seller: Account, buyer: Account, price: int = 1000000000) -> None:
+                seller: Account, buyer: Account, price: int = DEFAULT_ASSET_PRICE) -> None:
+        """
+        Execute/simulate the protocol. This method should be overwritten by the protocol-specific Protocol subclass.
+
+        Args:
+            protocol_path (ProtocolPath): Protocol path this simulation for a data exchange will take
+            environment (Environment): The environment (blockchain) in which the protocol interactions will take place
+            data_provider (DataProvider): The data to be traded
+            seller (Account): The selling party
+            buyer (Account): The buying party
+            price (int): Price for the data/asset to be traded (in Wei)
+
+        Returns:
+            None
+        """
         raise NotImplementedError()
 
     def cleanup_iteration(self, environment: Environment, operator: Account) -> None:

@@ -40,6 +40,19 @@ class Environment(object):
                  chain_id: Optional[int] = None, gas_price: Optional[int] = None,
                  gas_price_strategy: Optional[Callable[[Web3, Optional[TxParams]], Wei]] = None,
                  *args: Any, **kwargs: Any) -> None:
+        """Initialize Environment
+
+        Args:
+            web3_provider (BaseProvider:
+            operator (Account):
+            seller (Account):
+            buyer (Buyer):
+            chain_id (Optional[int]):
+            gas_price (Optional[int]):
+            gas_price_strategy (Optional[Callable[[Web3, Optional[TxParams]], Wei]]):
+            *args (Any): Collector for unrecognized positional arguments
+            **kwargs (Any): Collector for unrecognized keyword arguments
+        """
 
         if len(args):
             raise TypeError('Unrecognized positional argument "%s" for Environment' % str(args[0]))
