@@ -19,9 +19,10 @@ import json
 import yaml
 
 from .json import JSONEncoder
+
+from bdtsim.simulation_result import SimulationResult
 from .output_format import OutputFormat
 from .output_format_manager import OutputFormatManager
-from .simulation_result import SimulationResult
 
 
 class YAMLOutputFormat(OutputFormat):

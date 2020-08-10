@@ -20,10 +20,10 @@ from typing import Any
 
 from bdtsim.account import Account
 from bdtsim.protocol_path import Decision
+from bdtsim.simulation_result import SimulationResult, TransactionLogEntry, TransactionLogList,\
+    TransactionLogCollection, ResultNode
 from .output_format import OutputFormat
 from .output_format_manager import OutputFormatManager
-from .simulation_result import SimulationResult, TransactionLogEntry, TransactionLogList, TransactionLogCollection,\
-    ResultNode
 
 
 class JSONOutputFormat(OutputFormat):

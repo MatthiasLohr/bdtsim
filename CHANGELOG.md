@@ -4,6 +4,7 @@
   
   * Feature: Added `--protocol-path` parameter for limiting protocol paths to be executed (#23)
   * Feature: Output Format: Add scaling support (#25)
+  * Feature: Output Format: Graphviz Dot: Add option to show individual transactions in graph (#26)
   * Fix: Set default price to 1 ETH (#24)
 
 ## v1.1.1
