@@ -182,7 +182,7 @@ class SmartJudge(Protocol):
             raise NotImplementedError()
 
         environment.send_contract_transaction(self._mediator_contract, buyer, 'create', transfer_agreement_hash,
-                                              value=self._security_deposit * environment.gas_price)
+                                              value=price + (self._security_deposit * environment.gas_price))
         trade_id = None
         for event in environment.event_filter(self._mediator_contract, 'TradeID', from_block=-1):
             trade_id = event['args']['_id']
