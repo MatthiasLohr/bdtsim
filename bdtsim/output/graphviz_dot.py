@@ -16,7 +16,7 @@
 # limitations under the License.
 
 import tempfile
-from typing import Any, List, Optional, Union
+from typing import Any, List, NamedTuple, Optional, Union
 from uuid import uuid4
 
 from graphviz import Digraph  # type: ignore
@@ -36,8 +36,8 @@ class GraphvizDotOutputFormat(OutputFormat):
     def __init__(self, wei_scaling: Union[int, float, str] = 1, gas_scaling: Union[int, float, str] = 1,
                  output_filename: Optional[str] = None, view: bool = False, cleanup: bool = False,
                  output_format: str = 'pdf', graphviz_renderer: Optional[str] = None,
-                 graphviz_formatter: Optional[str] = None, show_transactions: Optional[bool] = True, *args: Any,
-                 **kwargs: Any) -> None:
+                 graphviz_formatter: Optional[str] = None, show_transactions: bool = True,
+                 show_transaction_duplicates: bool = False, *args: Any, **kwargs: Any) -> None:
         """Create a [dot graph](https://www.graphviz.org/) for simulation result presentation.
 
         Args:
@@ -50,8 +50,10 @@ class GraphvizDotOutputFormat(OutputFormat):
             view (bool): Open the rendered result with the default application (defaults to False).
             cleanup (bool): Delete the source file after rendering (defaults to False).
             output_format: The output format used for rendering (``'pdf'``, ``'png'``, etc., defaults to ``'pdf'``).
-            graphviz_renderer: The output renderer used for rendering (``'cairo'``, ``'gd'``, ...).
-            graphviz_formatter: The output formatter used for rendering (``'cairo'``, ``'gd'``, ...).
+            graphviz_renderer (Optional[str]): The output renderer used for rendering (``'cairo'``, ``'gd'``, ...).
+            graphviz_formatter (Optional[str]): The output formatter used for rendering (``'cairo'``, ``'gd'``, ...).
+            show_transactions (bool):
+            show_transaction_duplicates(bool):
             *args (Any): Collector for unrecognized positional arguments
             **kwargs (Any): Collector for unrecognized keyword arguments
         """
@@ -63,12 +65,13 @@ class GraphvizDotOutputFormat(OutputFormat):
         self._graphviz_renderer = graphviz_renderer
         self._graphviz_formatter = graphviz_formatter
         self._show_transactions = to_bool(show_transactions)
+        self._show_transaction_duplicates = to_bool(show_transaction_duplicates)
 
         if self._view and self._output_filename is None:
             self._output_filename = tempfile.mktemp(prefix='bdtsim-', suffix='.dot')
 
     def render(self, simulation_result: SimulationResult) -> None:
-        graph = ResultGraph(simulation_result, self._show_transactions)
+        graph = ResultGraph(simulation_result, self._show_transactions, self._show_transaction_duplicates)
 
         if self._output_filename is not None:
             graph.render(
@@ -83,8 +86,67 @@ class GraphvizDotOutputFormat(OutputFormat):
             print(graph.source)
 
 
+class NodeTemplate(object):
+    def __init__(self, name: str, *args: Any, **kwargs: Any) -> None:
+        self.name = name
+        self.args = args
+        self.kwargs = kwargs
+
+    def generate(self, graph: Digraph) -> None:
+        graph.node(self.name, *self.args, **self.kwargs)
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, NodeTemplate):
+            return self.name == other.name and self.args == other.args and self.kwargs == self.kwargs
+        else:
+            raise NotImplementedError()
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
+
+class EdgeTemplate(object):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        self.args = args
+        self.kwargs = kwargs
+
+    def generate(self, graph: Digraph) -> None:
+        graph.edge(*self.args, **self.kwargs)
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, EdgeTemplate):
+            return self.args == other.args and self.kwargs == self.kwargs
+        else:
+            raise NotImplementedError()
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
+
+class TransactionPathPartTuple(NamedTuple):
+    node_template: Optional[NodeTemplate]
+    edge_template: EdgeTemplate
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(self, TransactionPathPartTuple):
+            if self.node_template is None and other.node_template is None:
+                return True
+            elif self.node_template is None:
+                return False
+            elif self.edge_template is None:
+                return False
+            return bool(self.node_template.args == other.node_template.args
+                        and self.node_template.kwargs == other.node_template.kwargs)
+        else:
+            raise NotImplementedError()
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
+
 class ResultGraph(Digraph):  # type: ignore
-    def __init__(self, simulation_result: SimulationResult, show_transactions: bool = False) -> None:
+    def __init__(self, simulation_result: SimulationResult, show_transactions: bool = False,
+                 show_transaction_duplicates: bool = False) -> None:
         super(ResultGraph, self).__init__(
             graph_attr=[
                 ('rankdir', 'LR'),
@@ -99,6 +161,7 @@ class ResultGraph(Digraph):  # type: ignore
         )
 
         self._show_transactions = show_transactions
+        self._show_transaction_duplicates = show_transaction_duplicates
 
         start_node_uuid = self._add_start_node()
         self._walk_result_nodes(start_node_uuid, simulation_result.execution_result_root)
@@ -139,14 +202,40 @@ class ResultGraph(Digraph):  # type: ignore
         if no_transactions_in_collection:
             return target_node_uuid
 
+        # create start node
         transaction_start_uuid = self._add_transaction_node()
+
+        # collect possible paths
+        node_template: Optional[NodeTemplate]
+        edge_template: EdgeTemplate
+        transaction_graph_paths = []
         for tx_log_list in tx_collection.tx_log_lists:
+            candidate_path = []
             prev_transaction_uuid = transaction_start_uuid
             for tx_log_entry in tx_log_list.tx_log_list[:-1]:
-                transaction_node_uuid = self._add_transaction_node()
-                self._add_transaction_edge(prev_transaction_uuid, transaction_node_uuid, tx_log_entry)
-                prev_transaction_uuid = transaction_node_uuid
-            self._add_transaction_edge(prev_transaction_uuid, target_node_uuid, tx_log_list.tx_log_list[-1])
+                node_template = self._generate_transaction_node()
+                edge_template = self._generate_transaction_edge(prev_transaction_uuid, node_template.name, tx_log_entry)
+                candidate_path.append(TransactionPathPartTuple(node_template, edge_template))
+                prev_transaction_uuid = node_template.name
+            candidate_path.append(TransactionPathPartTuple(
+                None,
+                self._generate_transaction_edge(prev_transaction_uuid, target_node_uuid, tx_log_list.tx_log_list[-1]))
+            )
+            if self._show_transaction_duplicates:
+                transaction_graph_paths.append(candidate_path)
+            else:
+                if candidate_path not in transaction_graph_paths:
+                    transaction_graph_paths.append(candidate_path)
+
+        # generate actual nodes/edges
+        for path in transaction_graph_paths:
+            for node_template, edge_template in path[:-1]:
+                if node_template is None:
+                    raise RuntimeError('node_template should only be None in last element of path list')
+                node_template.generate(self)
+                edge_template.generate(self)
+            path[-1][1].generate(self)
+
         return transaction_start_uuid
 
     def _walk_cleanup_nodes(self, transactions: TransactionLogList) -> None:
@@ -178,9 +267,12 @@ class ResultGraph(Digraph):  # type: ignore
         return uuid
 
     def _add_transaction_node(self) -> str:
-        uuid = self._uuid()
-        self.node(uuid, label='', shape='circle', style='dotted')
-        return uuid
+        node_template = self._generate_transaction_node()
+        node_template.generate(self)
+        return node_template.name
+
+    def _generate_transaction_node(self) -> NodeTemplate:
+        return NodeTemplate(self._uuid(), label='', shape='circle', style='dotted')
 
     def _add_final_node(self, node: ResultNode) -> str:
         uuid = self._uuid()
@@ -200,31 +292,37 @@ class ResultGraph(Digraph):  # type: ignore
         return uuid
 
     def _add_start_edge(self, src: str, dest: str, tx_collection: TransactionLogCollection) -> None:
-        label = '<%s>' % ''.join(
-            ['%s<br />' % str(label_line) for label_line in self._get_label_lines_for_tx_collection(tx_collection)]
-        )
+        label = '<b>Start</b>'
+        if not self._show_transactions:
+            for line in self._get_label_lines_for_tx_collection(tx_collection):
+                label += '<br/>%s' % str(line)
 
         self.edge(
             tail_name=src,
             head_name=dest,
-            label=label
+            label='<%s>' % label
         )
 
     def _add_decision_edge(self, src: str, dest: str, decision: Decision,
                            tx_collection: TransactionLogCollection) -> None:
-        label_lines = self._get_label_lines_for_tx_collection(tx_collection)
-        label = '<<b>%s</b><br />%s>' % (decision.outcome, ''.join(
-            ['%s<br />' % str(line) for line in label_lines]
-        ))
+        label = '<b>%s</b>' % decision.outcome
+        if not self._show_transactions:
+            for line in self._get_label_lines_for_tx_collection(tx_collection):
+                label += '<br />%s' % str(line)
 
         self.edge(
             tail_name=src,
             head_name=dest,
-            label=label,
+            label='<%s>' % label,
             color=self._color_by_honesty(decision.is_honest())
         )
 
     def _add_transaction_edge(self, src: str, dest: str, tx_log: TransactionLogEntry) -> None:
+        edge_template = self._generate_transaction_edge(src, dest, tx_log)
+        edge_template.generate(self)
+
+    @staticmethod
+    def _generate_transaction_edge(src: str, dest: str, tx_log: TransactionLogEntry) -> EdgeTemplate:
         label = '<b>%s: %s</b> (%s Gas)' % (
             tx_log.account.name,
             tx_log.description or 'n.a.',
@@ -235,9 +333,9 @@ class ResultGraph(Digraph):  # type: ignore
             for account, value in tx_log.funds_diff_collection.items():
                 label += '<br />%s: %i' % (account.name, value)
 
-        self.edge(
-            tail_name=src,
-            head_name=dest,
+        return EdgeTemplate(
+            src,
+            dest,
             label='<%s>' % label
         )
 

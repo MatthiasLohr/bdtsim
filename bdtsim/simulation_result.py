@@ -90,6 +90,15 @@ class TransactionLogList(object):
     def __len__(self) -> int:
         return len(self.tx_log_list)
 
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, TransactionLogList):
+            return self.tx_log_list == other.tx_log_list
+        else:
+            raise NotImplementedError()
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
     def append(self, entry: TransactionLogEntry) -> None:
         return self.tx_log_list.append(entry)
 
