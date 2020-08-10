@@ -25,7 +25,8 @@ from bdtsim.account import Account
 from bdtsim.contract import SolidityContractCollection
 from bdtsim.data_provider import DataProvider
 from bdtsim.environment import Environment
-from bdtsim.protocol import Protocol, ProtocolManager, ProtocolInitializationError, ProtocolExecutionError
+from bdtsim.protocol import Protocol, ProtocolManager, ProtocolInitializationError, ProtocolExecutionError,\
+    DEFAULT_ASSET_PRICE
 from bdtsim.protocol.fairswap import encoding, merkle
 from bdtsim.protocol_path import ProtocolPath
 from bdtsim.util.bytes import generate_bytes
@@ -103,7 +104,7 @@ class SmartJudge(Protocol):
             break
 
     def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
-                seller: Account, buyer: Account, price: int = 1000000000) -> None:
+                seller: Account, buyer: Account, price: int = DEFAULT_ASSET_PRICE) -> None:
         """Execute a file transfer using the SmartJudge Mediator Contract with FairSwap Verifier Contract
 
         Args:
