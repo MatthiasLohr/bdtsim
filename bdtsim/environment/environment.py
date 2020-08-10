@@ -118,6 +118,7 @@ class Environment(object):
         tx_receipt = self._send_transaction(
             account=account,
             factory=web3_contract.constructor(*args, **kwargs),
+            description='Contract Deployment',
             allow_failure=allow_failure
         )
         contract.address = tx_receipt['contractAddress']
