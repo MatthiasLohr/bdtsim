@@ -25,11 +25,12 @@ from bdtsim.protocol_path import Decision
 
 
 class TransactionLogEntry(object):
-    def __init__(self, account: Account, tx_dict: Dict[str, Any], tx_receipt: Dict[str, Any],
+    def __init__(self, account: Account, tx_dict: Dict[str, Any], tx_receipt: Dict[str, Any], description: str,
                  funds_diff_collection: FundsDiffCollection) -> None:
         self.account = account
         self.tx_dict = tx_dict
         self.tx_receipt = tx_receipt
+        self.description = description
         self.funds_diff_collection = funds_diff_collection
 
 

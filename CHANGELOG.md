@@ -6,8 +6,9 @@
   * Feature: Added event filtering support for environments
   * Feature: Added `--protocol-path` parameter for limiting protocol paths to be executed (#23)
   * Feature: Output Format: Add scaling support (#25)
-  * Fix: Use gasPriceStrategy for determining gas price when available
+  * Feature: Output Format: Graphviz Dot: Add option to show individual transactions in graph (#26)
   * Fix: Set default price to 1 ETH (#24)
+  * Fix: Use gasPriceStrategy for determining gas price when available
 
 ## v1.1.1
 
