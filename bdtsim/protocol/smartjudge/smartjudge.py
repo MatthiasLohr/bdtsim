@@ -36,8 +36,21 @@ logger = logging.getLogger(__name__)
 
 
 class SmartJudge(Protocol):
-    def __init__(self, worst_cast_cost: int = 1000000, security_deposit: int = 4000000, timeout: int = 86400,
+    def __init__(self, worst_cast_cost: int = 250000, security_deposit: int = 500000, timeout: int = 86400,
                  slices_count: int = 8, slice_length: int = 32, *args: Any, **kwargs: Any) -> None:
+        """Initialize SmartJudge protocol class
+
+        Args:
+            worst_cast_cost (int): Maximum possible cost of verification. Is used to pay the honest party for its
+                verification cost. Given in Gas.
+            security_deposit (int): Security deposit both parties have to make. Will be payed out to the honest party.
+                Given in Gas.
+            timeout (int): Number of seconds parties have time to react before the waiting party can claim a timeout.
+            slices_count (int): Number of slices in which the data is to be split.
+            slice_length (int): Length in bytes of a single data slice. Must be multiple of 32.
+            *args (Any): Common positional arguments for Protocol parent class.
+            **kwargs (Any): Common keyword arguments for Protocol parent class.
+        """
         super().__init__(*args, **kwargs)
 
         self._worst_case_cost = worst_cast_cost
