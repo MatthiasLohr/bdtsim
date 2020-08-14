@@ -66,16 +66,26 @@ class Delgado(Protocol):
         Returns:
             None:
         """
-        # TODO data exchange beforehand - simulate or not?
+        # === 1 Buyer get encrypted data
+        # TODO
+        # === 2a: Seller send encrypted file and public key with whom he encrypted the data
+        # TODO
 
-        # === 2a: Seller send encrypted
+        # === 2b: Buyer challenges Seller multiple times 
         # TODO
-        # === 2b: Buyer challenges Seller
+        # === 2c: Seller answers challenges(with proofs) (repeat 2b until sure)
         # TODO
-        # === 2c: Seller answers challenges and sends SIG
-        # TODO
-        # === 3: Buyer: extract pubX and pubY from SIG-> deploy smart contract
 
+        # === 3a: Buyer request ECDSA signature of seller with a certain nonce 
+        # TODO
+
+        # === 3b: Seller sends signature
+        # TODO
+
+        # === 4a: Buyer verifies ECDSA signature of seller with public key
+        # TODO
+
+        # === 4b Buyer: extract pubX and pubY from SIG-> deploy smart contract
         self._sk = SigningKey.generate(curve=SECP256k1)
         _vk = self._sk.verifying_key
         self._pubkX = _vk.pubkey.point.x()
@@ -96,7 +106,7 @@ class Delgado(Protocol):
                 self.smart_contract_refund(environment, seller, buyer, self._pubkY, buyer)
                 return
 
-        # === 6: Buyer: Check key ===
+        # === 6: Buyer: Decode data===
         # TODO
 
     def prepare_iteration(self, environment: Environment, operator: Account) -> None:
