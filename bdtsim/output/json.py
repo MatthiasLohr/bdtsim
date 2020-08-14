@@ -71,10 +71,10 @@ class JSONEncoder(json.JSONEncoder):
         elif isinstance(o, TransactionLogCollection):
             return {
                 'aggregation': o.aggregation,
-                'transaction_log_lists': o.tx_log_lists
+                'transaction_log_lists': o
             }
         elif isinstance(o, TransactionLogCollection.Aggregation):
-            return list(o.entries.values())
+            return list(o.values())
         elif isinstance(o, TransactionLogCollection.Aggregation.Entry):
             return {
                 'account': o.account,
@@ -85,8 +85,7 @@ class JSONEncoder(json.JSONEncoder):
                 'tx_count_max': o.tx_count_max,
                 'tx_count_mean': o.tx_count_mean,
                 'funds_diff_min': o.funds_diff_min,
-                'funds_diff_max': o.funds_diff_max,
-                'count': o.list_count
+                'funds_diff_max': o.funds_diff_max
             }
         elif isinstance(o, TransactionLogEntry):
             return {
@@ -101,10 +100,10 @@ class JSONEncoder(json.JSONEncoder):
         elif isinstance(o, TransactionLogList):
             return {
                 'aggregation': o.aggregation,
-                'transactions': o.tx_log_list
+                'transactions': o
             }
         elif isinstance(o, TransactionLogList.Aggregation):
-            return list(o.entries.values())
+            return list(o.values())
         elif isinstance(o, TransactionLogList.Aggregation.Entry):
             return {
                 'account': o.account,

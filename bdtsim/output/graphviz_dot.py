@@ -194,7 +194,7 @@ class ResultGraph(Digraph):  # type: ignore
             return target_node_uuid
 
         no_transactions_in_collection = True
-        for tx_log_list in tx_collection.tx_log_lists:
+        for tx_log_list in tx_collection:
             if len(tx_log_list) > 0:
                 no_transactions_in_collection = False
                 break
@@ -209,17 +209,17 @@ class ResultGraph(Digraph):  # type: ignore
         node_template: Optional[NodeTemplate]
         edge_template: EdgeTemplate
         transaction_graph_paths = []
-        for tx_log_list in tx_collection.tx_log_lists:
+        for tx_log_list in tx_collection:
             candidate_path = []
             prev_transaction_uuid = transaction_start_uuid
-            for tx_log_entry in tx_log_list.tx_log_list[:-1]:
+            for tx_log_entry in tx_log_list[:-1]:
                 node_template = self._generate_transaction_node()
                 edge_template = self._generate_transaction_edge(prev_transaction_uuid, node_template.name, tx_log_entry)
                 candidate_path.append(TransactionPathPartTuple(node_template, edge_template))
                 prev_transaction_uuid = node_template.name
             candidate_path.append(TransactionPathPartTuple(
                 None,
-                self._generate_transaction_edge(prev_transaction_uuid, target_node_uuid, tx_log_list.tx_log_list[-1]))
+                self._generate_transaction_edge(prev_transaction_uuid, target_node_uuid, tx_log_list[-1]))
             )
             if self._show_transaction_duplicates:
                 transaction_graph_paths.append(candidate_path)
@@ -247,7 +247,7 @@ class ResultGraph(Digraph):  # type: ignore
 
         uuid = self._uuid()
         label = phase
-        for entry in transactions.aggregation.entries.values():
+        for entry in transactions.aggregation.values():
             label += '\n%s: %d (%d)' % (entry.account.name, entry.tx_fees, entry.tx_count)
 
         self.node(uuid, label, shape='box')
@@ -277,7 +277,7 @@ class ResultGraph(Digraph):  # type: ignore
     def _add_final_node(self, node: ResultNode) -> str:
         uuid = self._uuid()
         label_lines = []
-        for entry in node.aggregation_summary.entries.values():
+        for entry in node.aggregation_summary.values():
             label_lines.append('<font color="%s">%s</font>' % (
                 self._color_by_honesty(node.account_completely_honest(entry.account)),
                 str(entry)
@@ -349,7 +349,7 @@ class ResultGraph(Digraph):  # type: ignore
 
     @staticmethod
     def _get_label_lines_for_tx_collection(tx_collection: TransactionLogCollection) -> List[str]:
-        return [str(entry) for entry in tx_collection.aggregation.entries.values()]
+        return [str(entry) for entry in tx_collection.aggregation.values()]
 
 
 OutputFormatManager.register('dot', GraphvizDotOutputFormat)
