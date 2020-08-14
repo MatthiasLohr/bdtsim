@@ -114,7 +114,7 @@ class Environment(object):
             factory=web3_contract.constructor(*args, **kwargs),
             allow_failure=allow_failure
         )
-        return tx_receipt['contractAddress']
+        return str(tx_receipt['contractAddress'])
 
     def send_contract_transaction(self, account: Account, method: str, *args: Any, value: int = 0,
                                   allow_failure: bool = False, **kwargs: Any) -> Any:

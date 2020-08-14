@@ -3,8 +3,7 @@ from jinja2 import Template
 from web3 import Web3
 from ecdsa import SigningKey, SECP256k1  # type: ignore
 # seems to be not  PEP 561 compliant
-from typing import Any, Optional, cast
-import random
+from typing import Any, cast
 
 from bdtsim.account import Account
 from bdtsim.contract import SolidityContract
@@ -190,7 +189,8 @@ class DelgadoLibrary(Delgado):
 
     def prepare_simulation(self, environment: Environment, operator: Account) -> None:
         logger.debug('Deploying reusable library contract...')
-        self._library_address = Web3.toChecksumAddress(environment.deploy_library(operator, self._get_library_contract()))
+        self._library_address = Web3.toChecksumAddress(
+                                environment.deploy_library(operator, self._get_library_contract()))
 
 
 ProtocolManager.register('Delgado', Delgado)
