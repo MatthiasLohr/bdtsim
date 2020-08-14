@@ -49,6 +49,7 @@ function SellerRevealKey(uint256 privKey) public allowed(seller,stage.initialize
     (uint256 x,uint256 y) = derivePubKey(privKey);
     require(x == _pubX,"x wrong");
     require(y == _pubY,"y wrong");
+    seller.transfer(address(this).balance);
     phase = stage.finished;
 }
 
