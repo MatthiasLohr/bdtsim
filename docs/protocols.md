@@ -91,8 +91,8 @@ The Delgado protocol was presented in the following research paper:
 > Future Generation Computer Systems.
 > [https://doi.org/10.1016/j.future.2017.08.021](https://doi.org/10.1016/j.future.2017.08.021)
 
-It is available within BDTsim with the name `Delgado`.
-There is also a protocol `Delgado-Reusable`, which deploys a reusable variant of the FairSwap smart contract.
+It is available within BDTsim with the name `Delgado`. The contract `Delgado-Library` deploys the library seperately before simulation to reduce contract costs.
+There is also a protocol `Delgado-Reusable`, which deploys a reusable variant of the Delgado smart contract.
 
 Protocol Assumptions:
 

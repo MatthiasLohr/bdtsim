@@ -17,9 +17,12 @@ logger = logging.getLogger(__name__)
 
 
 class Delgado(Protocol):
+    REUSABLE_LIBRARY_FILE = 'delgado-trade/EllipticCurve.sol'
     CONTRACT_TEMPLATE_FILE = 'delgado-trade/delgadoTrade.tpl.sol'
-    REUSABLE_CONTRACT_FILE = 'delgado-trade/delgadoVariable.sol'
+    CONTRACT_LIBRARY_TEMPLATE_FILE = 'delgado-trade/delgadoTradeLibrary.tpl.sol'
+    REUSABLE_CONTRACT_FILE = 'delgado-trade/delgadoVariable.tpl.sol'
     CONTRACT_NAME = 'Delgado'
+    LIBRARY_NAME = 'EllipticCurve'
 
     def __init__(self,  timeout: int = 600, *args: Any, **kwargs: Any) -> None:
         super(Delgado, self).__init__(*args, **kwargs)
@@ -38,9 +41,16 @@ class Delgado(Protocol):
         contract_code_rendered = contract_template.render(
             time=self._timeout,
             price=price,
+            lib=Web3.toChecksumAddress(self._library_address),
+
         )
 
         return SolidityContract(Delgado.CONTRACT_NAME, contract_code=contract_code_rendered)
+
+    def _get_library_contract(self) -> SolidityContract:
+        with open(self.contract_path(__file__, Delgado.REUSABLE_LIBRARY_FILE)) as f:
+            contract_code = f.read()
+        return SolidityContract(Delgado.LIBRARY_NAME, contract_code=contract_code)
 
     def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
                 seller: Account, buyer: Account, price: int = DEFAULT_ASSET_PRICE) -> None:
@@ -90,20 +100,17 @@ class Delgado(Protocol):
         # === 6: Buyer: Check key ===
         # TODO
 
-    @staticmethod
-    def generate_bytes(length: int = 32, seed: Optional[int] = None, avoid: Optional[bytes] = None) -> bytes:
-        if seed is not None:
-            random.seed(seed)
-        tmp = avoid
-        while tmp is None or tmp == avoid:
-            tmp = bytes(bytearray(random.getrandbits(8) for _ in range(length)))
-        return tmp
+    def prepare_iteration(self, environment: Environment, operator: Account) -> None:
+        logger.debug('Deploying reusable library contract...')
+        self._library_address = Web3.toChecksumAddress(
+                                environment.deploy_library(operator, self._get_library_contract()))
 
     def smart_contract_init(self, environment: Environment, seller: Account, buyer: Account, timeout: int,
                             pubkX: int, pubkY: int, price: int) -> None:
         environment.deploy_contract(buyer, self._get_contract(
             price=price,
-        ))
+            )
+        )
         logger.debug("pubX: %d, pubY: %d, seller: %s", pubkX, pubkY, seller.wallet_address)
         environment.send_contract_transaction(
             buyer, 'BuyerInitTrade', pubkX, pubkY, Web3.toChecksumAddress(seller.wallet_address), value=price)
@@ -122,8 +129,11 @@ class Delgado(Protocol):
 class DelgadoReusable(Delgado):
     def _get_reusable_contract(self) -> SolidityContract:
         with open(self.contract_path(__file__, Delgado.REUSABLE_CONTRACT_FILE)) as f:
-            contract_code = f.read()
-        return SolidityContract(Delgado.CONTRACT_NAME, contract_code=contract_code)
+            contract_template = Template(f.read())
+            contract_code_rendered = contract_template.render(
+                lib=self._library_address,
+            )
+        return SolidityContract(Delgado.CONTRACT_NAME, contract_code=contract_code_rendered)
 
     @staticmethod
     def get_session_id(seller: Account, buyer: Account, pubY: int) -> bytes:
@@ -134,6 +144,9 @@ class DelgadoReusable(Delgado):
 
     def prepare_simulation(self, environment: Environment, operator: Account) -> None:
         logger.debug('Deploying reusable smart contract...')
+        logger.debug('Deploying reusable library contract...')
+        self._library_address = Web3.toChecksumAddress(
+                                environment.deploy_library(operator, self._get_library_contract()))
         environment.deploy_contract(operator, self._get_reusable_contract())
 
     def smart_contract_init(self, environment: Environment, seller: Account, buyer: Account, timeout: int,
@@ -155,5 +168,31 @@ class DelgadoReusable(Delgado):
         environment.send_contract_transaction(beneficiary, 'refund', session_id)
 
 
+class DelgadoLibrary(Delgado):
+    def _get_delgado_library_contract(self, price: int) -> SolidityContract:
+        with open(self.contract_path(__file__, Delgado.CONTRACT_LIBRARY_TEMPLATE_FILE)) as f:
+            contract_template = Template(f.read())
+            contract_code_rendered = contract_template.render(
+                time=self._timeout,
+                price=price,
+                lib=self._library_address,
+            )
+        return SolidityContract(Delgado.CONTRACT_NAME, contract_code=contract_code_rendered)
+
+    def smart_contract_init(self, environment: Environment, seller: Account, buyer: Account, timeout: int,
+                            pubkX: int, pubkY: int, price: int) -> None:
+        environment.deploy_contract(buyer, self._get_delgado_library_contract(
+            price=price,
+        ))
+        logger.debug("pubX: %d, pubY: %d, seller: %s", pubkX, pubkY, seller.wallet_address)
+        environment.send_contract_transaction(
+            buyer, 'BuyerInitTrade', pubkX, pubkY, seller.wallet_address, value=price)
+
+    def prepare_simulation(self, environment: Environment, operator: Account) -> None:
+        logger.debug('Deploying reusable library contract...')
+        self._library_address = Web3.toChecksumAddress(environment.deploy_library(operator, self._get_library_contract()))
+
+
 ProtocolManager.register('Delgado', Delgado)
+ProtocolManager.register('Delgado-Library', DelgadoLibrary)
 ProtocolManager.register('Delgado-Reusable', DelgadoReusable)

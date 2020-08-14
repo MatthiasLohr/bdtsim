@@ -1,7 +1,8 @@
-pragma solidity >=0.6.1;
+pragma solidity >=0.5.3 <0.7.0;
 
-import "./EllipticCurve.sol";
-
+abstract contract EllipticCurve {
+   function ecMul(uint256 _k,uint256 _x,uint256 _y,uint256 _aa,uint256 _pp) public pure virtual returns(uint256, uint256);
+}
 
 contract Delgado {
 
@@ -12,24 +13,27 @@ contract Delgado {
   uint256 public constant PP = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F;
   uint256 _pubX;
   uint256 _pubY;
-  uint time = 60 seconds; //template
-  uint price = 10 wei; //template
+  uint price = {{ price }};
   uint public timeout;
+  uint public time = {{ time }} seconds;
   enum stage {created, initialized, finished}
   stage public phase = stage.created;
   address payable buyer;
   address payable seller;
+  EllipticCurve ec;
+  address lib = {{ lib }};
 
   modifier allowed(address p, stage s) {
         require(phase == s,"phase wrong");
-        require(now < timeout,"timeout wrong");
+        require(block.timestamp < timeout,"timeout wrong");
         require(msg.sender == p,"sender wrong");
         _;
     }
 
     constructor() public {
         buyer = msg.sender;
-        timeout = now + time;
+        timeout = block.timestamp + time;
+        ec = EllipticCurve(lib);
     }
     
 function BuyerInitTrade(uint256 pubX,uint256 pubY, address payable s) allowed(buyer,stage.created) payable public{
@@ -38,32 +42,25 @@ function BuyerInitTrade(uint256 pubX,uint256 pubY, address payable s) allowed(bu
     _pubY = pubY;
     seller = s;
     phase = stage.initialized;
-    timeout = now + time;
+    timeout = block.timestamp + time;
 }
 
-function SellerRevealKey(uint256 privKey) allowed(seller,stage.initialized) public{
+function SellerRevealKey(uint256 privKey) public allowed(seller,stage.initialized){
     (uint256 x,uint256 y) = derivePubKey(privKey);
     require(x == _pubX,"x wrong");
     require(y == _pubY,"y wrong");
-    seller.transfer(address(this).balance);
     phase = stage.finished;
 }
 
 function refund() public{
-    require (now > timeout,"timeout not reached");
+    require (block.timestamp > timeout,"timeout not reached");
     require(phase > stage.created,"stage wrong");
     buyer.transfer(address(this).balance);
     phase = stage.finished;
 }
   /// @param privKey The private key
   /// @return (qx, qy) The Public Key
-  function derivePubKey(uint256 privKey) public pure returns (uint256, uint256) {
-    return EllipticCurve.ecMul(
-      privKey,
-      GX,
-      GY,
-      AA,
-      PP
-    );
+  function derivePubKey(uint256 privKey) public view returns (uint256, uint256) {
+    return ec.ecMul(privKey,GX, GY,AA,PP);
   }
 }

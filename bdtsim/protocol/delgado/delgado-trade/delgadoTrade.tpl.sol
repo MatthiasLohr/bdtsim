@@ -1,6 +1,8 @@
 pragma solidity >=0.6.1;
 
-import "bdtsim/protocol/delgado/delgado-trade/EllipticCurve.sol";
+abstract contract EllipticCurve {
+   function ecMul(uint256 _k,uint256 _x,uint256 _y,uint256 _aa,uint256 _pp) public pure virtual returns(uint256, uint256);
+}
 
 
 contract Delgado {
@@ -19,6 +21,8 @@ contract Delgado {
   stage public phase = stage.created;
   address payable buyer;
   address payable seller;
+  EllipticCurve ec;
+  address lib = {{ lib }};
 
   modifier allowed(address p, stage s) {
         require(phase == s,"phase wrong");
@@ -30,6 +34,7 @@ contract Delgado {
     constructor() public {
         buyer = msg.sender;
         timeout = now + time;
+        ec = EllipticCurve(lib);
     }
     
 function BuyerInitTrade(uint256 pubX,uint256 pubY, address payable s) allowed(buyer,stage.created) payable public{
@@ -57,8 +62,8 @@ function refund() public{
 }
   /// @param privKey The private key
   /// @return (qx, qy) The Public Key
-  function derivePubKey(uint256 privKey) public pure returns (uint256, uint256) {
-    return EllipticCurve.ecMul(
+  function derivePubKey(uint256 privKey) public view returns (uint256, uint256) {
+    return ec.ecMul(
       privKey,
       GX,
       GY,

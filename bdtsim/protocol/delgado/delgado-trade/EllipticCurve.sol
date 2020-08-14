@@ -18,7 +18,7 @@ library EllipticCurve {
   /// @param _x The number
   /// @param _pp The modulus
   /// @return q such that x*q = 1 (mod _pp)
-  function invMod(uint256 _x, uint256 _pp) internal pure returns (uint256) {
+  function invMod(uint256 _x, uint256 _pp) public pure returns (uint256) {
     require(_x != 0 && _x != _pp && _pp != 0, "Invalid number");
     uint256 q = 0;
     uint256 newT = 1;
@@ -39,7 +39,7 @@ library EllipticCurve {
   /// @param _exp exponent
   /// @param _pp modulus
   /// @return r such that r = b**e (mod _pp)
-  function expMod(uint256 _base, uint256 _exp, uint256 _pp) internal pure returns (uint256) {
+  function expMod(uint256 _base, uint256 _exp, uint256 _pp) public pure returns (uint256) {
     require(_pp!=0, "Modulus is zero");
 
     if (_base == 0)
@@ -73,7 +73,7 @@ library EllipticCurve {
     uint256 _y,
     uint256 _z,
     uint256 _pp)
-  internal pure returns (uint256, uint256)
+  public pure returns (uint256, uint256)
   {
     uint256 zInv = invMod(_z, _pp);
     uint256 zInv2 = mulmod(zInv, zInv, _pp);
@@ -96,7 +96,7 @@ library EllipticCurve {
     uint256 _aa,
     uint256 _bb,
     uint256 _pp)
-  internal pure returns (uint256)
+  public pure returns (uint256)
   {
     require(_prefix == 0x02 || _prefix == 0x03, "Invalid compressed EC point prefix");
 
@@ -122,7 +122,7 @@ library EllipticCurve {
     uint _aa,
     uint _bb,
     uint _pp)
-  internal pure returns (bool)
+  public pure returns (bool)
   {
     if (0 == _x || _x >= _pp || 0 == _y || _y >= _pp) {
       return false;
@@ -152,7 +152,7 @@ library EllipticCurve {
     uint256 _x,
     uint256 _y,
     uint256 _pp)
-  internal pure returns (uint256, uint256)
+  public pure returns (uint256, uint256)
   {
     return (_x, (_pp - _y) % _pp);
   }
@@ -172,7 +172,7 @@ library EllipticCurve {
     uint256 _y2,
     uint256 _aa,
     uint256 _pp)
-    internal pure returns(uint256, uint256)
+    public pure returns(uint256, uint256)
   {
     uint x = 0;
     uint y = 0;
@@ -225,7 +225,7 @@ library EllipticCurve {
     uint256 _y2,
     uint256 _aa,
     uint256 _pp)
-  internal pure returns(uint256, uint256)
+  public pure returns(uint256, uint256)
   {
     // invert square
     (uint256 x, uint256 y) = ecInv(_x2, _y2, _pp);
@@ -252,7 +252,7 @@ library EllipticCurve {
     uint256 _y,
     uint256 _aa,
     uint256 _pp)
-  internal pure returns(uint256, uint256)
+  public pure returns(uint256, uint256)
   {
     // Jacobian multiplication
     (uint256 x1, uint256 y1, uint256 z1) = jacMul(
@@ -287,7 +287,7 @@ library EllipticCurve {
     uint256 _y2,
     uint256 _z2,
     uint256 _pp)
-  internal pure returns (uint256, uint256, uint256)
+  public pure returns (uint256, uint256, uint256)
   {
     if (_x1==0 && _y1==0)
       return (_x2, _y2, _z2);
@@ -345,7 +345,7 @@ library EllipticCurve {
     uint256 _z,
     uint256 _aa,
     uint256 _pp)
-  internal pure returns (uint256, uint256, uint256)
+  public pure returns (uint256, uint256, uint256)
   {
     if (_z == 0)
       return (_x, _y, _z);
@@ -389,7 +389,7 @@ library EllipticCurve {
     uint256 _z,
     uint256 _aa,
     uint256 _pp)
-  internal pure returns (uint256, uint256, uint256)
+  public pure returns (uint256, uint256, uint256)
   {
     // Early return in case that `_d == 0`
     if (_d == 0) {

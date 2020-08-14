@@ -106,6 +106,16 @@ class Environment(object):
         logger.debug('New contract address: %s' % self._contract_address)
         self._contract = contract
 
+    def deploy_library(self, account: Account, contract: SolidityContract, allow_failure: bool = False,
+                       *args: Any, **kwargs: Any) -> str:
+        web3_contract = self._web3.eth.contract(abi=contract.abi, bytecode=contract.bytecode)
+        tx_receipt = self._send_transaction(
+            account=account,
+            factory=web3_contract.constructor(*args, **kwargs),
+            allow_failure=allow_failure
+        )
+        return tx_receipt['contractAddress']
+
     def send_contract_transaction(self, account: Account, method: str, *args: Any, value: int = 0,
                                   allow_failure: bool = False, **kwargs: Any) -> Any:
         if self._contract is None:
