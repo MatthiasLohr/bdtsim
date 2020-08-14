@@ -15,9 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from bdtsim.simulation_result import SimulationResult
 from .output_format import OutputFormat
 from .output_format_manager import OutputFormatManager
-from .simulation_result import SimulationResult
 
 
 class HumanReadableOutputFormat(OutputFormat):

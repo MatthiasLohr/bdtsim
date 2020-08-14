@@ -17,7 +17,7 @@
 
 from typing import Any, Optional, Union
 
-from .simulation_result import SimulationResult
+from bdtsim.simulation_result import SimulationResult
 
 
 class OutputFormat(object):

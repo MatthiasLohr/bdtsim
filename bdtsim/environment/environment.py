@@ -30,6 +30,7 @@ from web3.types import TxParams, Wei
 from bdtsim.account import Account
 from bdtsim.contract import SolidityContract
 from bdtsim.funds_diff_collection import FundsDiffCollection
+from bdtsim.simulation_result import TransactionLogEntry
 
 
 logger = logging.getLogger(__name__)
@@ -83,9 +84,7 @@ class Environment(object):
         self._contract: Optional[SolidityContract] = None
         self._contract_address: Optional[str] = None
 
-        self._transaction_callback: Optional[
-            Callable[[Account, Dict[str, Any], Dict[str, Any], FundsDiffCollection], None]
-        ] = None
+        self._transaction_callback: Optional[Callable[[TransactionLogEntry], None]] = None
 
     @property
     def chain_id(self) -> int:
@@ -119,6 +118,7 @@ class Environment(object):
             account=account,
             factory=factory,
             value=value,
+            description=method,
             allow_failure=allow_failure
         )
         # TODO implement contract return value
@@ -129,11 +129,13 @@ class Environment(object):
             account=account,
             to=to,
             value=value,
+            description='->',
             allow_failure=allow_failure
         )
 
     def _send_transaction(self, account: Account, factory: Optional[Any] = None, to: Optional[Account] = None,
-                          value: int = 0, allow_failure: bool = False) -> AttributeDict[str, Any]:
+                          value: int = 0, description: Optional[str] = None,
+                          allow_failure: bool = False) -> AttributeDict[str, Any]:
         tx_dict = {
             'from': account.wallet_address,
             'nonce': self._web3.eth.getTransactionCount(account.wallet_address, 'pending'),
@@ -187,7 +189,8 @@ class Environment(object):
         funds_diff_collection += FundsDiffCollection({account: tx_receipt['gasUsed'] * 1000000000})
 
         if self.transaction_callback is not None:
-            self.transaction_callback(account, tx_dict, dict(tx_receipt), funds_diff_collection)
+            self.transaction_callback(TransactionLogEntry(account, tx_dict, dict(tx_receipt), description,
+                                                          funds_diff_collection))
         return tx_receipt
 
     def wait(self, seconds: int) -> None:
@@ -223,12 +226,12 @@ class Environment(object):
 
     @property
     def transaction_callback(self) -> Optional[
-        Callable[[Account, Dict[str, Any], Dict[str, Any], FundsDiffCollection], None]
+        Callable[[TransactionLogEntry], None]
     ]:
         return self._transaction_callback
 
     @transaction_callback.setter
     def transaction_callback(self, callback: Optional[
-        Callable[[Account, Dict[str, Any], Dict[str, Any], FundsDiffCollection], None]
+        Callable[[TransactionLogEntry], None]
     ]) -> None:
         self._transaction_callback = callback

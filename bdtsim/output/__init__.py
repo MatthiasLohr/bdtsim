@@ -21,7 +21,6 @@ from .json import JSONOutputFormat
 from .output_format import OutputFormat
 from .output_format_manager import OutputFormatManager
 from .result_collector import ResultCollector
-from .simulation_result import SimulationResult
 from .yaml import YAMLOutputFormat
 
 
@@ -32,6 +31,5 @@ __all__ = [
     'OutputFormat',
     'OutputFormatManager',
     'ResultCollector',
-    'SimulationResult',
     'YAMLOutputFormat'
 ]

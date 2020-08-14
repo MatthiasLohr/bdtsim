@@ -30,6 +30,13 @@ class FundsDiffCollection(Dict[Account, int]):
     def get(self, account: Account, default: int = 0) -> int:  # type: ignore
         return super().get(account, default)
 
+    @property
+    def is_neutral(self) -> bool:
+        for amount in self.values():
+            if not amount == 0:
+                return False
+        return True
+
     def __repr__(self) -> str:
         return '<%s.%s %s>' % (
             __name__,
