@@ -71,12 +71,12 @@ class Delgado(Protocol):
         # === 2a: Seller send encrypted file and public key with whom he encrypted the data
         # TODO
 
-        # === 2b: Buyer challenges Seller multiple times 
+        # === 2b: Buyer challenges Seller multiple times
         # TODO
         # === 2c: Seller answers challenges(with proofs) (repeat 2b until sure)
         # TODO
 
-        # === 3a: Buyer request ECDSA signature of seller with a certain nonce 
+        # === 3a: Buyer request ECDSA signature of seller with a certain nonce
         # TODO
 
         # === 3b: Seller sends signature
