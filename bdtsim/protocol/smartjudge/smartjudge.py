@@ -332,39 +332,49 @@ class SmartJudge(Protocol):
             # buyer sends complaint
             if len(errors) == 0 and decrypted_merkle_tree.digest != plain_merkle_tree.digest:
                 logger.debug('Buyer: complain about root')
+                root_hash_leaf = encrypted_merkle_tree.leaves[-2]
+                proof = encrypted_merkle_tree.get_proof(root_hash_leaf)
+                environment.send_contract_transaction(
+                    self._verifier_contract,
+                    buyer,
+                    'complainAboutRoot',
+                    trade_id,
+                    root_hash_leaf.data,
+                    proof
+                )
+                return
             elif isinstance(errors[-1], encoding.LeafDigestMismatchError):
-                if protocol_path.decide(buyer, 'Complain about Leaf', ['yes']) == 'yes':
-                    error: encoding.NodeDigestMismatchError = errors[-1]
-                    environment.send_contract_transaction(
-                        self._verifier_contract,
-                        buyer,
-                        'complainAboutLeaf',
-                        trade_id,
-                        error.index_out,
-                        error.index_in,
-                        error.out.data,
-                        error.in1.data_as_list(),
-                        error.in2.data_as_list(),
-                        encrypted_merkle_tree.get_proof(error.out),
-                        encrypted_merkle_tree.get_proof(error.in1)
-                    )
-                    return
+                error: encoding.NodeDigestMismatchError = errors[-1]
+                environment.send_contract_transaction(
+                    self._verifier_contract,
+                    buyer,
+                    'complainAboutLeaf',
+                    trade_id,
+                    error.index_out,
+                    error.index_in,
+                    error.out.data,
+                    error.in1.data_as_list(),
+                    error.in2.data_as_list(),
+                    encrypted_merkle_tree.get_proof(error.out),
+                    encrypted_merkle_tree.get_proof(error.in1)
+                )
+                return
             else:
-                if protocol_path.decide(buyer, 'Complain about Leaf', ['yes']) == 'yes':
-                    error = errors[-1]
-                    environment.send_contract_transaction(
-                        self._verifier_contract,
-                        buyer,
-                        'complainAboutNode',
-                        trade_id,
-                        error.index_out,
-                        error.index_in,
-                        error.out.data,
-                        error.in1.data_as_list(),
-                        error.in2.data_as_list(),
-                        encrypted_merkle_tree.get_proof(error.out),
-                        encrypted_merkle_tree.get_proof(error.in1)
-                    )
+                error = errors[-1]
+                environment.send_contract_transaction(
+                    self._verifier_contract,
+                    buyer,
+                    'complainAboutNode',
+                    trade_id,
+                    error.index_out,
+                    error.index_in,
+                    error.out.data,
+                    error.in1.data_as_list(),
+                    error.in2.data_as_list(),
+                    encrypted_merkle_tree.get_proof(error.out),
+                    encrypted_merkle_tree.get_proof(error.in1)
+                )
+                return
 
 
 ProtocolManager.register('SmartJudge-FairSwap', SmartJudge)
