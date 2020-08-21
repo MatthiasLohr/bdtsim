@@ -42,7 +42,7 @@ class FairSwap(Protocol):
     REUSABLE_CONTRACT_FILE = 'FairFileSale-reusable.sol'
     CONTRACT_NAME = 'FileSale'
 
-    def __init__(self, slices_count: int = 8, timeout: int = 600, *args: Any, **kwargs: Any) -> None:
+    def __init__(self, slices_count: int = 1024, timeout: int = 600, *args: Any, **kwargs: Any) -> None:
         """
         Args:
             slices_count (int): number of slices in which the data is to be split
