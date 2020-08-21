@@ -78,14 +78,14 @@ class EncodingTest(unittest.TestCase):
         self.assertEqual(tree, tree_dec)
 
     def test_encode_forge_first_leaf(self):
-        tree = from_bytes(FairSwap.generate_bytes(128, seed=42), 4)
+        tree = from_bytes(generate_bytes(128, seed=42), 4)
         tree_enc = encode_forge_first_leaf(tree, B032)
         tree_dec, errors = decode(tree_enc, B032)
         self.assertEqual(1, len(errors))
         self.assertEqual(LeafDigestMismatchError, type(errors[0]))
 
     def test_encode_forge_first_leaf_first_hash(self):
-        tree = from_bytes(FairSwap.generate_bytes(128, seed=42), 4)
+        tree = from_bytes(generate_bytes(128, seed=42), 4)
         tree_enc = encode_forge_first_leaf_first_hash(tree, B032)
         tree_dec, errors = decode(tree_enc, B032)
         self.assertEqual(1, len(errors))
