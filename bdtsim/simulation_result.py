@@ -68,7 +68,7 @@ class TransactionLogList(List[TransactionLogEntry]):
                         tx.account,
                         entry.tx_fees + int(tx.tx_receipt['gasUsed']),
                         entry.tx_count + 1,
-                        0
+                        entry.funds_diff
                     )
                     self.update({tx.account: entry})
                 # work on all fund diffs
