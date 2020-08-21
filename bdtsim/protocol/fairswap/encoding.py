@@ -59,6 +59,28 @@ def encode(root: MerkleTreeNode, key: bytes) -> MerkleTreeNode:
                        + [MerkleTreeHashLeaf(B032)])
 
 
+def encode_forge_first_leaf(root: MerkleTreeNode, key: bytes) -> MerkleTreeNode:
+    leaf_data = [leaf.data for leaf in root.leaves]
+    leaf_data[0] = b'\0' * len(leaf_data[0])
+    leaf_data_enc = [crypt(data, index, key) for index, data in enumerate(leaf_data)]
+    digests_enc = [crypt(digest, 2 * len(leaf_data_enc) + index, key) for index, digest in enumerate(root.digests_pack)]
+    return from_leaves([MerkleTreeLeaf(x) for x in leaf_data_enc]
+                       + [MerkleTreeHashLeaf(x) for x in digests_enc]
+                       + [MerkleTreeHashLeaf(B032)])
+
+
+def encode_forge_first_leaf_first_hash(root: MerkleTreeNode, key: bytes) -> MerkleTreeNode:
+    leaf_data = [leaf.data for leaf in root.leaves]
+    leaf_data[0] = b'\0' * len(leaf_data[0])
+    leaf_data_enc = [crypt(data, index, key) for index, data in enumerate(leaf_data)]
+    digests = root.digests_pack
+    digests[0] = MerkleTreeNode(MerkleTreeLeaf(leaf_data[0]), MerkleTreeLeaf(leaf_data[1])).digest
+    digests_enc = [crypt(digest, 2 * len(leaf_data_enc) + index, key) for index, digest in enumerate(digests)]
+    return from_leaves([MerkleTreeLeaf(x) for x in leaf_data_enc]
+                       + [MerkleTreeHashLeaf(x) for x in digests_enc]
+                       + [MerkleTreeHashLeaf(B032)])
+
+
 def decode(root: MerkleTreeNode, key: bytes) -> Tuple[MerkleTreeNode, List[NodeDigestMismatchError]]:
     leaf_bytes_enc = root.leaves
     if not math.log2(len(leaf_bytes_enc)).is_integer():
