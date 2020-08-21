@@ -17,9 +17,11 @@
 
 import logging
 import math
+import sys
 from typing import Any, Optional
 
 from web3 import Web3
+from web3.exceptions import ValidationError as Web3ValidationError
 
 from bdtsim.account import Account
 from bdtsim.contract import SolidityContractCollection
@@ -37,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 class SmartJudge(Protocol):
     def __init__(self, worst_cast_cost: int = 250000, security_deposit: int = 500000, timeout: int = 86400,
-                 slices_count: int = 8, slice_length: int = 32, *args: Any, **kwargs: Any) -> None:
+                 slices_count: int = 1024, slice_length: int = 1024, *args: Any, **kwargs: Any) -> None:
         """Initialize SmartJudge protocol class
 
         Args:
@@ -60,14 +62,14 @@ class SmartJudge(Protocol):
         if self._slices_count < 1:
             raise ProtocolInitializationError('n must be an int >= 1')
 
-        if slice_length % 32 > 0:
+        if int(slice_length) % 32 > 0:
             raise ProtocolExecutionError('A slice must have a multiple of 32 as length.'
                                          ' Configured for using %d slices,'
                                          ' therefore data must have a multiple of %d as length' % (
                                              self._slices_count,
                                              self._slices_count * 32
                                          ))
-        self._slice_length = slice_length
+        self._slice_length = int(slice_length)
 
         if not math.log2(self._slices_count).is_integer():
             raise ProtocolInitializationError('slice_count must be a power of 2')
@@ -132,6 +134,10 @@ class SmartJudge(Protocol):
 
         """
         logger.debug('Initialization and sanitizing checks')
+        if self._slice_length * self._slices_count != data_provider.data_size:
+            logger.error('(protocol) slice_length * (protocol) slices_count != (data provider) data_sice')
+            logger.error('Please check protocol and data provider parameters')
+            sys.exit(1)
 
         logger.debug('Seller prepares the data')
         plain_data = data_provider.file_pointer.read()
@@ -327,19 +333,24 @@ class SmartJudge(Protocol):
                 return
             elif isinstance(errors[-1], encoding.LeafDigestMismatchError):
                 error: encoding.NodeDigestMismatchError = errors[-1]
-                environment.send_contract_transaction(
-                    self._verifier_contract,
-                    buyer,
-                    'complainAboutLeaf',
-                    trade_id,
-                    error.index_out,
-                    error.index_in,
-                    error.out.data,
-                    error.in1.data_as_list(),
-                    error.in2.data_as_list(),
-                    encrypted_merkle_tree.get_proof(error.out),
-                    encrypted_merkle_tree.get_proof(error.in1)
-                )
+                try:
+                    environment.send_contract_transaction(
+                        self._verifier_contract,
+                        buyer,
+                        'complainAboutLeaf',
+                        trade_id,
+                        error.index_out,
+                        error.index_in,
+                        error.out.data,
+                        error.in1.data_as_list(),
+                        error.in2.data_as_list(),
+                        encrypted_merkle_tree.get_proof(error.out),
+                        encrypted_merkle_tree.get_proof(error.in1)
+                    )
+                except Web3ValidationError:
+                    logger.error('Error calling complainAboutLeaf.'
+                                 ' This usually occurs when slice_length is not set properly.')
+                    sys.exit(1)
                 return
             else:
                 error = errors[-1]
@@ -351,8 +362,8 @@ class SmartJudge(Protocol):
                     error.index_out,
                     error.index_in,
                     error.out.data,
-                    error.in1.data_as_list(),
-                    error.in2.data_as_list(),
+                    error.in1.data,
+                    error.in2.data,
                     encrypted_merkle_tree.get_proof(error.out),
                     encrypted_merkle_tree.get_proof(error.in1)
                 )
