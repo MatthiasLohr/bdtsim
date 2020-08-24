@@ -1,7 +1,8 @@
 # Changelog
 
 ## unreleased
-
+  
+  * Protocol: Delgado, Delgado-Reusable, Delgado-Library (#1)
   * Protocol: Support for SmartJudge (#20)
   * Feature: Added event filtering support for environments
   * Feature: Added `--protocol-path` parameter for limiting protocol paths to be executed (#23)
@@ -9,6 +10,8 @@
   * Feature: Output Format: Graphviz Dot: Add option to show individual transactions in graph (#26)
   * Fix: Set default price to 1 ETH (#24)
   * Fix: Use gasPriceStrategy for determining gas price when available
+  * Documentation: Updated documentation of Delgado protocol
+  * New dependency: ecdsa 0.15
 
 ## v1.1.1
 
