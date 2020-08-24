@@ -166,7 +166,7 @@ class ResultGraph(Digraph):  # type: ignore
         start_node_uuid = self._add_start_node()
         self._walk_result_nodes(start_node_uuid, simulation_result.execution_result_root)
         self._walk_preparation_nodes(simulation_result.preparation_transactions)
-        self._walk_cleanup_nodes(simulation_result.preparation_transactions)
+        self._walk_cleanup_nodes(simulation_result.cleanup_transactions)
 
     def _walk_preparation_nodes(self, transactions: TransactionLogList) -> None:
         self._walk_operator_nodes('Preparation', transactions)
