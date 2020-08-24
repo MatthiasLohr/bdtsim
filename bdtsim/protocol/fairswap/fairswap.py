@@ -42,7 +42,7 @@ class FairSwap(Protocol):
     REUSABLE_CONTRACT_FILE = 'FairFileSale-reusable.sol'
     CONTRACT_NAME = 'FileSale'
 
-    def __init__(self, slices_count: int = 8, timeout: int = 600, *args: Any, **kwargs: Any) -> None:
+    def __init__(self, slices_count: int = 1024, timeout: int = 600, *args: Any, **kwargs: Any) -> None:
         """
         Args:
             slices_count (int): number of slices in which the data is to be split
@@ -133,28 +133,10 @@ class FairSwap(Protocol):
                 merkle.from_bytes(self.generate_bytes(data_provider.data_size), self.slices_count),
                 key
             )
-        elif encryption_decision == 'leaf forgery' or encryption_decision == 'hash forgery':
-            # extract correct plain data
-            plain_leaves_data = [leaf.data for leaf in plain_merkle_tree.leaves]
-            plain_digests = plain_merkle_tree.digests_pack
-
-            # forge first leaf
-            plain_leaves_data[0] = b'\x00' * len(plain_leaves_data[0])
-
-            if encryption_decision == 'hash forgery':
-                plain_digests[0] = merkle.MerkleTreeNode(
-                    merkle.MerkleTreeLeaf(plain_leaves_data[0]),
-                    merkle.MerkleTreeLeaf(plain_leaves_data[1])
-                ).digest
-
-            encrypted_leaves_data = [encoding.crypt(data, i, key) for i, data in enumerate(plain_leaves_data)]
-            encrypted_digests = [
-                encoding.crypt(data, 2 * len(plain_leaves_data) + i, key) for i, data in enumerate(plain_digests)
-            ]
-
-            encrypted_merkle_tree = merkle.from_leaves([merkle.MerkleTreeLeaf(x) for x in encrypted_leaves_data]
-                                                       + [merkle.MerkleTreeHashLeaf(x) for x in encrypted_digests]
-                                                       + [merkle.MerkleTreeHashLeaf(encoding.B032)])
+        elif encryption_decision == 'leaf forgery':
+            encrypted_merkle_tree = encoding.encode_forge_first_leaf(plain_merkle_tree, key)
+        elif encryption_decision == 'hash forgery':
+            encrypted_merkle_tree = encoding.encode_forge_first_leaf_first_hash(plain_merkle_tree, key)
         else:
             raise NotImplementedError()
 

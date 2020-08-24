@@ -25,7 +25,8 @@ from web3 import Web3, EthereumTesterProvider
 from bdtsim.account import Account
 from bdtsim.protocol import DEFAULT_ASSET_PRICE
 from bdtsim.protocol.fairswap import FairSwap
-from bdtsim.protocol.fairswap.encoding import encode, decode, B032, crypt
+from bdtsim.protocol.fairswap.encoding import encode, encode_forge_first_leaf, encode_forge_first_leaf_first_hash,\
+    decode, B032, crypt, NodeDigestMismatchError, LeafDigestMismatchError
 from bdtsim.protocol.fairswap.merkle import MerkleTreeNode, MerkleTreeLeaf, from_bytes
 
 
@@ -74,6 +75,20 @@ class EncodingTest(unittest.TestCase):
         tree_dec, errors = decode(tree_enc, B032)
         self.assertEqual([], errors)
         self.assertEqual(tree, tree_dec)
+
+    def test_encode_forge_first_leaf(self):
+        tree = from_bytes(FairSwap.generate_bytes(128, seed=42), 4)
+        tree_enc = encode_forge_first_leaf(tree, B032)
+        tree_dec, errors = decode(tree_enc, B032)
+        self.assertEqual(1, len(errors))
+        self.assertEqual(LeafDigestMismatchError, type(errors[0]))
+
+    def test_encode_forge_first_leaf_first_hash(self):
+        tree = from_bytes(FairSwap.generate_bytes(128, seed=42), 4)
+        tree_enc = encode_forge_first_leaf_first_hash(tree, B032)
+        tree_dec, errors = decode(tree_enc, B032)
+        self.assertEqual(1, len(errors))
+        self.assertEqual(NodeDigestMismatchError, type(errors[0]))
 
 
 class ContractTest(unittest.TestCase):
