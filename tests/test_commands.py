@@ -33,6 +33,9 @@ class CommandTest(unittest.TestCase):
         self.assertEqual(out.decode('utf-8').strip(), '\n'.join([
             'FairSwap',
             'FairSwap-Reusable',
+            'Delgado',
+            'Delgado-Library',
+            'Delgado-Reusable',
             'SimplePayment',
             'SimplePayment-prepaid',
             'SimplePayment-prepaid-direct',
@@ -94,6 +97,24 @@ class CommandTest(unittest.TestCase):
     def test_run_fairswap_reusable(self):
         p = subprocess.Popen(['bdtsim', 'run', 'FairSwap-Reusable', 'PyEVM', '-d', 'size', '256',
                               '-p', 'slices-count', '8'],
+                             stdout=subprocess.PIPE)
+        out, err = p.communicate()
+        self.assertEqual(p.returncode, 0)
+
+    def test_run_delgado(self):
+        p = subprocess.Popen(['bdtsim', 'run', 'Delgado', 'PyEVM'],
+                             stdout=subprocess.PIPE)
+        out, err = p.communicate()
+        self.assertEqual(p.returncode, 0)
+
+    def test_run_delgado_reusable(self):
+        p = subprocess.Popen(['bdtsim', 'run', 'Delgado-Reusable', 'PyEVM'],
+                             stdout=subprocess.PIPE)
+        out, err = p.communicate()
+        self.assertEqual(p.returncode, 0)
+
+    def test_run_delgado_library(self):
+        p = subprocess.Popen(['bdtsim', 'run', 'Delgado-Library', 'PyEVM'],
                              stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
