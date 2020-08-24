@@ -121,7 +121,8 @@ class CommandTest(unittest.TestCase):
         self.assertEqual(p.returncode, 0)
 
     def test_run_smartjudge_fairswap(self):
-        p = subprocess.Popen(['bdtsim', 'run', 'SmartJudge-FairSwap', 'PyEVM'],
+        p = subprocess.Popen(['bdtsim', 'run', 'SmartJudge-FairSwap', 'PyEVM', '-d', 'size', '128',
+                              '-p', 'slices-count', '4', '-p', 'slice_length', '32'],
                              stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
