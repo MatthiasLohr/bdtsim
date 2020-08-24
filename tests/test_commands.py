@@ -120,6 +120,12 @@ class CommandTest(unittest.TestCase):
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
 
+    def test_run_smartjudge_fairswap(self):
+        p = subprocess.Popen(['bdtsim', 'run', 'SmartJudge-FairSwap', 'PyEVM'],
+                             stdout=subprocess.PIPE)
+        out, err = p.communicate()
+        self.assertEqual(p.returncode, 0)
+
     def test_environment_info_pyevm(self):
         p = subprocess.Popen(['bdtsim', 'environment-info', 'PyEVM'], stdout=subprocess.PIPE)
         out, err = p.communicate()
