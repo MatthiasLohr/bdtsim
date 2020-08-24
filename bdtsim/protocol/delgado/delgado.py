@@ -66,24 +66,15 @@ class Delgado(Protocol):
         Returns:
             None:
         """
+        # Steps 1-4a are not covered by the simulation due to the lack of blockchain interaction
+        # These steps are assumed to be already done
         # === 1 Buyer get encrypted data
-        # TODO
         # === 2a: Seller send encrypted file and public key with whom he encrypted the data
-        # TODO
-
         # === 2b: Buyer challenges Seller multiple times
-        # TODO
         # === 2c: Seller answers challenges(with proofs) (repeat 2b until sure)
-        # TODO
-
         # === 3a: Buyer request ECDSA signature of seller with a certain nonce
-        # TODO
-
         # === 3b: Seller sends signature
-        # TODO
-
         # === 4a: Buyer verifies ECDSA signature of seller with public key
-        # TODO
 
         # === 4b Buyer: extract pubX and pubY from SIG-> deploy smart contract
         self._sk = SigningKey.generate(curve=SECP256k1)
