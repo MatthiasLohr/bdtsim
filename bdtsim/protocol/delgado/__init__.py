@@ -14,10 +14,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .delgado import Delgado, DelgadoLibrary, DelgadoReusable
+
+from .delgado import DelgadoBasic, DelgadoReusableLibrary, DelgadoReusableContract
 
 __all__ = [
-    'Delgado',
-    'DelgadoReusable',
-    'DelgadoLibrary'
+    'DelgadoBasic',
+    'DelgadoReusableLibrary',
+    'DelgadoReusableContract'
 ]

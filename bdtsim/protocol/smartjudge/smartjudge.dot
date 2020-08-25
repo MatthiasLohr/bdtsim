@@ -1,0 +1,26 @@
+digraph SmartJudge {
+    rankdir="LR";
+
+    Start [shape="rectangle"];
+    Created;
+    Accepted;
+    Revealed;
+    Contended;
+    Waiting;
+    Finished;
+    
+    Start -> Created [label="create/Alice"];
+    Created -> Finished [label="abort/Alice"];
+    Created -> Accepted [label="accept/Bob"];
+    Accepted -> Finished [label="finish/Alice"];
+    Revealed -> Finished [label="finish/Alice"];
+    Contended -> Finished [label="finish/Alice"];
+    Accepted -> Revealed [label="reveal/Bob"];
+    Accepted -> Contended [label="contest/Bob"];
+    Revealed -> Contended [label="contest/Bob"];
+    Contended -> Waiting [label="init_verification/Alice"];
+    Waiting -> Finished;
+    Accepted -> Finished [label="timeout/Alice"];
+    Revealed -> Finished [label="timeout/Alice"];
+    Contended -> Finished [label="timeout/Bob"];   
+}

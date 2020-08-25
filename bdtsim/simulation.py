@@ -60,7 +60,8 @@ class Simulation(object):
             protocol_path = self._protocol_path_queue.get(block=False)
 
             with result_collector.monitor_execution(self._environment, protocol_path):
-                logger.debug('Simulation will follow path %s' % str(protocol_path))
+                logger.debug('Simulation will follow path %s (coercion string: \'%s\')'
+                             % (str(protocol_path), protocol_path.coercion_str))
 
                 logger.debug('Preparing environment for iteration...')
                 self._protocol.prepare_iteration(self._environment, self._operator)

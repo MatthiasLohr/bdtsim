@@ -17,31 +17,30 @@
 
 import copy
 import itertools
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Tuple
 
 from bdtsim.account import Account
 from bdtsim.funds_diff_collection import FundsDiffCollection
 from bdtsim.protocol_path import Decision
 
 
-class TransactionLogEntry(object):
-    def __init__(self, account: Account, tx_dict: Dict[str, Any], tx_receipt: Dict[str, Any], description: str,
-                 funds_diff_collection: FundsDiffCollection) -> None:
-        self.account = account
-        self.tx_dict = tx_dict
-        self.tx_receipt = tx_receipt
-        self.description = description
-        self.funds_diff_collection = funds_diff_collection
+class TransactionLogEntry(NamedTuple):
+    """Log entry and according information of a single transaction"""
+    account: Account
+    tx_dict: Dict[str, Any]
+    tx_receipt: Dict[str, Any]
+    description: str
+    funds_diff_collection: FundsDiffCollection
 
 
-class TransactionLogList(object):
-    class Aggregation(object):
-        class Entry(object):
-            def __init__(self, account: Account, tx_fees: int, tx_count: int, funds_diff: int) -> None:
-                self.account = account
-                self.tx_fees = tx_fees
-                self.tx_count = tx_count
-                self.funds_diff = funds_diff
+class TransactionLogList(List[TransactionLogEntry]):
+    """List of TransactionLogEntry"""
+    class Aggregation(Dict[Account, 'TransactionLogList.Aggregation.Entry']):
+        class Entry(NamedTuple):
+            account: Account
+            tx_fees: int
+            tx_count: int
+            funds_diff: int
 
             def __str__(self) -> str:
                 return '%s: %d (%d transaction(s), value diff %d)' % (
@@ -51,28 +50,32 @@ class TransactionLogList(object):
                     self.funds_diff
                 )
 
-        def __init__(self, tx_list: 'TransactionLogList') -> None:
-            self.entries: Dict[Account, TransactionLogList.Aggregation.Entry] = {}
-            for tx in tx_list.tx_log_list:
+        def __init__(self, tx_log_list: 'TransactionLogList') -> None:
+            super(TransactionLogList.Aggregation, self).__init__()
+            for tx in tx_log_list:
                 # work on log line
-                entry = self.entries.get(tx.account)
+                entry = self.get(tx.account)
                 if entry is None:
-                    self.entries.update({
-                        tx.account: TransactionLogList.Aggregation.Entry(
-                            tx.account,
-                            int(tx.tx_receipt['gasUsed']),
-                            1,
-                            0
-                        )
-                    })
+                    entry = TransactionLogList.Aggregation.Entry(
+                        tx.account,
+                        int(tx.tx_receipt['gasUsed']),
+                        1,
+                        0
+                    )
+                    self.update({tx.account: entry})
                 else:
-                    entry.tx_fees += int(tx.tx_receipt['gasUsed'])
-                    entry.tx_count += 1
+                    entry = TransactionLogList.Aggregation.Entry(
+                        tx.account,
+                        entry.tx_fees + int(tx.tx_receipt['gasUsed']),
+                        entry.tx_count + 1,
+                        entry.funds_diff
+                    )
+                    self.update({tx.account: entry})
                 # work on all fund diffs
                 for account, funds_diff in tx.funds_diff_collection.items():
-                    funds_diff_entry = self.entries.get(account)
+                    funds_diff_entry = self.get(account)
                     if funds_diff_entry is None:
-                        self.entries.update({
+                        self.update({
                             account: TransactionLogList.Aggregation.Entry(
                                 account,
                                 0,
@@ -81,17 +84,27 @@ class TransactionLogList(object):
                             )
                         })
                     else:
-                        funds_diff_entry.funds_diff += funds_diff
+                        self.update({
+                            account: TransactionLogList.Aggregation.Entry(
+                                account,
+                                entry.tx_fees,
+                                entry.tx_count,
+                                funds_diff_entry.funds_diff + funds_diff
+                            )
+                        })
 
     def __init__(self) -> None:
-        self.tx_log_list: List[TransactionLogEntry] = []
+        super(TransactionLogList, self).__init__()
         self._aggregation: Optional[TransactionLogList.Aggregation] = None
 
-    def __len__(self) -> int:
-        return len(self.tx_log_list)
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, TransactionLogList):
+            return super(TransactionLogList, self).__eq__(other)
+        else:
+            raise NotImplementedError()
 
-    def append(self, entry: TransactionLogEntry) -> None:
-        return self.tx_log_list.append(entry)
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
 
     @property
     def aggregation(self) -> 'TransactionLogList.Aggregation':
@@ -100,105 +113,96 @@ class TransactionLogList(object):
         return self._aggregation
 
 
-class TransactionLogCollection(object):
-    class Aggregation(object):
-        class Entry(object):
-            def __init__(self, account: Account, tx_fees_min: int, tx_fees_max: int, tx_fees_sum: int,
-                         tx_count_min: int, tx_count_max: int, tx_count_sum: int, funds_diff_min: int,
-                         funds_diff_max: int, list_count: int, ) -> None:
-                self.account = account
-                self.tx_fees_min = tx_fees_min
-                self.tx_fees_max = tx_fees_max
-                self.tx_fees_sum = tx_fees_sum
-                self.tx_count_min = tx_count_min
-                self.tx_count_max = tx_count_max
-                self.tx_count_sum = tx_count_sum
-                self.funds_diff_min = funds_diff_min
-                self.funds_diff_max = funds_diff_max
-                self.list_count = list_count
+class TransactionLogCollection(List[TransactionLogList]):
+    class Aggregation(Dict[Account, 'TransactionLogCollection.Aggregation.Entry']):
+        class Entry(NamedTuple):
+            account: Account
+            tx_fees_min: int
+            tx_fees_max: int
+            tx_fees_mean: float
+            tx_count_min: int
+            tx_count_max: int
+            tx_count_mean: float
+            funds_diff_min: int
+            funds_diff_max: int
 
             def __str__(self) -> str:
                 if self.tx_fees_min == self.tx_fees_max:
-                    return '%s: %d (%d transaction(s), value diff %d)' % (
-                        self.account.name,
-                        self.tx_fees_min,
-                        self.tx_count_min,
-                        self.funds_diff_min
-                    )
+                    tx_fees_str = ' %d' % self.tx_fees_min
                 else:
-                    return '%s: %d/%d/%d (%d/%d/%d transaction(s), value diff %d/%d)' % (
-                        self.account.name,
-                        self.tx_fees_min, self.tx_fees_mean, self.tx_fees_max,
-                        self.tx_count_min, self.tx_count_mean, self.tx_count_max,
-                        self.funds_diff_min, self.funds_diff_max
+                    tx_fees_str = ' %d/%d/%d' % (self.tx_fees_min, round(self.tx_fees_mean), self.tx_fees_max)
+
+                if self.tx_count_min == self.tx_count_max:
+                    tx_count_str = '%d transaction(s)' % self.tx_count_min
+                else:
+                    tx_count_str = '%d/%d/%d transaction(s)' % (
+                        self.tx_count_min,
+                        round(self.tx_count_mean, 1),
+                        self.tx_count_max
                     )
 
-            @property
-            def tx_fees_mean(self) -> float:
-                return self.tx_fees_sum / self.list_count
+                if self.funds_diff_min == self.funds_diff_max:
+                    funds_diff_str = 'funds diff %d' % self.funds_diff_min
+                else:
+                    funds_diff_str = 'funds diff %d/%d' % (self.funds_diff_min, self.funds_diff_max)
 
-            @property
-            def tx_count_mean(self) -> float:
-                return self.tx_count_sum / self.list_count
+                return '%s: %s (%s, %s)' % (self.account.name, tx_fees_str, tx_count_str, funds_diff_str)
 
-        def __init__(self, tx_collection: 'TransactionLogCollection') -> None:
-            self.entries: Dict[Account, TransactionLogCollection.Aggregation.Entry] = {}
-            for tx_list in tx_collection.tx_log_lists:
-                for tx_list_aggregation in tx_list.aggregation.entries.values():
-                    entry = self.entries.get(tx_list_aggregation.account)
-                    if entry is None:
-                        self.entries.update({tx_list_aggregation.account: TransactionLogCollection.Aggregation.Entry(
-                            tx_list_aggregation.account,
-                            tx_list_aggregation.tx_fees,
-                            tx_list_aggregation.tx_fees,
-                            tx_list_aggregation.tx_fees,
-                            tx_list_aggregation.tx_count,
-                            tx_list_aggregation.tx_count,
-                            tx_list_aggregation.tx_count,
-                            tx_list_aggregation.funds_diff,
-                            tx_list_aggregation.funds_diff,
-                            1
+        def __init__(self, tx_log_collection: 'TransactionLogCollection') -> None:
+            super(TransactionLogCollection.Aggregation, self).__init__()
+            for tx_log_list in tx_log_collection:
+                for tx_list_aggregation_entry in tx_log_list.aggregation.values():
+                    e = self.get(tx_list_aggregation_entry.account)
+                    if e is None:
+                        self.update({tx_list_aggregation_entry.account: TransactionLogCollection.Aggregation.Entry(
+                            account=tx_list_aggregation_entry.account,
+                            tx_fees_min=tx_list_aggregation_entry.tx_fees,
+                            tx_fees_max=tx_list_aggregation_entry.tx_fees,
+                            tx_fees_mean=tx_list_aggregation_entry.tx_fees / len(tx_log_collection),
+                            tx_count_min=tx_list_aggregation_entry.tx_count,
+                            tx_count_max=tx_list_aggregation_entry.tx_count,
+                            tx_count_mean=tx_list_aggregation_entry.tx_count / len(tx_log_collection),
+                            funds_diff_min=tx_list_aggregation_entry.funds_diff,
+                            funds_diff_max=tx_list_aggregation_entry.funds_diff
                         )})
                     else:
-                        entry.tx_fees_min = min(entry.tx_fees_min, tx_list_aggregation.tx_fees)
-                        entry.tx_fees_max = max(entry.tx_fees_max, tx_list_aggregation.tx_fees)
-                        entry.tx_fees_sum += tx_list_aggregation.tx_fees
-                        entry.tx_count_min = min(entry.tx_count_min, tx_list_aggregation.tx_count)
-                        entry.tx_count_max = max(entry.tx_count_max, tx_list_aggregation.tx_count)
-                        entry.tx_count_sum += tx_list_aggregation.tx_count
-                        entry.funds_diff_min = min(entry.funds_diff_min, tx_list_aggregation.funds_diff)
-                        entry.funds_diff_max = max(entry.funds_diff_max, tx_list_aggregation.funds_diff)
-                        entry.list_count += 1
+                        self.update({tx_list_aggregation_entry.account: TransactionLogCollection.Aggregation.Entry(
+                            account=tx_list_aggregation_entry.account,
+                            tx_fees_min=min(e.tx_fees_min, tx_list_aggregation_entry.tx_fees),
+                            tx_fees_max=max(e.tx_fees_max, tx_list_aggregation_entry.tx_fees),
+                            tx_fees_mean=e.tx_fees_mean + (tx_list_aggregation_entry.tx_fees / len(tx_log_collection)),
+                            tx_count_min=min(e.tx_count_min, tx_list_aggregation_entry.tx_count),
+                            tx_count_max=max(e.tx_count_max, tx_list_aggregation_entry.tx_count),
+                            tx_count_mean=e.tx_count_mean + tx_list_aggregation_entry.tx_count / len(tx_log_collection),
+                            funds_diff_min=min(e.funds_diff_min, tx_list_aggregation_entry.funds_diff),
+                            funds_diff_max=max(e.funds_diff_max, tx_list_aggregation_entry.funds_diff)
+                        )})
 
         def __iadd__(self, other: 'TransactionLogCollection.Aggregation') -> 'TransactionLogCollection.Aggregation':
             if isinstance(other, TransactionLogCollection.Aggregation):
-                for remote_entry in other.entries.values():
-                    local_entry = self.entries.get(remote_entry.account)
+                for remote_entry in other.values():
+                    local_entry = self.get(remote_entry.account)
                     if local_entry is None:
-                        self.entries.update({remote_entry.account: copy.deepcopy(remote_entry)})
+                        self.update({remote_entry.account: copy.deepcopy(remote_entry)})
                     else:
-                        local_entry.tx_fees_min += remote_entry.tx_fees_min
-                        local_entry.tx_fees_max += remote_entry.tx_fees_max
-                        local_entry.tx_fees_sum += remote_entry.tx_fees_sum
-                        local_entry.tx_count_min += remote_entry.tx_count_min
-                        local_entry.tx_count_max += remote_entry.tx_count_max
-                        local_entry.tx_count_sum += remote_entry.tx_count_sum
-                        local_entry.funds_diff_min += remote_entry.funds_diff_min
-                        local_entry.funds_diff_max += remote_entry.funds_diff_max
-                        local_entry.list_count += remote_entry.list_count
+                        self.update({remote_entry.account: TransactionLogCollection.Aggregation.Entry(
+                            account=remote_entry.account,
+                            tx_fees_min=local_entry.tx_fees_min + remote_entry.tx_fees_min,
+                            tx_fees_max=local_entry.tx_fees_max + remote_entry.tx_fees_max,
+                            tx_fees_mean=local_entry.tx_fees_mean + remote_entry.tx_fees_mean,
+                            tx_count_min=local_entry.tx_count_min + remote_entry.tx_count_min,
+                            tx_count_max=local_entry.tx_count_max + remote_entry.tx_count_max,
+                            tx_count_mean=local_entry.tx_count_mean + remote_entry.tx_count_mean,
+                            funds_diff_min=local_entry.funds_diff_min + remote_entry.funds_diff_min,
+                            funds_diff_max=local_entry.funds_diff_max + remote_entry.funds_diff_max
+                        )})
                 return self
             else:
                 return NotImplemented
 
     def __init__(self, tx_log_lists: Optional[List[TransactionLogList]] = None) -> None:
-        self.tx_log_lists: List[TransactionLogList] = tx_log_lists or []
+        super(TransactionLogCollection, self).__init__()
         self._aggregation: Optional[TransactionLogCollection.Aggregation] = None
-
-    def __len__(self) -> int:
-        return len(self.tx_log_lists)
-
-    def append(self, entry: TransactionLogList) -> None:
-        self.tx_log_lists.append(entry)
 
     @property
     def aggregation(self) -> 'TransactionLogCollection.Aggregation':
@@ -263,7 +267,7 @@ class AggregationAttributeHelper(object):
         self._attribute = attribute
 
     def __call__(self, aggregation: TransactionLogCollection.Aggregation) -> Any:
-        return getattr(aggregation.entries.get(self._account), self._attribute)
+        return getattr(aggregation.get(self._account), self._attribute)
 
 
 class SimulationResult(object):
@@ -317,7 +321,7 @@ class SimulationResult(object):
     def _apply_aggr_func(aggr_func: Callable[..., TransactionLogCollection.Aggregation],
                          results: List[TransactionLogCollection.Aggregation], account: Account,
                          attribute: str) -> Optional[TransactionLogCollection.Aggregation]:
-        results_filtered = list(filter(lambda x: x.entries.get(account) is not None, results))
+        results_filtered = list(filter(lambda x: x.get(account) is not None, results))
         if len(results_filtered) == 0:
             return None
         return aggr_func(results_filtered, key=AggregationAttributeHelper(account, attribute))

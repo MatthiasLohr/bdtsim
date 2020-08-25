@@ -5,7 +5,8 @@ These protocols are currently supported (or planned to be supported) by BDTsim:
   * [SimplePayment](#simplepayment)
   * [FairSwap](#fairswap)
   * OptiSwap ([planned](https://gitlab.com/MatthiasLohr/bdtsim/-/issues/5))
-  * Delgado-Segura ([planned](https://gitlab.com/MatthiasLohr/bdtsim/-/issues/1))
+  * [SmartJudge](#smartjudge)
+  * [Delgado-Segura](#delgado-segura)
 
 
 ## Supported Protocols
@@ -82,6 +83,29 @@ Original example smart contract repository: [https://github.com/CryBtoS/OptiSwap
 Use kindly permitted by Lisa Eckey (16. April 2020).
 
 
+### SmartJudge
+
+SmartJudge is a container protocol which can be used to abstract from a verification specific protocol such as [FairSwap](#fairswap).
+The SmartJudge mediator contract was originally introduced here:
+
+> Eric Wagner, Achim Völker, Frederik Fuhrmann, Roman Matzutt and Klaus Wehrle.
+> Dispute Resolution for Smart-contract bases Two-Party Protocols
+> IEEE International Conference on Blockchain and Cryptocurrency 2019 (ICBC 2019)
+
+Currently, the BDTsim implementation of SmartJudge only supports FairSwap as a verifier protocol.
+However, it is possible also to support other protocols but needs to be implemented.
+
+#### Protocol Parameters
+
+  * `worst_cast_cost` (int): Maximum possible cost of verification.
+    Is used to pay the honest party for its verification cost. Given in Gas.
+  * `security_deposit` (int): Security deposit both parties have to make.
+    Will be payed out to the honest party. Given in Gas.
+  * `timeout` (int): Number of seconds parties have time to react before the waiting party can claim a timeout.
+  * `slices_count` (int): Number of slices in which the data is to be split.
+  * `slice_length` (int): Length in bytes of a single data slice. Must be multiple of 32.
+
+
 ### Delgado-Segura
 
 The Delgado protocol was presented in the following research paper:
@@ -91,14 +115,18 @@ The Delgado protocol was presented in the following research paper:
 > Future Generation Computer Systems.
 > [https://doi.org/10.1016/j.future.2017.08.021](https://doi.org/10.1016/j.future.2017.08.021)
 
-It is available within BDTsim with the name `Delgado`. The contract `Delgado-Library` deploys the library seperately before simulation to reduce contract costs.
-There is also a protocol `Delgado-Reusable`, which deploys a reusable variant of the Delgado smart contract.
+It is available within BDTsim with the name `Delgado`. The contract `Delgado-ReusableLibrary` deploys the library seperately before simulation to reduce contract costs.
+There is also a protocol `Delgado-ReusableContract`, which deploys a reusable variant of the Delgado smart contract.
 
 Protocol Assumptions:
 
   * Both seller and buyer initialized the data trade like it is described in the paper.
 
 Disclaimer: the author noted that the protocol is vulnerable to sybil attacks and reveals information of your data to interested buyers.
+
+#### Protocol Parameters
+
+  * `timeout` (int): Number of seconds parties have time to react before the waiting party can claim a timeout.
 
 #### Example Protocol Execution
 

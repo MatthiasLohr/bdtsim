@@ -15,13 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .fairswap import FairSwap, FairSwapReusable
+from .smartjudge import SmartJudge
 
 __all__ = [
-    'FairSwap',
-    'FairSwapReusable'
+    'SmartJudge'
 ]
 
 __pdoc__ = {
-    'lEthDev-FairSwap': False
+    'COMSYS-smartjudge': False,
+    'COMSYS-smartjudge-fairswap': False
 }

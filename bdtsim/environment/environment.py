@@ -18,7 +18,7 @@
 import logging
 import time
 from datetime import datetime
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Generator, List, Optional, Union
 
 from web3 import Web3
 from web3.datastructures import AttributeDict
@@ -28,7 +28,7 @@ from web3.providers.base import BaseProvider
 from web3.types import TxParams, Wei
 
 from bdtsim.account import Account
-from bdtsim.contract import SolidityContract
+from bdtsim.contract import Contract
 from bdtsim.funds_diff_collection import FundsDiffCollection
 from bdtsim.simulation_result import TransactionLogEntry
 
@@ -81,9 +81,6 @@ class Environment(object):
         else:
             self._web3.eth.setGasPriceStrategy(fast_gas_price_strategy)
 
-        self._contract: Optional[SolidityContract] = None
-        self._contract_address: Optional[str] = None
-
         self._transaction_callback: Optional[Callable[[TransactionLogEntry], None]] = None
 
     @property
@@ -91,37 +88,45 @@ class Environment(object):
         return self._chain_id
 
     @property
-    def gas_price(self) -> Optional[int]:
-        return self._gas_price
+    def gas_price(self) -> int:
+        if self._gas_price is not None:
+            return self._gas_price
+        else:
+            gas_price = self._web3.eth.generateGasPrice()
+            if gas_price is not None:
+                return gas_price
+            else:
+                raise RuntimeError('Could not determine gas price')
 
-    def deploy_contract(self, account: Account, contract: SolidityContract, allow_failure: bool = False,
+    def deploy_contract(self, account: Account, contract: Contract, allow_failure: bool = False,
                         *args: Any, **kwargs: Any) -> None:
+        """Deploys the given contract to the environment.
+
+        Calling this method will set the address property of the contract object on success.
+
+        Args:
+            account (Account): Account to be used for deployment.
+            contract (Contract): Contract object containing the contract to be deployed.
+            allow_failure (bool): Do not throw an Exception when the deployment transaction fails.
+            *args (Any): Positional arguments for the contract's constructor.
+            **kwargs (Any): Keyword arguments for the contract's constructor.
+
+        Returns:
+            None
+        """
         web3_contract = self._web3.eth.contract(abi=contract.abi, bytecode=contract.bytecode)
         tx_receipt = self._send_transaction(
             account=account,
             factory=web3_contract.constructor(*args, **kwargs),
+            description='Contract Deployment',
             allow_failure=allow_failure
         )
-        self._contract_address = tx_receipt['contractAddress']
-        logger.debug('New contract address: %s' % self._contract_address)
-        self._contract = contract
+        contract.address = tx_receipt['contractAddress']
 
-    def deploy_library(self, account: Account, contract: SolidityContract, allow_failure: bool = False,
-                       *args: Any, **kwargs: Any) -> str:
-        web3_contract = self._web3.eth.contract(abi=contract.abi, bytecode=contract.bytecode)
-        tx_receipt = self._send_transaction(
-            account=account,
-            factory=web3_contract.constructor(*args, **kwargs),
-            allow_failure=allow_failure
-        )
-        return str(tx_receipt['contractAddress'])
-
-    def send_contract_transaction(self, account: Account, method: str, *args: Any, value: int = 0,
-                                  allow_failure: bool = False, **kwargs: Any) -> Any:
-        if self._contract is None:
-            raise RuntimeError('No contract available!')
+    def send_contract_transaction(self, contract: Contract, account: Account, method: str, *args: Any,
+                                  value: int = 0, allow_failure: bool = False, **kwargs: Any) -> Any:
         logger.debug('Preparing contract transaction %s(%s)' % (method, ', '.join([str(a) for a in [*args]])))
-        web3_contract = self._web3.eth.contract(address=self._contract_address, abi=self._contract.abi)
+        web3_contract = self._web3.eth.contract(address=contract.address, abi=contract.abi)
         contract_method = getattr(web3_contract.functions, method)
         factory = contract_method(*args, **kwargs)
         self._send_transaction(
@@ -196,12 +201,45 @@ class Environment(object):
             if balance_diff != 0:
                 funds_diff_collection += FundsDiffCollection({tmp_account: balance_diff})
 
+        # adjustment for paid transaction fees (should NOT be contained in FundsDiffCollection, therefore re-adding)
         funds_diff_collection += FundsDiffCollection({account: tx_receipt['gasUsed'] * 1000000000})
+
+        if not funds_diff_collection.is_neutral:
+            logger.debug('Funds diff: %s' % ', '.join(['%s: %i' % (k, v) for k, v in funds_diff_collection.items()]))
 
         if self.transaction_callback is not None:
             self.transaction_callback(TransactionLogEntry(account, tx_dict, dict(tx_receipt), description,
                                                           funds_diff_collection))
         return tx_receipt
+
+    def event_filter(self, contract: Contract, event_name: str, event_args: Optional[List[Any]] = None,
+                     from_block: Union[str, int] = 'latest', to_block: Union[str, int] = 'latest',
+                     address: Optional[str] = None, argument_filters: Optional[Dict[str, Any]] = None,
+                     ) -> Generator[AttributeDict[str, Any], None, None]:
+        if event_args is None:
+            event_args = []
+
+        if isinstance(from_block, int):
+            if from_block < 0:
+                from_block = self._web3.eth.getBlock('latest')['number'] + from_block
+
+        if isinstance(to_block, int):
+            if to_block < 0:
+                to_block = self._web3.eth.getBlock('latest')['number'] + to_block
+
+        web3_contract = self._web3.eth.contract(address=contract.address, abi=contract.abi)
+        event_class = getattr(web3_contract.events, event_name)
+        event_instance = event_class(*event_args)
+        event_filter = event_instance.createFilter(
+            fromBlock=from_block,
+            toBlock=to_block,
+            address=address,
+            argument_filters=argument_filters
+        )
+        while True:
+            for event in event_filter.get_new_entries():
+                yield event
+            time.sleep(0.1)
 
     def wait(self, seconds: int) -> None:
         timeout = self._web3.eth.getBlock('latest').timestamp + seconds

@@ -28,6 +28,7 @@ from bdtsim.protocol.fairswap import FairSwap
 from bdtsim.protocol.fairswap.encoding import encode, encode_forge_first_leaf, encode_forge_first_leaf_first_hash,\
     decode, B032, crypt, NodeDigestMismatchError, LeafDigestMismatchError
 from bdtsim.protocol.fairswap.merkle import MerkleTreeNode, MerkleTreeLeaf, from_bytes
+from bdtsim.util.bytes import generate_bytes
 
 
 seller = Account('Seller', '0x3f2c7f45cb3014e2b9d12b7fb331bdfdad6170ce5e4a0d94890aa64162569756')
@@ -36,7 +37,7 @@ buyer = Account('Buyer', '0x0633ee528dcfb901af1888d91ce451fc59a71ae7438832966811
 
 class FairSwapTest(unittest.TestCase):
     def test_keccak(self):
-        data = FairSwap.generate_bytes(32)
+        data = generate_bytes(32)
         self.assertEqual(keccak(data), Web3.solidityKeccak(['bytes32'], [data]))
         self.assertEqual(keccak(data), Web3.solidityKeccak(['bytes32[1]'], [[data]]))
         self.assertEqual(keccak(data), Web3.keccak(data))
@@ -61,7 +62,7 @@ class MerkleTest(unittest.TestCase):
 
     def test_get_proof_and_validate(self):
         for slice_count in [2, 4, 8, 16]:
-            tree = from_bytes(FairSwap.generate_bytes(32 * slice_count), slice_count)
+            tree = from_bytes(generate_bytes(32 * slice_count), slice_count)
             for index, leaf in enumerate(tree.leaves):
                 proof = tree.get_proof(leaf)
                 self.assertEqual(len(proof), int(math.log2(slice_count)))
@@ -70,21 +71,21 @@ class MerkleTest(unittest.TestCase):
 
 class EncodingTest(unittest.TestCase):
     def test_encode_decode(self):
-        tree = from_bytes(FairSwap.generate_bytes(128, seed=42), 4)
+        tree = from_bytes(generate_bytes(128, seed=42), 4)
         tree_enc = encode(tree, B032)
         tree_dec, errors = decode(tree_enc, B032)
         self.assertEqual([], errors)
         self.assertEqual(tree, tree_dec)
 
     def test_encode_forge_first_leaf(self):
-        tree = from_bytes(FairSwap.generate_bytes(128, seed=42), 4)
+        tree = from_bytes(generate_bytes(128, seed=42), 4)
         tree_enc = encode_forge_first_leaf(tree, B032)
         tree_dec, errors = decode(tree_enc, B032)
         self.assertEqual(1, len(errors))
         self.assertEqual(LeafDigestMismatchError, type(errors[0]))
 
     def test_encode_forge_first_leaf_first_hash(self):
-        tree = from_bytes(FairSwap.generate_bytes(128, seed=42), 4)
+        tree = from_bytes(generate_bytes(128, seed=42), 4)
         tree_enc = encode_forge_first_leaf_first_hash(tree, B032)
         tree_dec, errors = decode(tree_enc, B032)
         self.assertEqual(1, len(errors))
@@ -109,8 +110,8 @@ class ContractTest(unittest.TestCase):
         return web3, web3.eth.contract(address=tx_receipt.contractAddress, abi=contract_object.abi)
 
     def test_vrfy(self):
-        tree = from_bytes(FairSwap.generate_bytes(128, seed=42), 4)
-        key = FairSwap.generate_bytes(32, seed=43)
+        tree = from_bytes(generate_bytes(128, seed=42), 4)
+        key = generate_bytes(32, seed=43)
         tree_enc = encode(tree, key)
         web3, contract = self.prepare_contract(tree.digest, tree_enc.digest, B032)
 
@@ -122,8 +123,8 @@ class ContractTest(unittest.TestCase):
 
     def test_crypt_small(self):
         for n in [4, 8, 16]:
-            web3, contract = self.prepare_contract(FairSwap.generate_bytes(32), FairSwap.generate_bytes(32), B032, n)
+            web3, contract = self.prepare_contract(generate_bytes(32), generate_bytes(32), B032, n)
             for i in range(8):
-                data = FairSwap.generate_bytes(32)
+                data = generate_bytes(32)
                 call_result = contract.functions.cryptSmall(i, data).call()
                 self.assertEqual(call_result, crypt(data, n + i, B032))

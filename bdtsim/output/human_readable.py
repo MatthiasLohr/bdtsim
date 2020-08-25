@@ -25,21 +25,21 @@ class HumanReadableOutputFormat(OutputFormat):
         super(HumanReadableOutputFormat, self).__init__()
 
     def render(self, simulation_result: SimulationResult) -> None:
-        if len(simulation_result.preparation_transactions.aggregation.entries) > 0:
+        if len(simulation_result.preparation_transactions.aggregation) > 0:
             print('Preparation Results:')
-            for preparation_entry in simulation_result.preparation_transactions.aggregation.entries.values():
+            for preparation_entry in simulation_result.preparation_transactions.aggregation.values():
                 print('  %s' % str(preparation_entry))
 
         print('Execution Results:')
         for description, aggregation in simulation_result.get_important_execution_results():
             print('  %s' % description)
-            for execution_entry in aggregation.entries.values():
+            for execution_entry in aggregation.values():
                 print('    %s' % str(execution_entry))
 
-        if len(simulation_result.cleanup_transactions.aggregation.entries) > 0:
+        if len(simulation_result.cleanup_transactions.aggregation) > 0:
             print('Cleanup Results:')
-            for cleanup_entry in simulation_result.cleanup_transactions.aggregation.entries.values():
-                print('  %s' % cleanup_entry)
+            for cleanup_entry in simulation_result.cleanup_transactions.aggregation.values():
+                print('  %s' % str(cleanup_entry))
 
 
 OutputFormatManager.register('human-readable', HumanReadableOutputFormat)

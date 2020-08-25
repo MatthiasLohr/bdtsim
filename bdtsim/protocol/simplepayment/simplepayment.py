@@ -16,6 +16,7 @@
 # limitations under the License.
 
 import logging
+from typing import Optional
 
 from bdtsim.contract import SolidityContract
 from bdtsim.data_provider import DataProvider
@@ -61,6 +62,14 @@ class AbstractParameterizedSimplePayment(Protocol):
     def __init__(self, use_contract: bool):
         super(AbstractParameterizedSimplePayment, self).__init__()
         self._use_contract = use_contract
+        self._contract: Optional[SolidityContract] = None
+
+    @property
+    def contract(self) -> SolidityContract:
+        if self._contract is not None:
+            return self._contract
+        else:
+            raise RuntimeError('Contract not initialized')
 
     def get_contract(self) -> SolidityContract:
         return SolidityContract('SimplePayment', self.contract_path(__file__, 'SimplePayment.sol'))
@@ -68,7 +77,8 @@ class AbstractParameterizedSimplePayment(Protocol):
     def prepare_simulation(self, environment: Environment, operator: Account) -> None:
         if self._use_contract:
             logger.debug('Deploying contract...')
-            environment.deploy_contract(operator, self.get_contract())
+            self._contract = self.get_contract()
+            environment.deploy_contract(operator, self.contract)
 
     def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
                 seller: Account, buyer: Account, price: int = DEFAULT_ASSET_PRICE) -> None:
@@ -107,7 +117,7 @@ class SimplePaymentPrepaid(AbstractParameterizedSimplePayment):
         if protocol_path.decide(buyer, description='Payment', variants=['paying', 'not paying']).is_honest():
             logger.debug('Decided to be honest')
             if self._use_contract:
-                environment.send_contract_transaction(buyer, 'pay', seller.wallet_address, value=price)
+                environment.send_contract_transaction(self.contract, buyer, 'pay', seller.wallet_address, value=price)
             else:
                 environment.send_direct_transaction(buyer, seller, price)
 
@@ -136,7 +146,8 @@ class SimplePaymentPostpaid(AbstractParameterizedSimplePayment):
             if protocol_path.decide(buyer, description='Payment', variants=['paying', 'not paying']).is_honest():
                 logger.debug('Decided to be honest')
                 if self._use_contract:
-                    environment.send_contract_transaction(buyer, 'pay', seller.wallet_address, value=price)
+                    environment.send_contract_transaction(self.contract, buyer, 'pay', seller.wallet_address,
+                                                          value=price)
                 else:
                     environment.send_direct_transaction(buyer, seller, price)
 

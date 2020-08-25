@@ -24,9 +24,3 @@ log_handler = logging.StreamHandler()
 log_formatter = logging.Formatter(fmt='%(asctime)s %(name)-44s [%(levelname)s] %(message)s')
 log_handler.setFormatter(log_formatter)
 log.addHandler(log_handler)
-
-__all__ = [
-    'data_provider',
-    'environment',
-    'protocol'
-]
