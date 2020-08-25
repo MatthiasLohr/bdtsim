@@ -114,3 +114,7 @@ pages:
 include:
   - template: Dependency-Scanning.gitlab-ci.yml
   - template: SAST.gitlab-ci.yml
+
+gemnasium-dependency_scanning:
+  variables:
+    SECURE_LOG_LEVEL: "debug"
