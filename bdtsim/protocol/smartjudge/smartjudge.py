@@ -135,7 +135,7 @@ class SmartJudge(Protocol):
         """
         logger.debug('Initialization and sanitizing checks')
         if self._slice_length * self._slices_count != data_provider.data_size:
-            logger.error('(protocol) slice_length * (protocol) slices_count != (data provider) data_sice')
+            logger.error('(protocol) slice_length * (protocol) slices_count != (data provider) size')
             logger.error('Please check protocol and data provider parameters')
             sys.exit(1)
 
