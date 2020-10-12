@@ -10,6 +10,7 @@
   * Feature: Output Format: Graphviz Dot: Add option to show individual transactions in graph (#26)
   * Fix: Set default price to 1 ETH (#24)
   * Fix: Use gasPriceStrategy for determining gas price when available
+  * Dependency Update: py-solc-x to 1.0.0 (#36)
   * Documentation: Updated documentation of Delgado protocol
   * New dependency: ecdsa 0.15
 
