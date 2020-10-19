@@ -1,5 +1,5 @@
 
-image: python:3.8
+image: python:3.9
 
 stages:
   - test
@@ -17,6 +17,10 @@ unittests:
   script:
     - python -m unittest discover tests
 
+unittests python 3.8:
+  extends: unittests
+  image: python:3.8
+
 unittests python 3.7:
   extends: unittests
   image: python:3.7
@@ -31,6 +35,10 @@ flake8 checks:
   script:
     - python -m flake8
 
+flake8 checks python 3.8:
+  extends: flake8 checks
+  image: python:3.8
+
 flake8 checks python 3.7:
   extends: flake8 checks
   image: python:3.7
@@ -44,6 +52,10 @@ mypy checks:
     - pip install . mypy
   script:
     - python -m mypy -p bdtsim
+
+mypy checks python 3.8:
+  extends: mypy checks
+  image: python:3.8
 
 mypy checks python 3.7:
   extends: mypy checks
