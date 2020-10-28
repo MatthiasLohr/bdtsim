@@ -1,5 +1,7 @@
 
-image: python:3.8
+variables:
+  SECURE_LOG_LEVEL: "debug"
+  python_versions: ["3.7", "3.8"]
 
 stages:
   - test
@@ -9,6 +11,7 @@ stages:
 
 unittests:
   stage: test
+  image: python:${python_version}
   rules:
     - if: '$CI_COMMIT_BRANCH != "pages"'
     - if: $CI_MERGE_REQUEST_ID
@@ -16,13 +19,13 @@ unittests:
     - pip install .
   script:
     - python -m unittest discover tests
-
-unittests python 3.7:
-  extends: unittests
-  image: python:3.7
+  parallel:
+    matrix:
+      - python_version: ${python_versions}
 
 flake8 checks:
   stage: test
+  image: python:${python_version}
   rules:
     - if: '$CI_COMMIT_BRANCH != "pages"'
     - if: $CI_MERGE_REQUEST_ID
@@ -30,13 +33,13 @@ flake8 checks:
     - pip install flake8
   script:
     - python -m flake8
-
-flake8 checks python 3.7:
-  extends: flake8 checks
-  image: python:3.7
+  parallel:
+    matrix:
+      - python_version: ${python_versions}
 
 mypy checks:
   stage: test
+  image: python:${python_version}
   rules:
     - if: '$CI_COMMIT_BRANCH != "pages"'
     - if: $CI_MERGE_REQUEST_ID
@@ -44,13 +47,13 @@ mypy checks:
     - pip install . mypy
   script:
     - python -m mypy -p bdtsim
-
-mypy checks python 3.7:
-  extends: mypy checks
-  image: python:3.7
+  parallel:
+    matrix:
+      - python_version: ${python_versions}
 
 build packages:
   stage: build
+  image: python:3.8
   rules:
     - if: '$CI_COMMIT_TAG != null'
   script:
@@ -63,6 +66,7 @@ build packages:
 
 upload to PyPI:
   stage: deploy
+  image: python:3.8
   rules:
     - if: '$CI_COMMIT_TAG != null'
   before_script:
@@ -72,8 +76,8 @@ upload to PyPI:
     - twine upload --non-interactive dist/*
 
 create release:
-  image: registry.gitlab.com/gitlab-org/release-cli
   stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli
   rules:
     - if: '$CI_COMMIT_TAG != null'
   script:
@@ -87,17 +91,18 @@ create release:
 
 create docker image:
   stage: deploy
-  rules:
-    - if: '$CI_COMMIT_TAG != null'
   image:
     name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
+    entrypoint: [ "" ]
+  rules:
+    - if: '$CI_COMMIT_TAG != null'
   script:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"gitlab-ci-token\",\"password\":\"$CI_JOB_TOKEN\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $CI_REGISTRY_IMAGE:${CI_COMMIT_TAG:1} --destination $CI_REGISTRY_IMAGE:latest
 
 pages:
   stage: build
+  image: python3.8
   rules:
     - if: '$CI_COMMIT_BRANCH == "pages"'
   before_script:
@@ -114,6 +119,3 @@ pages:
 include:
   - template: Dependency-Scanning.gitlab-ci.yml
   - template: SAST.gitlab-ci.yml
-
-variables:
-  SECURE_LOG_LEVEL: "debug"
