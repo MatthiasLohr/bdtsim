@@ -1,7 +1,6 @@
 
 variables:
   SECURE_LOG_LEVEL: "debug"
-  python_versions: ["3.7", "3.8"]
 
 stages:
   - test
@@ -21,7 +20,7 @@ unittests:
     - python -m unittest discover tests
   parallel:
     matrix:
-      - python_version: ${python_versions}
+      - python_version: ["3.7", "3.8"]
 
 flake8 checks:
   stage: test
@@ -35,7 +34,7 @@ flake8 checks:
     - python -m flake8
   parallel:
     matrix:
-      - python_version: ${python_versions}
+      - python_version: ["3.7", "3.8"]
 
 mypy checks:
   stage: test
@@ -49,7 +48,7 @@ mypy checks:
     - python -m mypy -p bdtsim
   parallel:
     matrix:
-      - python_version: ${python_versions}
+      - python_version: ["3.7", "3.8"]
 
 build packages:
   stage: build
