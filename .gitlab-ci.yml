@@ -45,7 +45,7 @@ mypy checks:
   before_script:
     - pip install . mypy
   script:
-    - python -m mypy -p bdtsim
+    - python -m mypy
   parallel:
     matrix:
       - python_version: ["3.7", "3.8"]
