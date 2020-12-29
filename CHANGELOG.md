@@ -14,7 +14,7 @@
   * Dependency Update: graphviz to 0.14.2
   * Dependency Update: hexbytes to 0.2.1
   * Dependency Update: py-evm to 0.3.0a19
-  * Dependency Update: py-solc-x to 1.0.0 (#36)
+  * Dependency Update: py-solc-x to 1.1.0
   * Dependency Update: web3 to 5.12.2
   * Documentation: Updated documentation of Delgado protocol
   * New dependency: ecdsa 0.16
