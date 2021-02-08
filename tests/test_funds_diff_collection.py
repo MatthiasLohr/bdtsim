@@ -26,14 +26,14 @@ buyer = Account('Buyer', '0x0633ee528dcfb901af1888d91ce451fc59a71ae7438832966811
 
 
 class FundsDiffCollectionTest(unittest.TestCase):
-    def test_eq(self):
+    def test_eq(self) -> None:
         self.assertEqual(FundsDiffCollection({seller: 42}), FundsDiffCollection({seller: 42}))
         self.assertNotEqual(FundsDiffCollection({seller: 42}), FundsDiffCollection({buyer: 42}))
         self.assertNotEqual(FundsDiffCollection({seller: 42}), FundsDiffCollection({seller: 43}))
 
         self.assertEqual(FundsDiffCollection({seller: 42}), FundsDiffCollection({seller: 42, buyer: 0}))
 
-    def test_iadd(self):
+    def test_iadd(self) -> None:
         fd = FundsDiffCollection({seller: 7})
         fd += FundsDiffCollection({seller: 6})
         self.assertEqual(FundsDiffCollection({seller: 13}), fd)
@@ -48,7 +48,7 @@ class FundsDiffCollectionTest(unittest.TestCase):
         fd += FundsDiffCollection({seller: 6, buyer: 7})
         self.assertEqual(FundsDiffCollection({seller: 18, buyer: 14}), fd)
 
-    def test_add(self):
+    def test_add(self) -> None:
         fd = FundsDiffCollection({seller: 7})
         fd = fd + FundsDiffCollection({seller: 6})
         self.assertEqual(FundsDiffCollection({seller: 13}), fd)
@@ -63,7 +63,7 @@ class FundsDiffCollectionTest(unittest.TestCase):
         fd = fd + FundsDiffCollection({seller: 6, buyer: 7})
         self.assertEqual(FundsDiffCollection({seller: 18, buyer: 14}), fd)
 
-    def test_isub(self):
+    def test_isub(self) -> None:
         fd = FundsDiffCollection({seller: 7})
         fd -= FundsDiffCollection({seller: 6})
         self.assertEqual(FundsDiffCollection({seller: 1}), fd)
@@ -78,7 +78,7 @@ class FundsDiffCollectionTest(unittest.TestCase):
         fd -= FundsDiffCollection({seller: 6, buyer: 6})
         self.assertEqual(FundsDiffCollection({seller: -5, buyer: 1}), fd)
 
-    def test_sub(self):
+    def test_sub(self) -> None:
         fd = FundsDiffCollection({seller: 7})
         fd = fd - FundsDiffCollection({seller: 6})
         self.assertEqual(FundsDiffCollection({seller: 1}), fd)

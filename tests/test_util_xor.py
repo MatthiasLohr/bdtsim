@@ -22,7 +22,7 @@ from bdtsim.util.xor import xor_crypt
 
 
 class UtilXorTest(unittest.TestCase):
-    def test_xor_crypt(self):
+    def test_xor_crypt(self) -> None:
         data = os.urandom(71)
         key = os.urandom(13)
 

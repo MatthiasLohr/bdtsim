@@ -16,6 +16,7 @@
 # limitations under the License.
 
 import unittest
+from typing import Any
 
 from bdtsim.account import AccountFile
 from bdtsim.data_provider import RandomDataProvider
@@ -25,14 +26,14 @@ from bdtsim.simulation import Simulation
 
 
 class SimplePaymentPyEVMTests(unittest.TestCase):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super(SimplePaymentPyEVMTests, self).__init__(*args, **kwargs)
         account_file = AccountFile()
         self.operator = account_file.operator
         self.seller = account_file.seller
         self.buyer = account_file.buyer
 
-    def test_simple_payment_pyevm_prepaid(self):
+    def test_simple_payment_pyevm_prepaid(self) -> None:
         simulation = Simulation(
             protocol=ProtocolManager.instantiate('SimplePayment-prepaid'),
             environment=EnvironmentManager.instantiate('PyEVM', operator=self.operator, seller=self.seller,
@@ -45,7 +46,7 @@ class SimplePaymentPyEVMTests(unittest.TestCase):
         result = simulation.run()
         self.assertIsNotNone(result)
 
-    def test_simple_payment_pyevm_prepaid_direct(self):
+    def test_simple_payment_pyevm_prepaid_direct(self) -> None:
         simulation = Simulation(
             protocol=ProtocolManager.instantiate('SimplePayment-prepaid-direct'),
             environment=EnvironmentManager.instantiate('PyEVM', operator=self.operator, seller=self.seller,
@@ -58,7 +59,7 @@ class SimplePaymentPyEVMTests(unittest.TestCase):
         result = simulation.run()
         self.assertIsNotNone(result)
 
-    def test_simple_payment_pyevm_postpaid(self):
+    def test_simple_payment_pyevm_postpaid(self) -> None:
         simulation = Simulation(
             protocol=ProtocolManager.instantiate('SimplePayment-postpaid'),
             environment=EnvironmentManager.instantiate('PyEVM', operator=self.operator, seller=self.seller,
@@ -71,7 +72,7 @@ class SimplePaymentPyEVMTests(unittest.TestCase):
         result = simulation.run()
         self.assertIsNotNone(result)
 
-    def test_simple_payment_pyevm_postpaid_direct(self):
+    def test_simple_payment_pyevm_postpaid_direct(self) -> None:
         simulation = Simulation(
             protocol=ProtocolManager.instantiate('SimplePayment-postpaid-direct'),
             environment=EnvironmentManager.instantiate('PyEVM', operator=self.operator, seller=self.seller,

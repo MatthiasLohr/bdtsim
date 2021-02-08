@@ -25,13 +25,13 @@ buyer = Account('Buyer', '0x0633ee528dcfb901af1888d91ce451fc59a71ae7438832966811
 
 
 class DecisionTest(unittest.TestCase):
-    def test_init(self):
+    def test_init(self) -> None:
         # should pass:
         Decision(seller, 'yes', ['yes', 'no'])
 
         self.assertRaises(ValueError, Decision, seller, 'no', ['yes'])
 
-    def test_equals(self):
+    def test_equals(self) -> None:
         self.assertEqual('yes', Decision(seller, 'yes', ['yes', 'no', 'maybe']))
         self.assertEqual(Decision(seller, 'yes', ['yes', 'no', 'maybe']), 'yes')
         self.assertEqual(Decision(seller, 'yes', ['yes', 'no', 'maybe']),
@@ -46,7 +46,7 @@ class DecisionTest(unittest.TestCase):
 
 
 class ProtocolPathTest(unittest.TestCase):
-    def test_get_alternatives2(self):
+    def test_get_alternatives2(self) -> None:
         path = ProtocolPath()
         path.decide(seller, '', ['yes', 'no'])
         self.assertEqual([
@@ -59,7 +59,7 @@ class ProtocolPathTest(unittest.TestCase):
             ProtocolPath([Decision(seller, 'yes', ['yes', 'no']), Decision(buyer, 'no', ['yes', 'no'])])
         ], path.get_alternatives())
 
-    def test_get_alternatives3(self):
+    def test_get_alternatives3(self) -> None:
         path = ProtocolPath()
         path.decide(seller, '', ['yes', 'no', 'maybe'])
         self.assertEqual([

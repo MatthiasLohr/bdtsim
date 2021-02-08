@@ -21,7 +21,7 @@ from bdtsim.util.filesize import FileSize
 
 
 class UtilFileSizeTest(unittest.TestCase):
-    def test_init_eq(self):
+    def test_init_eq(self) -> None:
         self.assertRaises(ValueError, FileSize, 1.3)
 
         self.assertEqual(FileSize(123), FileSize(123))
@@ -30,7 +30,7 @@ class UtilFileSizeTest(unittest.TestCase):
         self.assertEqual(FileSize('1000k'), FileSize('1M'))
         self.assertEqual(1300, FileSize('1.3k'))
 
-    def test_format_bytes(self):
+    def test_format_bytes(self) -> None:
         self.assertEqual('1k', FileSize(1000).human_readable())
         self.assertEqual('1M', FileSize(1000000).human_readable())
         self.assertEqual('1G', FileSize(1000000000).human_readable())
