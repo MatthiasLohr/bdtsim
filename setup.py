@@ -32,15 +32,15 @@ setup(
     url='https://gitlab.com/MatthiasLohr/bdtsim',
     license='Apache License 2.0',
     install_requires=[
-        'ecdsa==0.16',
+        'ecdsa==0.16.1',
         'eth-tester==0.5.0b2',
-        'graphviz==0.14.2',
+        'graphviz==0.16',
         'hexbytes==0.2.1',
-        'Jinja2==2.11.2',
+        'Jinja2==2.11.3',
         'py-evm==0.3.0a19',
         'py-solc-x==1.1.0',
-        'PyYAML==5.3.1',
-        'web3==5.12.2'
+        'PyYAML==5.4.1',
+        'web3==5.16.0'
     ],
     python_requires='>=3.7.*, <4',
     packages=find_packages(exclude=['tests', 'tests.*']),

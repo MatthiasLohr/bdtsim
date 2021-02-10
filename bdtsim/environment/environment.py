@@ -175,7 +175,7 @@ class Environment(object):
         # collect current account balances
         balances_before: Dict[Account, int] = {}
         for tmp_account in self.seller, self.buyer, self.operator:
-            balances_before.update({tmp_account: self._web3.eth.getBalance(tmp_account.wallet_address, 'latest')})
+            balances_before.update({tmp_account: self._web3.eth.get_balance(tmp_account.wallet_address, 'latest')})
 
         logger.debug('Submitting transaction %s...' % str(tx_dict))
         tx_hash = self._web3.eth.sendRawTransaction(tx_signed.rawTransaction)
@@ -196,7 +196,7 @@ class Environment(object):
         # collect current account balances
         funds_diff_collection = FundsDiffCollection()
         for tmp_account in self.seller, self.buyer, self.operator:
-            balance_after = self._web3.eth.getBalance(tmp_account.wallet_address, 'latest')
+            balance_after = self._web3.eth.get_balance(tmp_account.wallet_address, 'latest')
             balance_diff = balance_after - balances_before.get(tmp_account)
             if balance_diff != 0:
                 funds_diff_collection += FundsDiffCollection({tmp_account: balance_diff})
