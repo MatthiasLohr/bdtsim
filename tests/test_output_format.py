@@ -21,7 +21,7 @@ from bdtsim.output import OutputFormat
 
 
 class OutputFormatTest(unittest.TestCase):
-    def test_wei_scaling(self):
+    def test_wei_scaling(self) -> None:
         self.assertEqual(OutputFormat.scale_wei_static(1, 1), 1)
         self.assertEqual(OutputFormat.scale_wei_static(10, 0.1), 1)
         self.assertEqual(OutputFormat.scale_wei_static(300, 0.01), 3)
@@ -31,12 +31,12 @@ class OutputFormatTest(unittest.TestCase):
 
         self.assertEqual(OutputFormat.scale_wei_static(19000000000000000000, 'Eth'), 19)
 
-    def test_gas_scaling(self):
+    def test_gas_scaling(self) -> None:
         self.assertEqual(OutputFormat.scale_gas_static(1, 1), 1)
         self.assertEqual(OutputFormat.scale_gas_static(10, 0.1), 1)
         self.assertEqual(OutputFormat.scale_gas_static(300, 0.01), 3)
 
-    def test_get_unit_factor(self):
+    def test_get_unit_factor(self) -> None:
         self.assertEqual(OutputFormat.get_unit_factor(''), 1)
         self.assertEqual(OutputFormat.get_unit_factor('k'), 1000)
 

@@ -40,7 +40,7 @@ setup(
         'py-evm==0.3.0a19',
         'py-solc-x==1.1.0',
         'PyYAML==5.4.1',
-        'web3==5.16.0'
+        'web3==5.17.0'
     ],
     python_requires='>=3.7.*, <4',
     packages=find_packages(exclude=['tests', 'tests.*']),

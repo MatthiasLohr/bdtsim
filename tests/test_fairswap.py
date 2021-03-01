@@ -16,11 +16,13 @@
 # limitations under the License.
 
 from math import log2
+from typing import Tuple, Type
 from unittest import TestCase
 
-from eth_tester import EthereumTester, PyEVMBackend
+from eth_tester import EthereumTester, PyEVMBackend  # type: ignore
 from eth_utils.crypto import keccak
 from web3 import Web3, EthereumTesterProvider
+from web3.contract import Contract
 
 from bdtsim.account import Account
 from bdtsim.protocol import DEFAULT_ASSET_PRICE
@@ -36,7 +38,7 @@ buyer = Account('Buyer', '0x0633ee528dcfb901af1888d91ce451fc59a71ae7438832966811
 
 
 class FairSwapTest(TestCase):
-    def test_keccak(self):
+    def test_keccak(self) -> None:
         data = generate_bytes(32)
         self.assertEqual(keccak(data), Web3.solidityKeccak(['bytes32'], [data]))
         self.assertEqual(keccak(data), Web3.solidityKeccak(['bytes32[1]'], [[data]]))
@@ -84,7 +86,7 @@ class EncodingTest(TestCase):
         self.assertEqual(1, len(errors))
         self.assertEqual(LeafDigestMismatchError, type(errors[0]))
 
-    def test_encode_forge_first_leaf_first_hash(self):
+    def test_encode_forge_first_leaf_first_hash(self) -> None:
         tree = from_bytes(generate_bytes(128, seed=42), 4)
         tree_enc = encode_forge_first_leaf_first_hash(tree, B032)
         tree_dec, errors = decode(tree_enc, B032)
@@ -94,7 +96,8 @@ class EncodingTest(TestCase):
 
 class ContractTest(TestCase):
     @staticmethod
-    def prepare_contract(file_root_hash, ciphertext_root_hash, key_hash, slice_count: int = 4):
+    def prepare_contract(file_root_hash: bytes, ciphertext_root_hash: bytes, key_hash: bytes,
+                         slice_count: int = 4) -> Tuple[Web3, Type[Contract]]:
         web3 = Web3(EthereumTesterProvider(EthereumTester(PyEVMBackend())))
         contract_object = FairSwap(slice_count)._get_contract(
             buyer=buyer,
@@ -107,7 +110,9 @@ class ContractTest(TestCase):
         contract_preparation = web3.eth.contract(abi=contract_object.abi, bytecode=contract_object.bytecode)
         tx_hash = contract_preparation.constructor().transact()
         tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
-        return web3, web3.eth.contract(address=tx_receipt.contractAddress, abi=contract_object.abi)
+        # TODO check if type: ignore is still needed
+        # fixes "error: Value of type TxReceipt? is not indexable"
+        return web3, web3.eth.contract(address=tx_receipt['contractAddress'], abi=contract_object.abi)  # type: ignore
 
     def test_vrfy(self) -> None:
         tree = from_bytes(generate_bytes(128, seed=42), 4)
