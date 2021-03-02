@@ -107,7 +107,7 @@ pages:
   script:
     - mkdir -p public
     - touch public/_redirects
-    - echo "/ https://bdtsim.readthedocs.io/" >> public/_redirects
+    - echo "/* https://bdtsim.readthedocs.io/en/latest/:splat" >> public/_redirects
   artifacts:
     paths:
       - public
