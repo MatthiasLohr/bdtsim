@@ -33,11 +33,11 @@ setup(
     license='Apache License 2.0',
     install_requires=[
         'ecdsa==0.16.1',
-        'eth-tester==0.5.0b2',
+        'eth-tester==0.5.0b3',
         'graphviz==0.16',
         'hexbytes==0.2.1',
         'Jinja2==2.11.3',
-        'py-evm==0.3.0a19',
+        'py-evm==0.3.0a20',
         'py-solc-x==1.1.0',
         'PyYAML==5.4.1',
         'web3==5.17.0'
