@@ -11,11 +11,11 @@
   * Fix: Set default price to 1 ETH (#24)
   * Fix: Use gasPriceStrategy for determining gas price when available
   * Dependency Update: ecdsa to 0.16.1
-  * Dependency Update: eth-tester to 0.5.0b2
+  * Dependency Update: eth-tester to 0.5.0b3
   * Dependency Update: graphviz to 0.16
   * Dependency Update: hexbytes to 0.2.1
   * Dependency Update: Jinja2 to 2.11.3
-  * Dependency Update: py-evm to 0.3.0a19
+  * Dependency Update: py-evm to 0.3.0a20
   * Dependency Update: py-solc-x to 1.1.0
   * Dependency Update: PyYAML to 5.4.1
   * Dependency Update: web3 to 5.17.0
