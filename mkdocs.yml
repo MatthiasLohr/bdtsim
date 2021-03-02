@@ -15,7 +15,7 @@ nav:
   - Data Providers: data_providers.md
   - Output Formats: output_formats.md
   - Development: development.md
-  - API Documentation: https://matthiaslohr.gitlab.io/bdtsim/api/bdtsim/
+#  - API Documentation: https://matthiaslohr.gitlab.io/bdtsim/api/bdtsim/
 
 # Markdown Extension documentation:
 # https://python-markdown.github.io/extensions/

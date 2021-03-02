@@ -18,6 +18,18 @@ Thank you very much for you interest in contributing in this project!
 
 That's it! Happy coding!
 
+
+## Generate API Documentation
+
+If you want to have a HTML based API documentation, use the following commands to create it:
+
+```bash
+./generate-api-docs.sh
+```
+
+The generated documentation can then be found in `docs/api/`.
+
+
 ## Code Contributions
 
 Before you submit your code, please make sure that the code will pass the tests:

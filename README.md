@@ -4,16 +4,16 @@
 
 ## Documentation
 
-The full documentation can be found here: https://matthiaslohr.gitlab.io/bdtsim/
+The full documentation can be found here: https://bdtsim.readthedocs.io/
 
 Quick Links:
 
-  * [Quickstart Guide](https://matthiaslohr.gitlab.io/bdtsim/quickstart/)
-  * [Command Documentation](https://matthiaslohr.gitlab.io/bdtsim/commands/)
-  * [Protocol Documentation](https://matthiaslohr.gitlab.io/bdtsim/protocols/)
-  * [Environment Documentation](https://matthiaslohr.gitlab.io/bdtsim/environments/)
-  * [Data Provider Documentation](https://matthiaslohr.gitlab.io/bdtsim/data_providers/)
-  * [Output Format Documentation](https://matthiaslohr.gitlab.io/bdtsim/output_formats/)
+  * [Quickstart Guide](https://bdtsim.readthedocs.io/en/latest/quickstart/)
+  * [Command Documentation](https://bdtsim.readthedocs.io/en/latest/commands/)
+  * [Protocol Documentation](https://bdtsim.readthedocs.io/en/latest/protocols/)
+  * [Environment Documentation](https://bdtsim.readthedocs.io/en/latest/environments/)
+  * [Data Provider Documentation](https://bdtsim.readthedocs.io/en/latest/data_providers/)
+  * [Output Format Documentation](https://bdtsim.readthedocs.io/en/latest/output_formats/)
 
 
 ## Contributing
