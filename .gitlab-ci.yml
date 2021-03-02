@@ -101,13 +101,14 @@ create docker image:
 
 pages:
   stage: build
-  image: alpine
+  image: python3.8
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
+  before_script:
+    - pip install . mkdocs pdoc3
   script:
-    - mkdir -p public
-    - touch public/_redirects
-    - echo "/* https://bdtsim.readthedocs.io/en/latest/:splat" >> public/_redirects
+    - python -m mkdocs build -d public
+    - pdoc3 --html --force -o public/api bdtsim
   artifacts:
     paths:
       - public
