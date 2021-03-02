@@ -15,12 +15,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import math
-import unittest
+from math import log2
+from typing import Tuple, Type
+from unittest import TestCase
 
-from eth_tester import EthereumTester, PyEVMBackend
+from eth_tester import EthereumTester, PyEVMBackend  # type: ignore
 from eth_utils.crypto import keccak
 from web3 import Web3, EthereumTesterProvider
+from web3.contract import Contract
 
 from bdtsim.account import Account
 from bdtsim.protocol import DEFAULT_ASSET_PRICE
@@ -35,8 +37,8 @@ seller = Account('Seller', '0x3f2c7f45cb3014e2b9d12b7fb331bdfdad6170ce5e4a0d9489
 buyer = Account('Buyer', '0x0633ee528dcfb901af1888d91ce451fc59a71ae7438832966811eb68ed97c173')
 
 
-class FairSwapTest(unittest.TestCase):
-    def test_keccak(self):
+class FairSwapTest(TestCase):
+    def test_keccak(self) -> None:
         data = generate_bytes(32)
         self.assertEqual(keccak(data), Web3.solidityKeccak(['bytes32'], [data]))
         self.assertEqual(keccak(data), Web3.solidityKeccak(['bytes32[1]'], [[data]]))
@@ -56,35 +58,35 @@ class FairSwapTest(unittest.TestCase):
         )
 
 
-class MerkleTest(unittest.TestCase):
-    def test_init(self):
+class MerkleTest(TestCase):
+    def test_init(self) -> None:
         self.assertRaises(ValueError, MerkleTreeNode, MerkleTreeLeaf(B032), MerkleTreeLeaf(B032), MerkleTreeLeaf(B032))
 
-    def test_get_proof_and_validate(self):
+    def test_get_proof_and_validate(self) -> None:
         for slice_count in [2, 4, 8, 16]:
             tree = from_bytes(generate_bytes(32 * slice_count), slice_count)
             for index, leaf in enumerate(tree.leaves):
                 proof = tree.get_proof(leaf)
-                self.assertEqual(len(proof), int(math.log2(slice_count)))
+                self.assertEqual(len(proof), int(log2(slice_count)))
                 self.assertTrue(MerkleTreeNode.validate_proof(tree.digest, leaf, index, proof))
 
 
-class EncodingTest(unittest.TestCase):
-    def test_encode_decode(self):
+class EncodingTest(TestCase):
+    def test_encode_decode(self) -> None:
         tree = from_bytes(generate_bytes(128, seed=42), 4)
         tree_enc = encode(tree, B032)
         tree_dec, errors = decode(tree_enc, B032)
         self.assertEqual([], errors)
         self.assertEqual(tree, tree_dec)
 
-    def test_encode_forge_first_leaf(self):
+    def test_encode_forge_first_leaf(self) -> None:
         tree = from_bytes(generate_bytes(128, seed=42), 4)
         tree_enc = encode_forge_first_leaf(tree, B032)
         tree_dec, errors = decode(tree_enc, B032)
         self.assertEqual(1, len(errors))
         self.assertEqual(LeafDigestMismatchError, type(errors[0]))
 
-    def test_encode_forge_first_leaf_first_hash(self):
+    def test_encode_forge_first_leaf_first_hash(self) -> None:
         tree = from_bytes(generate_bytes(128, seed=42), 4)
         tree_enc = encode_forge_first_leaf_first_hash(tree, B032)
         tree_dec, errors = decode(tree_enc, B032)
@@ -92,9 +94,10 @@ class EncodingTest(unittest.TestCase):
         self.assertEqual(NodeDigestMismatchError, type(errors[0]))
 
 
-class ContractTest(unittest.TestCase):
+class ContractTest(TestCase):
     @staticmethod
-    def prepare_contract(file_root_hash, ciphertext_root_hash, key_hash, slice_count: int = 4):
+    def prepare_contract(file_root_hash: bytes, ciphertext_root_hash: bytes, key_hash: bytes,
+                         slice_count: int = 4) -> Tuple[Web3, Type[Contract]]:
         web3 = Web3(EthereumTesterProvider(EthereumTester(PyEVMBackend())))
         contract_object = FairSwap(slice_count)._get_contract(
             buyer=buyer,
@@ -107,9 +110,11 @@ class ContractTest(unittest.TestCase):
         contract_preparation = web3.eth.contract(abi=contract_object.abi, bytecode=contract_object.bytecode)
         tx_hash = contract_preparation.constructor().transact()
         tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
-        return web3, web3.eth.contract(address=tx_receipt.contractAddress, abi=contract_object.abi)
+        # TODO check if type: ignore is still needed
+        # fixes "error: Value of type TxReceipt? is not indexable"
+        return web3, web3.eth.contract(address=tx_receipt['contractAddress'], abi=contract_object.abi)  # type: ignore
 
-    def test_vrfy(self):
+    def test_vrfy(self) -> None:
         tree = from_bytes(generate_bytes(128, seed=42), 4)
         key = generate_bytes(32, seed=43)
         tree_enc = encode(tree, key)
@@ -121,7 +126,7 @@ class ContractTest(unittest.TestCase):
             call_result = contract.functions.vrfy(index, leaf.digest, proof).call()
             self.assertTrue(call_result)
 
-    def test_crypt_small(self):
+    def test_crypt_small(self) -> None:
         for n in [4, 8, 16]:
             web3, contract = self.prepare_contract(generate_bytes(32), generate_bytes(32), B032, n)
             for i in range(8):

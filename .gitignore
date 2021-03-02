@@ -9,6 +9,7 @@
 /.mypy_cache/
 /build/
 /dist/
+/docs/api/
 /public/
 /venv/
 __pycache__/

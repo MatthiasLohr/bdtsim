@@ -45,7 +45,7 @@ mypy checks:
   before_script:
     - pip install . mypy
   script:
-    - python -m mypy -p bdtsim
+    - python -m mypy
   parallel:
     matrix:
       - python_version: ["3.7", "3.8", "3.9"]
@@ -101,12 +101,11 @@ create docker image:
 
 pages:
   stage: build
-  image: python3.9
+  image: python:3.9
   rules:
-    - if: '$CI_COMMIT_BRANCH == "pages"'
+    - if: '$CI_COMMIT_BRANCH == "master"'
   before_script:
-    - pip install .
-    - pip install mkdocs pdoc3
+    - pip install . mkdocs pdoc3
   script:
     - python -m mkdocs build -d public
     - pdoc3 --html --force -o public/api bdtsim

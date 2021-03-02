@@ -1,6 +1,7 @@
 site_name: BDTsim
 site_description: Blockchain Data Trading Simulator
 site_author: Matthias Lohr
+site_url: https://bdtsim.readthedocs.io/en/latest/
 copyright: Copyright &copy; 2020 Matthias Lohr
 theme: readthedocs
 repo_url: https://gitlab.com/MatthiasLohr/bdtsim

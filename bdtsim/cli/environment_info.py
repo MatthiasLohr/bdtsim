@@ -57,7 +57,7 @@ class EnvironmentInfoSubCommand(SubCommand):
         print('Chain ID: %s' % str(environment.web3.eth.chainId))
 
         for account in account_file.operator, account_file.seller, account_file.buyer:
-            balance = environment.web3.eth.getBalance(account.wallet_address)
+            balance = environment.web3.eth.get_balance(account.wallet_address)
             print('Account balance % 8s (%s): % 20i (~%.2f Eth, %i transactions)' % (
                 account.name,
                 account.wallet_address,

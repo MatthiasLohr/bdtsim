@@ -21,7 +21,7 @@ from bdtsim.util.argparse import ProtocolPathCoercionParameter
 
 
 class ProtocolPathCoercionParameterTest(unittest.TestCase):
-    def test_value(self):
+    def test_value(self) -> None:
         parser = ProtocolPathCoercionParameter()
 
         coercion = parser(None)

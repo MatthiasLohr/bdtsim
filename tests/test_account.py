@@ -15,27 +15,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
+from typing import Any
+from unittest import TestCase
 
 from bdtsim.account import Account, AccountFile
 
 
-class AccountTest(unittest.TestCase):
-    def __init__(self, *args, **kwargs):
+class AccountTest(TestCase):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super(AccountTest, self).__init__(*args, **kwargs)
         account_file = AccountFile()
         self.operator = account_file.operator
         self.seller = account_file.seller
         self.buyer = account_file.buyer
 
-    def test_instantiation(self):
+    def test_instantiation(self) -> None:
         self.assertRaises(ValueError, Account, 'john', 'a')
 
         self.assertEqual(self.operator, Account(self.operator.name, self.operator.wallet_private_key))
         self.assertEqual(self.seller, Account(self.seller.name, self.seller.wallet_private_key))
         self.assertEqual(self.buyer, Account(self.buyer.name, self.buyer.wallet_private_key))
 
-    def test_equals(self):
+    def test_equals(self) -> None:
         self.assertEqual(self.operator, self.operator)
         self.assertEqual(self.seller, self.seller)
         self.assertEqual(self.buyer, self.buyer)

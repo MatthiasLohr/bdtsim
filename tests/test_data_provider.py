@@ -15,20 +15,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
+from unittest import TestCase
 
 from bdtsim.data_provider import RandomDataProvider
 
 
-class RandomDataProviderTest(unittest.TestCase):
-    def test_random_data_provider_size(self):
+class RandomDataProviderTest(TestCase):
+    def test_random_data_provider_size(self) -> None:
         for size in 0, 1, 13, 42, 1337, 1000000:
             data_provider = RandomDataProvider(size)
             fp = data_provider.file_pointer
             fp.seek(0, 2)
             self.assertEqual(size, fp.tell())
 
-    def test_random_data_provider_seed(self):
+    def test_random_data_provider_seed(self) -> None:
         data = RandomDataProvider(size=4, seed=42).file_pointer.read()
         self.assertEqual(b'\xa3\x1c\x06\xbd', data)
         data = RandomDataProvider(size=4, seed=42).file_pointer.read()

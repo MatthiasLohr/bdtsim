@@ -21,7 +21,7 @@ from bdtsim.util.types import to_bool
 
 
 class TypeUtilTest(unittest.TestCase):
-    def test_to_bool(self):
+    def test_to_bool(self) -> None:
         self.assertEqual(True, to_bool(True))
         self.assertEqual(True, to_bool('True'))
         self.assertEqual(True, to_bool('true'))
