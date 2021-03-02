@@ -33,6 +33,7 @@ setup(
     license='Apache License 2.0',
     install_requires=[
         'ecdsa==0.16.1',
+        'eth-hash==0.2.0',
         'eth-tester==0.5.0b3',
         'graphviz==0.16',
         'hexbytes==0.2.1',
