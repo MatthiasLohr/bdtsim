@@ -15,9 +15,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
 import copy
+import gzip
 import itertools
-from typing import Any, Callable, Dict, List, NamedTuple, Optional, Tuple
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Tuple, cast
+
+import yaml
+from hexbytes.main import HexBytes
 
 from bdtsim.account import Account
 from bdtsim.funds_diff_collection import FundsDiffCollection
@@ -32,8 +37,23 @@ class TransactionLogEntry(NamedTuple):
     description: str
     funds_diff_collection: FundsDiffCollection
 
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, TransactionLogEntry):
+            return (self.account == other.account and
+                    self.tx_dict == other.tx_dict and
+                    self.tx_receipt == other.tx_receipt and
+                    self.description == other.description and
+                    self.funds_diff_collection == other.funds_diff_collection)
+        else:
+            return NotImplemented
 
-class TransactionLogList(List[TransactionLogEntry]):
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
+
+class TransactionLogList(List[TransactionLogEntry], yaml.YAMLObject):
+    yaml_tag = '!TransactionLogList'
+
     """List of TransactionLogEntry"""
     class Aggregation(Dict[Account, 'TransactionLogList.Aggregation.Entry']):
         class Entry(NamedTuple):
@@ -101,7 +121,7 @@ class TransactionLogList(List[TransactionLogEntry]):
         if isinstance(other, TransactionLogList):
             return super(TransactionLogList, self).__eq__(other)
         else:
-            raise NotImplementedError()
+            return NotImplemented
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
@@ -113,7 +133,9 @@ class TransactionLogList(List[TransactionLogEntry]):
         return self._aggregation
 
 
-class TransactionLogCollection(List[TransactionLogList]):
+class TransactionLogCollection(List[TransactionLogList], yaml.YAMLObject):
+    yaml_tag = '!TransactionLogCollection'
+
     class Aggregation(Dict[Account, 'TransactionLogCollection.Aggregation.Entry']):
         class Entry(NamedTuple):
             account: Account
@@ -204,6 +226,15 @@ class TransactionLogCollection(List[TransactionLogList]):
         super(TransactionLogCollection, self).__init__()
         self._aggregation: Optional[TransactionLogCollection.Aggregation] = None
 
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, TransactionLogCollection):
+            return super(TransactionLogCollection, self).__eq__(other)
+        else:
+            return NotImplemented
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
     @property
     def aggregation(self) -> 'TransactionLogCollection.Aggregation':
         if self._aggregation is None:
@@ -211,7 +242,9 @@ class TransactionLogCollection(List[TransactionLogList]):
         return self._aggregation
 
 
-class ResultNode(object):
+class ResultNode(yaml.YAMLObject):
+    yaml_tag = '!ResultNode'
+
     def __init__(self, parent: Optional['ResultNode'] = None):
         self.parent = parent
         self.children: Dict[Decision, ResultNode] = {}
@@ -260,6 +293,17 @@ class ResultNode(object):
             next_node = next_node.parent
         return aggregation_summary
 
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, ResultNode):
+            return (self.parent == other.parent and
+                    self.children == other.children and
+                    self.tx_collection == other.tx_collection)
+        else:
+            return NotImplemented
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
 
 class AggregationAttributeHelper(object):
     def __init__(self, account: Account, attribute: str) -> None:
@@ -270,7 +314,9 @@ class AggregationAttributeHelper(object):
         return getattr(aggregation.get(self._account), self._attribute)
 
 
-class SimulationResult(object):
+class SimulationResult(yaml.YAMLObject):
+    yaml_tag = '!SimulationResult'
+
     def __init__(self, operator: Account, seller: Account, buyer: Account) -> None:
         self.preparation_transactions = TransactionLogList()
         self.execution_result_root = ResultNode()
@@ -317,6 +363,20 @@ class SimulationResult(object):
 
         return important_results
 
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, SimulationResult):
+            return (self.preparation_transactions == other.preparation_transactions and
+                    self.execution_result_root == other.execution_result_root and
+                    self.cleanup_transactions == other.cleanup_transactions and
+                    self.operator == other.operator and
+                    self.seller == other.seller and
+                    self.buyer == other.buyer)
+        else:
+            return NotImplemented
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
     @staticmethod
     def _apply_aggr_func(aggr_func: Callable[..., TransactionLogCollection.Aggregation],
                          results: List[TransactionLogCollection.Aggregation], account: Account,
@@ -325,3 +385,47 @@ class SimulationResult(object):
         if len(results_filtered) == 0:
             return None
         return aggr_func(results_filtered, key=AggregationAttributeHelper(account, attribute))
+
+
+class SimulationResultSerializer(object):
+    def __init__(self, compression: bool = True, b64encoding: bool = True):
+        self._compression = compression
+        self._b64encoding = b64encoding
+
+    def serialize(self, simulation_result: 'SimulationResult') -> bytes:
+        result_bytes = yaml.dump(simulation_result, Dumper=yaml.Dumper).encode('utf-8')
+        if self._compression:
+            result_bytes = gzip.compress(result_bytes)
+        if self._b64encoding:
+            result_bytes = base64.encodebytes(result_bytes)
+        return cast(bytes, result_bytes)
+
+    def unserialize(self, data: bytes) -> 'SimulationResult':
+        if self._b64encoding:
+            data = base64.decodebytes(data)
+        if self._compression:
+            data = gzip.decompress(data)
+
+        yaml.add_constructor('tag:yaml.org,2002:python/object/new:hexbytes.main.HexBytes', yaml_hexbytes_constructor,
+                             yaml.FullLoader)  # type: ignore
+        yaml.add_constructor('tag:yaml.org,2002:python/object:bdtsim.protocol_path.Decision', yaml_decision_constructor,
+                             yaml.FullLoader)  # type: ignore
+
+        return cast(SimulationResult, yaml.load(data, Loader=yaml.FullLoader))
+
+
+def yaml_hexbytes_constructor(loader: yaml.Loader, node: yaml.Node) -> HexBytes:
+    value = loader.construct_sequence(node)[0]  # type: ignore
+    return HexBytes(value)
+
+
+def yaml_decision_constructor(loader: yaml.Loader, node: yaml.Node) -> Decision:
+    value = loader.construct_mapping(node, deep=True)  # type: ignore
+    return Decision(
+        value.get('_account'),
+        value.get('_outcome'),
+        value.get('_variants'),
+        value.get('_honest_variants'),
+        value.get('_description'),
+        value.get('_timestamp')
+    )

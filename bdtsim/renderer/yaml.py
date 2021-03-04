@@ -15,21 +15,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .graphviz_dot import GraphvizDotOutputFormat
-from .human_readable import HumanReadableOutputFormat
-from .json import JSONOutputFormat
-from .output_format import OutputFormat
-from .output_format_manager import OutputFormatManager
-from .result_collector import ResultCollector
-from .yaml import YAMLOutputFormat
+import json
+import yaml
+
+from .json import JSONEncoder
+
+from bdtsim.simulation_result import SimulationResult
+from .renderer import Renderer
+from .renderer_manager import RendererManager
 
 
-__all__ = [
-    'GraphvizDotOutputFormat',
-    'HumanReadableOutputFormat',
-    'JSONOutputFormat',
-    'OutputFormat',
-    'OutputFormatManager',
-    'ResultCollector',
-    'YAMLOutputFormat'
-]
+class YAMLRenderer(Renderer):
+    def __init__(self) -> None:
+        super(YAMLRenderer, self).__init__()
+
+    def render(self, simulation_result: SimulationResult) -> None:
+        json_str = json.dumps(simulation_result, cls=JSONEncoder)
+        print(yaml.dump(json.loads(json_str)))
+
+
+RendererManager.register('yaml', YAMLRenderer)

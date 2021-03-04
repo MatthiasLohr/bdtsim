@@ -22,7 +22,7 @@ from typing import Optional
 from bdtsim.account import Account
 from bdtsim.data_provider import DataProvider
 from bdtsim.environment import Environment
-from bdtsim.output import ResultCollector
+from bdtsim.renderer import ResultCollector
 from bdtsim.protocol import Protocol, DEFAULT_ASSET_PRICE
 from bdtsim.protocol_path import ProtocolPath, ProtocolPathCoercion
 from bdtsim.simulation_result import SimulationResult

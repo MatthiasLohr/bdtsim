@@ -16,13 +16,13 @@
 # limitations under the License.
 
 from bdtsim.simulation_result import SimulationResult
-from .output_format import OutputFormat
-from .output_format_manager import OutputFormatManager
+from .renderer import Renderer
+from .renderer_manager import RendererManager
 
 
-class HumanReadableOutputFormat(OutputFormat):
+class HumanReadableRenderer(Renderer):
     def __init__(self) -> None:
-        super(HumanReadableOutputFormat, self).__init__()
+        super(HumanReadableRenderer, self).__init__()
 
     def render(self, simulation_result: SimulationResult) -> None:
         if len(simulation_result.preparation_transactions.aggregation) > 0:
@@ -42,4 +42,4 @@ class HumanReadableOutputFormat(OutputFormat):
                 print('  %s' % str(cleanup_entry))
 
 
-OutputFormatManager.register('human-readable', HumanReadableOutputFormat)
+RendererManager.register('human-readable', HumanReadableRenderer)

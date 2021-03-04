@@ -15,23 +15,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-import yaml
-
-from .json import JSONEncoder
-
-from bdtsim.simulation_result import SimulationResult
-from .output_format import OutputFormat
-from .output_format_manager import OutputFormatManager
-
-
-class YAMLOutputFormat(OutputFormat):
-    def __init__(self) -> None:
-        super(YAMLOutputFormat, self).__init__()
-
-    def render(self, simulation_result: SimulationResult) -> None:
-        json_str = json.dumps(simulation_result, cls=JSONEncoder)
-        print(yaml.dump(json.loads(json_str)))
+from .graphviz_dot import GraphvizDotRenderer
+from .human_readable import HumanReadableRenderer
+from .json import JSONRenderer
+from .renderer import Renderer
+from .renderer_manager import RendererManager
+from .result_collector import ResultCollector
+from .yaml import YAMLRenderer
 
 
-OutputFormatManager.register('yaml', YAMLOutputFormat)
+__all__ = [
+    'GraphvizDotRenderer',
+    'HumanReadableRenderer',
+    'JSONRenderer',
+    'Renderer',
+    'RendererManager',
+    'ResultCollector',
+    'YAMLRenderer'
+]

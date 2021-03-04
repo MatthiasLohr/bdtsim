@@ -26,7 +26,9 @@ from hexbytes.main import HexBytes
 from web3.auto import w3 as web3
 
 
-class Account(object):
+class Account(yaml.YAMLObject):
+    yaml_tag = '!Account'
+
     def __init__(self, name: str, wallet_private_key: Union[bytes, str]) -> None:
         if wallet_private_key is None:
             raise ValueError('You have to provide the private key for the wallet!')
@@ -71,7 +73,7 @@ class Account(object):
         if isinstance(other, Account):
             return self.wallet_address == other.wallet_address and self.name == other.name
         else:
-            raise NotImplementedError()
+            return NotImplemented
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)

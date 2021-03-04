@@ -53,8 +53,8 @@ class CommandTest(TestCase):
             'FileDataProvider'
         ]))
 
-    def test_list_output_formats(self) -> None:
-        p = subprocess.Popen(['bdtsim', 'list-output-formats'], stdout=subprocess.PIPE)
+    def test_list_renderers(self) -> None:
+        p = subprocess.Popen(['bdtsim', 'list-renderers'], stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
         self.assertEqual(out.decode('utf-8').strip(), '\n'.join([

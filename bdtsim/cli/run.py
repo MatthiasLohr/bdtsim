@@ -16,15 +16,17 @@
 # limitations under the License.
 
 import argparse
+import sys
 from typing import Dict
 
 from bdtsim.account import AccountFile
 from bdtsim.data_provider import DataProviderManager
 from bdtsim.environment import EnvironmentManager
 from bdtsim.protocol import ProtocolManager, DEFAULT_ASSET_PRICE
-from bdtsim.output import OutputFormatManager
 from bdtsim.simulation import Simulation
+from bdtsim.simulation_result import SimulationResultSerializer
 from bdtsim.util.argparse import ProtocolPathCoercionParameter
+from bdtsim.util.types import to_bool
 from .command_manager import SubCommand
 
 
@@ -41,8 +43,6 @@ class RunSubCommand(SubCommand):
                             help='Limit protocol paths to be simulated')
         parser.add_argument('--data-provider', choices=DataProviderManager.data_providers.keys(),
                             default='RandomDataProvider', help='set the data provider/data source for the simulation')
-        parser.add_argument('-f', '--output-format', choices=OutputFormatManager.output_formats.keys(),
-                            default='human-readable', help='set the desired output format for simulation results')
         parser.add_argument('--price', type=int, default=DEFAULT_ASSET_PRICE,
                             help='set the price for the asset to be traded (in Wei)')
         parser.add_argument('-p', '--protocol-parameter', nargs=2, action='append', dest='protocol_parameters',
@@ -52,21 +52,19 @@ class RunSubCommand(SubCommand):
         parser.add_argument('-d', '--data-provider-parameter', nargs=2, action='append',
                             dest='data_provider_parameters', default=[], metavar=('KEY', 'VALUE'),
                             help='pass additional parameters to the data provider')
-        parser.add_argument('-o', '--output-format-parameter', nargs=2, action='append',
-                            dest='output_format_parameters', default=[], metavar=('KEY', 'VALUE'),
-                            help='pass additional parameters to the output format')
+        parser.add_argument('-o', '--output', default='-', help='Output file to be used, default: stdout')
+        parser.add_argument('--output-compression', default=True)
+        parser.add_argument('--output-b64encoding', default=True)
 
     def __call__(self, args: argparse.Namespace) -> None:
         protocol_parameters: Dict[str, str] = {}
         environment_parameters: Dict[str, str] = {}
         data_provider_parameters: Dict[str, str] = {}
-        output_format_parameters: Dict[str, str] = {}
 
         for arg, dest in [
             (args.protocol_parameters, protocol_parameters),
             (args.environment_parameters, environment_parameters),
-            (args.data_provider_parameters, data_provider_parameters),
-            (args.output_format_parameters, output_format_parameters),
+            (args.data_provider_parameters, data_provider_parameters)
         ]:
             for key, value in arg:
                 dest[key.replace('-', '_')] = value
@@ -102,10 +100,16 @@ class RunSubCommand(SubCommand):
             price=args.price,
         )
 
-        output_format = OutputFormatManager.instantiate(
-            args.output_format,
-            **output_format_parameters
+        simulation_result = simulation.run()
+        simulation_result_serializer = SimulationResultSerializer(
+            compression=to_bool(args.output_compression),
+            b64encoding=to_bool(args.output_b64encoding)
         )
 
-        simulation_result = simulation.run()
-        output_format.render(simulation_result)
+        result_output = simulation_result_serializer.serialize(simulation_result)
+
+        if args.output == '-':
+            sys.stdout.buffer.write(result_output)
+        else:
+            with open(args.output, 'b') as fp:
+                fp.write(result_output)

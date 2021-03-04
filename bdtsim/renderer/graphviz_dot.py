@@ -25,11 +25,11 @@ from bdtsim.protocol_path import Decision
 from bdtsim.simulation_result import SimulationResult, ResultNode, TransactionLogList, TransactionLogCollection, \
     TransactionLogEntry
 from bdtsim.util.types import to_bool
-from .output_format import OutputFormat
-from .output_format_manager import OutputFormatManager
+from .renderer import Renderer
+from .renderer_manager import RendererManager
 
 
-class GraphvizDotOutputFormat(OutputFormat):
+class GraphvizDotRenderer(Renderer):
     COLOR_HONEST = '#00CC00'
     COLOR_CHEATING = '#FF0000'
 
@@ -57,7 +57,7 @@ class GraphvizDotOutputFormat(OutputFormat):
             *args (Any): Collector for unrecognized positional arguments
             **kwargs (Any): Collector for unrecognized keyword arguments
         """
-        super(GraphvizDotOutputFormat, self).__init__(wei_scaling, gas_scaling, *args, **kwargs)
+        super(GraphvizDotRenderer, self).__init__(wei_scaling, gas_scaling, *args, **kwargs)
         self._output_filename = output_filename
         self._view = to_bool(view)
         self._cleanup = cleanup
@@ -99,7 +99,7 @@ class NodeTemplate(object):
         if isinstance(other, NodeTemplate):
             return self.name == other.name and self.args == other.args and self.kwargs == self.kwargs
         else:
-            raise NotImplementedError()
+            return NotImplemented
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
@@ -117,7 +117,7 @@ class EdgeTemplate(object):
         if isinstance(other, EdgeTemplate):
             return self.args == other.args and self.kwargs == self.kwargs
         else:
-            raise NotImplementedError()
+            return NotImplemented
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
@@ -138,7 +138,7 @@ class TransactionPathPartTuple(NamedTuple):
             return bool(self.node_template.args == other.node_template.args
                         and self.node_template.kwargs == other.node_template.kwargs)
         else:
-            raise NotImplementedError()
+            return NotImplemented
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
@@ -345,11 +345,11 @@ class ResultGraph(Digraph):  # type: ignore
 
     @staticmethod
     def _color_by_honesty(honest: bool) -> str:
-        return GraphvizDotOutputFormat.COLOR_HONEST if honest else GraphvizDotOutputFormat.COLOR_CHEATING
+        return GraphvizDotRenderer.COLOR_HONEST if honest else GraphvizDotRenderer.COLOR_CHEATING
 
     @staticmethod
     def _get_label_lines_for_tx_collection(tx_collection: TransactionLogCollection) -> List[str]:
         return [str(entry) for entry in tx_collection.aggregation.values()]
 
 
-OutputFormatManager.register('dot', GraphvizDotOutputFormat)
+RendererManager.register('dot', GraphvizDotRenderer)

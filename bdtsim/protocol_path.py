@@ -111,7 +111,7 @@ class Decision(object):
                 raise ValueError('%s is not an allowed variant (%s)' % (other, ', '.join(self.variants)))
             return other == self.outcome
         else:
-            raise NotImplementedError()
+            return NotImplemented
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
@@ -261,7 +261,7 @@ class ProtocolPath(object):
         if isinstance(other, ProtocolPath):
             return self.initial_decisions == other.initial_decisions and self.new_decisions == other.new_decisions
         else:
-            raise NotImplementedError()
+            return NotImplemented
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)

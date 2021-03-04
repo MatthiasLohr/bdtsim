@@ -22,13 +22,13 @@ from bdtsim.account import Account
 from bdtsim.protocol_path import Decision
 from bdtsim.simulation_result import SimulationResult, TransactionLogEntry, TransactionLogList,\
     TransactionLogCollection, ResultNode
-from .output_format import OutputFormat
-from .output_format_manager import OutputFormatManager
+from .renderer import Renderer
+from .renderer_manager import RendererManager
 
 
-class JSONOutputFormat(OutputFormat):
+class JSONRenderer(Renderer):
     def __init__(self) -> None:
-        super(JSONOutputFormat, self).__init__()
+        super(JSONRenderer, self).__init__()
 
     def render(self, simulation_result: SimulationResult) -> None:
         print(json.dumps(simulation_result, cls=JSONEncoder))
@@ -115,4 +115,4 @@ class JSONEncoder(json.JSONEncoder):
             return super(JSONEncoder, self).default(o)
 
 
-OutputFormatManager.register('json', JSONOutputFormat)
+RendererManager.register('json', JSONRenderer)
