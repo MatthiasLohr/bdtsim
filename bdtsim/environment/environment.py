@@ -153,7 +153,7 @@ class Environment(object):
                           allow_failure: bool = False) -> AttributeDict[str, Any]:
         tx_dict = {
             'from': account.wallet_address,
-            'nonce': self._web3.eth.getTransactionCount(account.wallet_address, 'pending'),
+            'nonce': self._web3.eth.get_transaction_count(account.wallet_address, 'pending'),
             'value': value,
             'chainId': self._chain_id,
             'gas': 4000000
@@ -178,7 +178,7 @@ class Environment(object):
             balances_before.update({tmp_account: self._web3.eth.get_balance(tmp_account.wallet_address, 'latest')})
 
         logger.debug('Submitting transaction %s...' % str(tx_dict))
-        tx_hash = self._web3.eth.sendRawTransaction(tx_signed.rawTransaction)
+        tx_hash = self._web3.eth.send_raw_transaction(tx_signed.rawTransaction)
 
         tx_receipt = None
         while tx_receipt is None:
