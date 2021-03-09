@@ -26,9 +26,7 @@ from hexbytes.main import HexBytes
 from web3.auto import w3 as web3
 
 
-class Account(yaml.YAMLObject):
-    yaml_tag = '!Account'
-
+class Account(object):
     def __init__(self, name: str, wallet_private_key: Union[bytes, str]) -> None:
         if wallet_private_key is None:
             raise ValueError('You have to provide the private key for the wallet!')

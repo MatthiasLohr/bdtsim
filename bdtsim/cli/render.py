@@ -66,5 +66,4 @@ class RenderSubCommand(SubCommand):
 
         # render output
         renderer.render(simulation_result)
-
         return 0

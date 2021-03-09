@@ -137,39 +137,39 @@ class FairSwap(Protocol):
 
         # === 1a: Seller: encrypt file for transmission
         encryption_decision = protocol_path.decide(
-            seller, 'File Encryption/Transfer', ['expected', 'completely different', 'leaf forgery', 'hash forgery']
+            seller, 'File Encryption/Transfer', ('expected', 'completely different', 'leaf forgery', 'hash forgery')
         )
-        if encryption_decision == 'expected':
+        if encryption_decision.outcome == 'expected':
             encrypted_merkle_tree = encoding.encode(plain_merkle_tree, key)
-        elif encryption_decision == 'completely different':
+        elif encryption_decision.outcome == 'completely different':
             encrypted_merkle_tree = encoding.encode(
                 merkle.from_bytes(generate_bytes(data_provider.data_size), self.slices_count),
                 key
             )
-        elif encryption_decision == 'leaf forgery':
+        elif encryption_decision.outcome == 'leaf forgery':
             encrypted_merkle_tree = encoding.encode_forge_first_leaf(plain_merkle_tree, key)
-        elif encryption_decision == 'hash forgery':
+        elif encryption_decision.outcome == 'hash forgery':
             encrypted_merkle_tree = encoding.encode_forge_first_leaf_first_hash(plain_merkle_tree, key)
         else:
             raise NotImplementedError()
 
         # === 1b: Seller: deploy smart contract
         deployment_decision = protocol_path.decide(seller, 'Contract Deployment',
-                                                   ['as expected by buyer', 'commitment to wrong key',
-                                                    'unexpected file root hash', 'incorrect ciphertext root hash'])
-        if deployment_decision == 'as expected by buyer':
+                                                   ('as expected by buyer', 'commitment to wrong key',
+                                                    'unexpected file root hash', 'incorrect ciphertext root hash'))
+        if deployment_decision.outcome == 'as expected by buyer':
             transfer_plain_root_hash = plain_merkle_tree.digest
             transfer_ciphertext_root_hash = encrypted_merkle_tree.digest
             transfer_key = key
-        elif deployment_decision == 'commitment to wrong key':
+        elif deployment_decision.outcome == 'commitment to wrong key':
             transfer_plain_root_hash = plain_merkle_tree.digest
             transfer_ciphertext_root_hash = encrypted_merkle_tree.digest
             transfer_key = generate_bytes(32, avoid=key)
-        elif deployment_decision == 'unexpected file root hash':
+        elif deployment_decision.outcome == 'unexpected file root hash':
             transfer_plain_root_hash = generate_bytes(32, avoid=plain_merkle_tree.digest)
             transfer_ciphertext_root_hash = encrypted_merkle_tree.digest
             transfer_key = key
-        elif deployment_decision == 'incorrect ciphertext root hash':
+        elif deployment_decision.outcome == 'incorrect ciphertext root hash':
             transfer_plain_root_hash = plain_merkle_tree.digest
             transfer_ciphertext_root_hash = generate_bytes(32, avoid=encrypted_merkle_tree.digest)
             transfer_key = key
@@ -191,10 +191,10 @@ class FairSwap(Protocol):
         # === 2: Buyer: Accept Contract/Pay Price ===
         if (plain_merkle_tree.digest == transfer_plain_root_hash
                 and encrypted_merkle_tree.digest == transfer_ciphertext_root_hash):
-            acceptance_decision = protocol_path.decide(buyer, 'Accept', variants=['yes', 'leave'])
-            if acceptance_decision == 'yes':
+            acceptance_decision = protocol_path.decide(buyer, 'Accept', options=('yes', 'leave'))
+            if acceptance_decision.outcome == 'yes':
                 self.smart_contract_accept(environment, seller, buyer, transfer_plain_root_hash, price)
-            elif acceptance_decision == 'leave':
+            elif acceptance_decision.outcome == 'leave':
                 return
             else:
                 raise NotImplementedError()
@@ -202,12 +202,12 @@ class FairSwap(Protocol):
             return
 
         # === 3: Seller: Reveal key ===
-        key_revelation_decision = protocol_path.decide(seller, 'Key Revelation', ['yes', 'leave'])
-        if key_revelation_decision == 'yes':
+        key_revelation_decision = protocol_path.decide(seller, 'Key Revelation', ('yes', 'leave'))
+        if key_revelation_decision.outcome == 'yes':
             self.smart_contract_reveal_key(environment, seller, buyer, transfer_plain_root_hash, transfer_key)
-        elif key_revelation_decision == 'leave':
+        elif key_revelation_decision.outcome == 'leave':
             logger.debug('Seller: Leaving without Key Revelation')
-            if protocol_path.decide(buyer, 'Refund', variants=['yes', 'no']) == 'yes':
+            if protocol_path.decide(buyer, 'Refund', options=('yes', 'no')).outcome == 'yes':
                 logger.debug('Buyer: Waiting for timeout to request refund')
                 environment.wait(self.timeout + 1)
                 self.smart_contract_refund(environment, seller, buyer, transfer_plain_root_hash, buyer)
@@ -218,7 +218,8 @@ class FairSwap(Protocol):
         # === 4: Buyer: Send Ok/Complain/Leave
         root_hash_enc = encrypted_merkle_tree.leaves[-2].data
         if encoding.crypt(root_hash_enc, 3 * self.slices_count - 2, transfer_key) != plain_merkle_tree.digest:
-            if protocol_path.decide(buyer, 'complain about root', ['yes']) == 'yes':
+            if protocol_path.decide(buyer, 'complain about root', ('yes', 'no'),
+                                    honest_options=('yes', 'no')).outcome == 'yes':
                 logger.debug('Buyer: Complaining about incorrect file root hash')
                 root_hash_leaf = encrypted_merkle_tree.leaves[-2]
                 proof = encrypted_merkle_tree.get_proof(root_hash_leaf)
@@ -228,12 +229,12 @@ class FairSwap(Protocol):
         else:
             decrypted_merkle_tree, errors = encoding.decode(encrypted_merkle_tree, transfer_key)
             if len(errors) == 0:
-                if protocol_path.decide(buyer, 'Confirm', variants=['yes', 'leave'],
-                                        honest_variants=['yes', 'leave']) == 'yes':
+                if protocol_path.decide(buyer, 'Confirm', options=('yes', 'leave'),
+                                        honest_options=('yes', 'leave')).outcome == 'yes':
                     self.smart_contract_no_complain(environment, seller, buyer, transfer_plain_root_hash)
                     return
             elif isinstance(errors[-1], encoding.LeafDigestMismatchError):
-                if protocol_path.decide(buyer, 'Complain about Leaf', ['yes']) == 'yes':
+                if protocol_path.decide(buyer, 'Complain about Leaf', ('yes', 'no')).outcome == 'yes':
                     error: encoding.NodeDigestMismatchError = errors[-1]
                     self.smart_contract_complain_about_leaf(
                         environment=environment,
@@ -246,7 +247,7 @@ class FairSwap(Protocol):
                     )
                     return
             else:
-                if protocol_path.decide(buyer, 'Complain about Node', ['yes']) == 'yes':
+                if protocol_path.decide(buyer, 'Complain about Node', ('yes', 'no')).outcome == 'yes':
                     error = errors[-1]
                     self.smart_contract_complain_about_node(
                         environment=environment,
@@ -260,8 +261,8 @@ class FairSwap(Protocol):
                     return
 
         # === 5: Seller: Finalize (when Buyer leaves in 4)
-        if protocol_path.decide(seller, 'Request Payout', variants=['yes', 'no'],
-                                honest_variants=['yes', 'no']) == 'yes':
+        if protocol_path.decide(seller, 'Request Payout', options=('yes', 'no'),
+                                honest_options=('yes', 'no')).outcome == 'yes':
             environment.wait(self.timeout + 1)
             self.smart_contract_refund(environment, seller, buyer, transfer_plain_root_hash, seller)
 

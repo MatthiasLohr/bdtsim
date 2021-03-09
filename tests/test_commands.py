@@ -59,9 +59,7 @@ class CommandTest(TestCase):
         self.assertEqual(p.returncode, 0)
         self.assertEqual(out.decode('utf-8').strip(), '\n'.join([
             'dot',
-            'human-readable',
-            'json',
-            'yaml'
+            'human-readable'
         ]))
 
     def test_run_simplepayment(self) -> None:

@@ -19,10 +19,8 @@ import base64
 import copy
 import gzip
 import itertools
+import pickle
 from typing import Any, Callable, Dict, List, NamedTuple, Optional, Tuple, cast
-
-import yaml
-from hexbytes.main import HexBytes
 
 from bdtsim.account import Account
 from bdtsim.funds_diff_collection import FundsDiffCollection
@@ -51,9 +49,7 @@ class TransactionLogEntry(NamedTuple):
         return not self.__eq__(other)
 
 
-class TransactionLogList(List[TransactionLogEntry], yaml.YAMLObject):
-    yaml_tag = '!TransactionLogList'
-
+class TransactionLogList(List[TransactionLogEntry]):
     """List of TransactionLogEntry"""
     class Aggregation(Dict[Account, 'TransactionLogList.Aggregation.Entry']):
         class Entry(NamedTuple):
@@ -133,9 +129,7 @@ class TransactionLogList(List[TransactionLogEntry], yaml.YAMLObject):
         return self._aggregation
 
 
-class TransactionLogCollection(List[TransactionLogList], yaml.YAMLObject):
-    yaml_tag = '!TransactionLogCollection'
-
+class TransactionLogCollection(List[TransactionLogList]):
     class Aggregation(Dict[Account, 'TransactionLogCollection.Aggregation.Entry']):
         class Entry(NamedTuple):
             account: Account
@@ -242,9 +236,7 @@ class TransactionLogCollection(List[TransactionLogList], yaml.YAMLObject):
         return self._aggregation
 
 
-class ResultNode(yaml.YAMLObject):
-    yaml_tag = '!ResultNode'
-
+class ResultNode(object):
     def __init__(self, parent: Optional['ResultNode'] = None):
         self.parent = parent
         self.children: Dict[Decision, ResultNode] = {}
@@ -270,7 +262,7 @@ class ResultNode(yaml.YAMLObject):
     def account_completely_honest(self, account: Account) -> bool:
         if self.parent is not None:
             incoming_decision = list(self.parent.children.keys())[list(self.parent.children.values()).index(self)]
-            if incoming_decision.account == account and not incoming_decision.is_honest():
+            if incoming_decision.choice.subject == account and not incoming_decision.is_honest():
                 return False
             else:
                 return self.parent.account_completely_honest(account)
@@ -314,9 +306,7 @@ class AggregationAttributeHelper(object):
         return getattr(aggregation.get(self._account), self._attribute)
 
 
-class SimulationResult(yaml.YAMLObject):
-    yaml_tag = '!SimulationResult'
-
+class SimulationResult(object):
     def __init__(self, operator: Account, seller: Account, buyer: Account) -> None:
         self.preparation_transactions = TransactionLogList()
         self.execution_result_root = ResultNode()
@@ -393,39 +383,16 @@ class SimulationResultSerializer(object):
         self._b64encoding = b64encoding
 
     def serialize(self, simulation_result: 'SimulationResult') -> bytes:
-        result_bytes = yaml.dump(simulation_result, Dumper=yaml.Dumper).encode('utf-8')
+        result_bytes = pickle.dumps(simulation_result, protocol=4)
         if self._compression:
             result_bytes = gzip.compress(result_bytes)
         if self._b64encoding:
             result_bytes = base64.encodebytes(result_bytes)
-        return cast(bytes, result_bytes)
+        return result_bytes
 
     def unserialize(self, data: bytes) -> 'SimulationResult':
         if self._b64encoding:
             data = base64.decodebytes(data)
         if self._compression:
             data = gzip.decompress(data)
-
-        yaml.add_constructor('tag:yaml.org,2002:python/object/new:hexbytes.main.HexBytes', yaml_hexbytes_constructor,
-                             yaml.FullLoader)  # type: ignore
-        yaml.add_constructor('tag:yaml.org,2002:python/object:bdtsim.protocol_path.Decision', yaml_decision_constructor,
-                             yaml.FullLoader)  # type: ignore
-
-        return cast(SimulationResult, yaml.load(data, Loader=yaml.FullLoader))
-
-
-def yaml_hexbytes_constructor(loader: yaml.Loader, node: yaml.Node) -> HexBytes:
-    value = loader.construct_sequence(node)[0]  # type: ignore
-    return HexBytes(value)
-
-
-def yaml_decision_constructor(loader: yaml.Loader, node: yaml.Node) -> Decision:
-    value = loader.construct_mapping(node, deep=True)  # type: ignore
-    return Decision(
-        value.get('_account'),
-        value.get('_outcome'),
-        value.get('_variants'),
-        value.get('_honest_variants'),
-        value.get('_description'),
-        value.get('_timestamp')
-    )
+        return cast(SimulationResult, pickle.loads(data))

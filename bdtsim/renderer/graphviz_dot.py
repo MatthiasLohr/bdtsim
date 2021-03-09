@@ -262,7 +262,7 @@ class ResultGraph(Digraph):  # type: ignore
 
     def _add_decision_node(self, decision: Decision) -> str:
         uuid = self._uuid()
-        label = '<%s<br /><b>%s</b>>' % (decision.account.name, decision.description)
+        label = '<%s<br /><b>%s</b>>' % (decision.choice.subject.name, decision.choice.description)
         self.node(uuid, label=label, shape='diamond')
         return uuid
 
