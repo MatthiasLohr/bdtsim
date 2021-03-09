@@ -65,6 +65,21 @@ class DecisionTest(TestCase):
         # different outcomes from same choice should be unequal
         self.assertNotEqual(choice1.choose('yes'), choice1.choose('no'))
 
+    def test_honesty(self) -> None:
+        choice = Choice(seller, ('yes', 'no'))
+        self.assertTrue(choice.choose('yes').is_honest())
+        self.assertFalse(choice.choose('no').is_honest())
+
+        choice = Choice(seller, ('a', 'b', 'c'))
+        self.assertTrue(choice.choose('a').is_honest())
+        self.assertFalse(choice.choose('b').is_honest())
+        self.assertFalse(choice.choose('b').is_honest())
+
+        choice = Choice(seller, ('a', 'b', 'c'), ('b', 'c'))
+        self.assertFalse(choice.choose('a').is_honest())
+        self.assertTrue(choice.choose('b').is_honest())
+        self.assertTrue(choice.choose('b').is_honest())
+
 
 class ProtocolPathTest(TestCase):
     def test_decide(self) -> None:

@@ -109,7 +109,7 @@ class Decision(object):
         self._timestamp = timestamp
 
     def is_honest(self) -> bool:
-        return self._outcome in self.choice.options
+        return self._outcome in self.choice.honest_options
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, Decision):
