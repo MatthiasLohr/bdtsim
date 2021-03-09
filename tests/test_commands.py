@@ -88,8 +88,10 @@ class CommandTest(TestCase):
         self.assertEqual(p.returncode, 0)
 
     def test_run_fairswap(self) -> None:
-        p = subprocess.Popen(['env', 'bdtsim', 'run', 'FairSwap', 'PyEVM', '-d', 'size', '256', '-p', 'slices-count', '8'],
-                             stdout=subprocess.PIPE)
+        p = subprocess.Popen(
+            ['env', 'bdtsim', 'run', 'FairSwap', 'PyEVM', '-d', 'size', '256', '-p', 'slices-count', '8'],
+            stdout=subprocess.PIPE
+        )
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
 
