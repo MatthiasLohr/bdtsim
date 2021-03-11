@@ -1,7 +1,7 @@
 # This file is part of the Blockchain Data Trading Simulator
 #    https://gitlab.com/MatthiasLohr/bdtsim
 #
-# Copyright 2020 Matthias Lohr <mail@mlohr.com>
+# Copyright 2021 Matthias Lohr <mail@mlohr.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,21 +15,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .game_matrix import GameMatrixRenderer
-from .game_tree import GameTreeRenderer
-from .graphviz_dot import GraphvizDotRenderer
-from .human_readable import HumanReadableRenderer
+from bdtsim.simulation_result import SimulationResult
 from .renderer import Renderer
 from .renderer_manager import RendererManager
-from .result_collector import ResultCollector
 
 
-__all__ = [
-    'GameMatrixRenderer',
-    'GameTreeRenderer',
-    'GraphvizDotRenderer',
-    'HumanReadableRenderer',
-    'Renderer',
-    'RendererManager',
-    'ResultCollector'
-]
+class GameMatrixRenderer(Renderer):
+    def render(self, simulation_result: SimulationResult) -> None:
+        pass  # TODO implement
+
+
+RendererManager.register('game-matrix', GameMatrixRenderer)

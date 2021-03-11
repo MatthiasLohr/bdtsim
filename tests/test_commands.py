@@ -58,6 +58,8 @@ class CommandTest(TestCase):
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
         self.assertEqual(out.decode('utf-8').strip(), '\n'.join([
+            'game-matrix',
+            'game-tree',
             'dot',
             'human-readable'
         ]))
