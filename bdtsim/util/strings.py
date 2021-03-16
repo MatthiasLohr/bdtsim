@@ -36,8 +36,6 @@ def str_block_table(blocks: List[List[str]], column_separator: str = '|', row_se
         ]) for column_index in range(column_count)
     ]
 
-    print(row_heights, column_widths)
-
     # generate
     output = ''
     for row_index in range(row_count):
