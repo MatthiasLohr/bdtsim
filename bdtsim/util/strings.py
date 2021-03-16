@@ -26,7 +26,7 @@ def str_block_table(blocks: List[List[str]], column_separator: str = '|', row_se
     # analyze
     row_count = len(blocks)
     column_count = max(len(row) for row in blocks)
-    blocks_splitted = [[block.split() for block in row] for row in blocks]
+    blocks_splitted = [[block.split(sep='\n') for block in row] for row in blocks]
     row_heights = [
         max([len(block_splitted) for block_splitted in row_splitted]) for row_splitted in blocks_splitted
     ]
