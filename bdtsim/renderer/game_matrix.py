@@ -26,9 +26,12 @@ from .renderer_manager import RendererManager
 
 
 class GameMatrixAccountCell(object):
-    def __init__(self, account: Account, tx_fees: Optional[Tuple[int, int]] = None) -> None:
+    def __init__(self, account: Account, tx_fees: Optional[Tuple[int, int]] = None,
+                 tx_count: Optional[Tuple[int, int]] = None, funds_diff: Optional[Tuple[int, int]] = None) -> None:
         self._account = account
         self._tx_fees = tx_fees
+        self._tx_count = tx_count
+        self._funds_diff = funds_diff
 
     @property
     def account(self) -> Account:
@@ -38,23 +41,28 @@ class GameMatrixAccountCell(object):
     def tx_fees(self) -> Optional[Tuple[int, int]]:
         return self._tx_fees
 
+    @property
+    def funds_diff(self) -> Optional[Tuple[int, int]]:
+        return self._funds_diff
+
     def __str__(self) -> str:
-        output = ''
+        results = []
+        for label, interval in (
+            ('TX Fees', self._tx_fees),
+            ('TX Count', self._tx_count),
+            ('Funds Diff', self._funds_diff)
+        ):
+            if interval is None:
+                results.append('%s: N.A.' % label)
+            else:
+                results.append('%s: [%d, %d]' % (label, interval[0], interval[1]))
 
-        if self._tx_fees is None:
-            output += 'TX Fees: N.A.'
-        else:
-            output += 'TX Fees: [%d, %d]' % (
-                self._tx_fees[0],
-                self._tx_fees[1]
-            )
-
-        return output
+        return '\n'.join(results)
 
     @staticmethod
     def from_aggregation_summary_list(aggregation_summary_list: List[TransactionLogCollection.Aggregation],
                                       account: Account) -> 'GameMatrixAccountCell':
-        def _safe_attr(attr_name: str) -> Generator[Any, None, None]:
+        def _safe_attr_generator(attr_name: str) -> Generator[Any, None, None]:
             for entry in aggregation_summary_list:
                 item = entry.get(account)
                 if item is not None:
@@ -64,8 +72,16 @@ class GameMatrixAccountCell(object):
             return GameMatrixAccountCell(
                 account=account,
                 tx_fees=(
-                    min(_safe_attr('tx_fees_min')),
-                    max(_safe_attr('tx_fees_max'))
+                    min(_safe_attr_generator('tx_fees_min')),
+                    max(_safe_attr_generator('tx_fees_max'))
+                ),
+                tx_count=(
+                    min(_safe_attr_generator('tx_count_min')),
+                    max(_safe_attr_generator('tx_count_max'))
+                ),
+                funds_diff=(
+                    min(_safe_attr_generator('funds_diff_min')),
+                    max(_safe_attr_generator('funds_diff_max'))
                 )
             )
         else:
@@ -122,20 +138,23 @@ class GameMatrix(object):
                 [str(self._cell_hh.seller_cell), str(self._cell_hh.buyer_cell)],
                 [str(self._cell_hm.seller_cell), str(self._cell_hm.buyer_cell)]
             ],
-            column_separator=' | ',
-            line_crossing='-+-'
+            column_separator=' │ ',
+            line_crossing='─┼─',
+            row_separator='─'
         )
         seller_malicious_tbl_half_str = str_block_table(
             blocks=[
                 [str(self._cell_hh.seller_cell), str(self._cell_hh.buyer_cell)],
                 [str(self._cell_hm.seller_cell), str(self._cell_hm.buyer_cell)]
             ],
-            column_separator=' | ',
-            line_crossing=' + '
+            column_separator=' │ ',
+            line_crossing='─┼─',
+            row_separator='─'
         )
         values_tbl_str = str_block_table(
             blocks=[[seller_honest_tbl_half_str, seller_malicious_tbl_half_str]],
-            column_separator=' ║ '
+            column_separator=' ║ ',
+            row_separator='─'
         )
 
         prefix_width = len(self._buyer.name) + 2  # +2 for ' ✓' and ' ✗'
@@ -151,8 +170,8 @@ class GameMatrix(object):
             + ' ' * len(self._buyer.name)
             + ' ✓'
             + ('\n' * (buyer_str_height - symbol_height))
-            + self._buyer.name + '  '
-            + ('\n' * (buyer_str_height - symbol_height))
+            + self._buyer.name + '  \n'
+            + ('\n' * symbol_height)
             + ' ' * len(self._buyer.name)
             + ' ✗'
         )
