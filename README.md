@@ -18,12 +18,12 @@ Quick Links:
 
 ## Contributing
 
-See the [Contribution Guidelines](https://gitlab.com/MatthiasLohr/bdtsim/-/blob/master/CONTRIBUTING.md) for information on how to contribute to this project.
+See the [Contribution Guidelines](https://gitlab.com/MatthiasLohr/bdtsim/-/blob/main/CONTRIBUTING.md) for information on how to contribute to this project.
 
 
 ## License
 
 This project is published under the Apache License, Version 2.0.
-See [LICENSE.md](https://gitlab.com/MatthiasLohr/bdtsim/-/blob/master/LICENSE.md) for more information.
+See [LICENSE.md](https://gitlab.com/MatthiasLohr/bdtsim/-/blob/main/LICENSE.md) for more information.
 
 Copyright (c) by [Matthias Lohr](https://mlohr.com/) &lt;[mail@mlohr.com](mailto:mail@mlohr.com)&gt;

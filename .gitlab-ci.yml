@@ -106,7 +106,7 @@ pages:
   stage: build
   image: python:3.8
   rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
   before_script:
     - pip install --upgrade pip
     - pip install . mkdocs pdoc3
