@@ -20,7 +20,7 @@ Please take a look to the [Quickstart](quickstart.md) guide for information on h
 BDTsim.
 
 For a list of changes in the latest release, please check the
-[Changelog file](https://gitlab.com/MatthiasLohr/bdtsim/-/blob/master/CHANGELOG.md).
+[Changelog file](https://gitlab.com/MatthiasLohr/bdtsim/-/blob/main/CHANGELOG.md).
 
 Read more about:
 
@@ -44,7 +44,7 @@ in cooperation with
 ## License
 
 This project is published under the Apache License, Version 2.0.
-See [LICENSE.md](https://gitlab.com/MatthiasLohr/bdtsim/-/blob/master/LICENSE.md) for more information.
+See [LICENSE.md](https://gitlab.com/MatthiasLohr/bdtsim/-/blob/main/LICENSE.md) for more information.
 
 Copyright &copy; by [Matthias Lohr](https://mlohr.com/) &lt;[mail@mlohr.com](mailto:mail@mlohr.com)&gt;
 
