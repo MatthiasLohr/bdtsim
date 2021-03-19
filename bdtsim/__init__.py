@@ -16,11 +16,12 @@
 # limitations under the License.
 
 import logging
+import sys
 
 
 # https://docs.python.org/3/library/logging.html#logrecord-attributes
 log = logging.getLogger(__name__)
-log_handler = logging.StreamHandler()
+log_handler = logging.StreamHandler(sys.stderr)
 log_formatter = logging.Formatter(fmt='%(asctime)s %(name)-44s [%(levelname)s] %(message)s')
 log_handler.setFormatter(log_formatter)
 log.addHandler(log_handler)

@@ -19,19 +19,22 @@ from typing import Optional
 
 from .command_manager import CommandManager
 from .environment_info import EnvironmentInfoSubCommand
+from .list_data_providers import ListDataProvidersSubCommand
 from .list_environments import ListEnvironmentsSubCommand
 from .list_protocols import ListProtocolsSubCommand
-from .list_output_formats import ListOutputFormatsSubCommand
-from .list_data_providers import ListDataProvidersSubCommand
+from .list_renderers import ListRenderersSubCommand
+from .render import RenderSubCommand
+
 from .run import RunSubCommand
 
 
 def main() -> Optional[int]:
     command_manager = CommandManager()
+    command_manager.register_subcommand('environment-info', EnvironmentInfoSubCommand)
     command_manager.register_subcommand('list-protocols', ListProtocolsSubCommand)
     command_manager.register_subcommand('list-environments', ListEnvironmentsSubCommand)
     command_manager.register_subcommand('list-data-providers', ListDataProvidersSubCommand)
-    command_manager.register_subcommand('list-output-formats', ListOutputFormatsSubCommand)
-    command_manager.register_subcommand('environment-info', EnvironmentInfoSubCommand)
+    command_manager.register_subcommand('list-renderers', ListRenderersSubCommand)
+    command_manager.register_subcommand('render', RenderSubCommand)
     command_manager.register_subcommand('run', RunSubCommand)
     return command_manager.run()

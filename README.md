@@ -13,7 +13,7 @@ Quick Links:
   * [Protocol Documentation](https://bdtsim.readthedocs.io/en/latest/protocols/)
   * [Environment Documentation](https://bdtsim.readthedocs.io/en/latest/environments/)
   * [Data Provider Documentation](https://bdtsim.readthedocs.io/en/latest/data_providers/)
-  * [Output Format Documentation](https://bdtsim.readthedocs.io/en/latest/output_formats/)
+  * [Renderer Documentation](https://bdtsim.readthedocs.io/en/latest/renderers/)
 
 
 ## Contributing

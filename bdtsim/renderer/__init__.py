@@ -15,21 +15,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .graphviz_dot import GraphvizDotOutputFormat
-from .human_readable import HumanReadableOutputFormat
-from .json import JSONOutputFormat
-from .output_format import OutputFormat
-from .output_format_manager import OutputFormatManager
+from .game_matrix import GameMatrixRenderer
+from .game_tree import GameTreeRenderer
+from .graphviz_dot import GraphvizDotRenderer
+from .human_readable import HumanReadableRenderer
+from .renderer import Renderer
+from .renderer_manager import RendererManager
 from .result_collector import ResultCollector
-from .yaml import YAMLOutputFormat
 
 
 __all__ = [
-    'GraphvizDotOutputFormat',
-    'HumanReadableOutputFormat',
-    'JSONOutputFormat',
-    'OutputFormat',
-    'OutputFormatManager',
-    'ResultCollector',
-    'YAMLOutputFormat'
+    'GameMatrixRenderer',
+    'GameTreeRenderer',
+    'GraphvizDotRenderer',
+    'HumanReadableRenderer',
+    'Renderer',
+    'RendererManager',
+    'ResultCollector'
 ]

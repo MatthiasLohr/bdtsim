@@ -12,6 +12,9 @@
 /docs/api/
 /public/
 /venv/
+/*.pdf
+/*.png
 __pycache__/
 *.egg-info/
 *.pyc
+*.result

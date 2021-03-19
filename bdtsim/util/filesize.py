@@ -64,7 +64,7 @@ class FileSize(object):
         elif isinstance(other, str):
             return self._size == FileSize(other)._size
         else:
-            raise NotImplementedError()
+            return NotImplemented
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)

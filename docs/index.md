@@ -28,7 +28,7 @@ Read more about:
   * [Protocols](protocols.md)
   * [Environments](environments.md)
   * [Data Providers](data_providers.md)
-  * [Output Formats](output_formats.md)
+  * [Renderers](renderers.md)
 
 
 ## Affiliations

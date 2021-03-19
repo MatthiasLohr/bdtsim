@@ -86,13 +86,13 @@ class DelgadoBasic(Protocol):
         self.smart_contract_init(environment, seller, buyer, pubkey_x, pubkey_y, price)
 
         # === 5: Seller: Reveal key ===
-        key_revelation_decision = protocol_path.decide(seller, 'Key Revelation', ['yes', 'no'])
-        if key_revelation_decision == 'yes':
+        key_revelation_decision = protocol_path.decide(seller, 'Key Revelation', ('yes', 'no'))
+        if key_revelation_decision.outcome == 'yes':
             private_number = int(signing_key.to_string().hex(), 16)
             self.smart_contract_reveal_key(environment, seller, buyer, private_number, pubkey_y)
-        elif key_revelation_decision == 'no':
+        elif key_revelation_decision.outcome == 'no':
             logger.debug('Seller: Leaving without Key Revelation')
-            if protocol_path.decide(buyer, 'Refund', variants=['yes', 'no']) == 'yes':
+            if protocol_path.decide(buyer, 'Refund', options=('yes', 'no')).outcome == 'yes':
                 logger.debug('Buyer: Waiting for timeout to request refund')
                 environment.wait(self.timeout + 1)
                 self.smart_contract_refund(environment, seller, buyer, pubkey_y, buyer)

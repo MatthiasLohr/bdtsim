@@ -17,29 +17,29 @@
 
 from typing import Any, Dict, Type
 
-from .output_format import OutputFormat
+from .renderer import Renderer
 
 
-class OutputFormatRegistration(object):
-    def __init__(self, cls: Type[OutputFormat], *args: Any, **kwargs: Any) -> None:
+class RendererRegistration(object):
+    def __init__(self, cls: Type[Renderer], *args: Any, **kwargs: Any) -> None:
         self.cls = cls
         self.args = args
         self.kwargs = kwargs
 
 
-class OutputFormatManager(object):
-    output_formats: Dict[str, OutputFormatRegistration] = {}
+class RendererManager(object):
+    renderers: Dict[str, RendererRegistration] = {}
 
     def __init__(self) -> None:
         raise NotImplementedError('This class is not to be instantiated')
 
     @staticmethod
-    def register(name: str, cls: Type[OutputFormat], *args: Any, **kwargs: Any) -> None:
-        if not issubclass(cls, OutputFormat):
+    def register(name: str, cls: Type[Renderer], *args: Any, **kwargs: Any) -> None:
+        if not issubclass(cls, Renderer):
             raise ValueError('Provided class is not a subclass of DataProvider')
-        OutputFormatManager.output_formats[name] = OutputFormatRegistration(cls, *args, **kwargs)
+        RendererManager.renderers[name] = RendererRegistration(cls, *args, **kwargs)
 
     @staticmethod
-    def instantiate(name: str, **kwargs: Any) -> OutputFormat:
-        output_format = OutputFormatManager.output_formats[name]
-        return output_format.cls(*output_format.args, **{**output_format.kwargs, **kwargs})
+    def instantiate(name: str, **kwargs: Any) -> Renderer:
+        renderer = RendererManager.renderers[name]
+        return renderer.cls(*renderer.args, **{**renderer.kwargs, **kwargs})

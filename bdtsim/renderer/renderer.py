@@ -20,10 +20,10 @@ from typing import Any, Optional, Union
 from bdtsim.simulation_result import SimulationResult
 
 
-class OutputFormat(object):
+class Renderer(object):
     def __init__(self, wei_scaling: Union[int, float, str] = 1, gas_scaling: Union[int, float, str] = 1,
                  *args: Any, **kwargs: Any) -> None:
-        """Initialize OutputFormat
+        """Initialize Renderer
 
         Args:
             wei_scaling (Union[int, float, str]): If int/float provided, it will be multiplied with the value to be
@@ -110,7 +110,7 @@ class OutputFormat(object):
                 factor = 1000000000000000000
                 scaling = scaling[:-3]
             # filter common units
-            factor = factor * OutputFormat.get_unit_factor(scaling)
+            factor = factor * Renderer.get_unit_factor(scaling)
         else:
             raise ValueError('Unsupported scaling type')
         result = value / factor
@@ -135,7 +135,7 @@ class OutputFormat(object):
             factor = 1 / scaling
         elif isinstance(scaling, str):
             # filter common units
-            factor = OutputFormat.get_unit_factor(scaling)
+            factor = Renderer.get_unit_factor(scaling)
         else:
             raise ValueError('Unsupported scaling type')
         result = value / factor

@@ -71,7 +71,7 @@ class Account(object):
         if isinstance(other, Account):
             return self.wallet_address == other.wallet_address and self.name == other.name
         else:
-            raise NotImplementedError()
+            return NotImplemented
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)

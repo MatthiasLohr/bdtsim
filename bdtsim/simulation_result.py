@@ -15,9 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
 import copy
+import gzip
 import itertools
-from typing import Any, Callable, Dict, List, NamedTuple, Optional, Tuple
+import pickle
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Tuple, cast
 
 from bdtsim.account import Account
 from bdtsim.funds_diff_collection import FundsDiffCollection
@@ -31,6 +34,19 @@ class TransactionLogEntry(NamedTuple):
     tx_receipt: Dict[str, Any]
     description: str
     funds_diff_collection: FundsDiffCollection
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, TransactionLogEntry):
+            return (self.account == other.account and
+                    self.tx_dict == other.tx_dict and
+                    self.tx_receipt == other.tx_receipt and
+                    self.description == other.description and
+                    self.funds_diff_collection == other.funds_diff_collection)
+        else:
+            return NotImplemented
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
 
 
 class TransactionLogList(List[TransactionLogEntry]):
@@ -101,7 +117,7 @@ class TransactionLogList(List[TransactionLogEntry]):
         if isinstance(other, TransactionLogList):
             return super(TransactionLogList, self).__eq__(other)
         else:
-            raise NotImplementedError()
+            return NotImplemented
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
@@ -204,6 +220,15 @@ class TransactionLogCollection(List[TransactionLogList]):
         super(TransactionLogCollection, self).__init__()
         self._aggregation: Optional[TransactionLogCollection.Aggregation] = None
 
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, TransactionLogCollection):
+            return super(TransactionLogCollection, self).__eq__(other)
+        else:
+            return NotImplemented
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
     @property
     def aggregation(self) -> 'TransactionLogCollection.Aggregation':
         if self._aggregation is None:
@@ -237,7 +262,7 @@ class ResultNode(object):
     def account_completely_honest(self, account: Account) -> bool:
         if self.parent is not None:
             incoming_decision = list(self.parent.children.keys())[list(self.parent.children.values()).index(self)]
-            if incoming_decision.account == account and not incoming_decision.is_honest():
+            if incoming_decision.choice.subject == account and not incoming_decision.is_honest():
                 return False
             else:
                 return self.parent.account_completely_honest(account)
@@ -259,6 +284,17 @@ class ResultNode(object):
             aggregation_summary += next_node.tx_collection.aggregation
             next_node = next_node.parent
         return aggregation_summary
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, ResultNode):
+            return (self.parent == other.parent and
+                    self.children == other.children and
+                    self.tx_collection == other.tx_collection)
+        else:
+            return NotImplemented
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
 
 
 class AggregationAttributeHelper(object):
@@ -317,6 +353,20 @@ class SimulationResult(object):
 
         return important_results
 
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, SimulationResult):
+            return (self.preparation_transactions == other.preparation_transactions and
+                    self.execution_result_root == other.execution_result_root and
+                    self.cleanup_transactions == other.cleanup_transactions and
+                    self.operator == other.operator and
+                    self.seller == other.seller and
+                    self.buyer == other.buyer)
+        else:
+            return NotImplemented
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
     @staticmethod
     def _apply_aggr_func(aggr_func: Callable[..., TransactionLogCollection.Aggregation],
                          results: List[TransactionLogCollection.Aggregation], account: Account,
@@ -325,3 +375,24 @@ class SimulationResult(object):
         if len(results_filtered) == 0:
             return None
         return aggr_func(results_filtered, key=AggregationAttributeHelper(account, attribute))
+
+
+class SimulationResultSerializer(object):
+    def __init__(self, compression: bool = True, b64encoding: bool = True):
+        self._compression = compression
+        self._b64encoding = b64encoding
+
+    def serialize(self, simulation_result: 'SimulationResult') -> bytes:
+        result_bytes = pickle.dumps(simulation_result, protocol=4)
+        if self._compression:
+            result_bytes = gzip.compress(result_bytes)
+        if self._b64encoding:
+            result_bytes = base64.encodebytes(result_bytes)
+        return result_bytes
+
+    def unserialize(self, data: bytes) -> 'SimulationResult':
+        if self._b64encoding:
+            data = base64.decodebytes(data)
+        if self._compression:
+            data = gzip.decompress(data)
+        return cast(SimulationResult, pickle.loads(data))

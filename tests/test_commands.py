@@ -21,13 +21,13 @@ from unittest import TestCase
 
 class CommandTest(TestCase):
     def test_list_environments(self) -> None:
-        p = subprocess.Popen(['bdtsim', 'list-environments'], stdout=subprocess.PIPE)
+        p = subprocess.Popen(['env', 'bdtsim', 'list-environments'], stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
         self.assertEqual(out.decode('utf-8').strip(), '\n'.join(['PyEVM', 'Web3HTTP', 'Web3Websocket', 'Web3IPC']))
 
     def test_list_protocols(self) -> None:
-        p = subprocess.Popen(['bdtsim', 'list-protocols'], stdout=subprocess.PIPE)
+        p = subprocess.Popen(['env', 'bdtsim', 'list-protocols'], stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
         self.assertEqual(out.decode('utf-8').strip(), '\n'.join([
@@ -45,7 +45,7 @@ class CommandTest(TestCase):
         ]))
 
     def test_list_data_providers(self) -> None:
-        p = subprocess.Popen(['bdtsim', 'list-data-providers'], stdout=subprocess.PIPE)
+        p = subprocess.Popen(['env', 'bdtsim', 'list-data-providers'], stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
         self.assertEqual(out.decode('utf-8').strip(), '\n'.join([
@@ -53,81 +53,83 @@ class CommandTest(TestCase):
             'FileDataProvider'
         ]))
 
-    def test_list_output_formats(self) -> None:
-        p = subprocess.Popen(['bdtsim', 'list-output-formats'], stdout=subprocess.PIPE)
+    def test_list_renderers(self) -> None:
+        p = subprocess.Popen(['env', 'bdtsim', 'list-renderers'], stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
         self.assertEqual(out.decode('utf-8').strip(), '\n'.join([
+            'game-matrix',
+            'game-tree',
             'dot',
-            'human-readable',
-            'json',
-            'yaml'
+            'human-readable'
         ]))
 
     def test_run_simplepayment(self) -> None:
-        p = subprocess.Popen(['bdtsim', 'run', 'SimplePayment', 'PyEVM'], stdout=subprocess.PIPE)
+        p = subprocess.Popen(['env', 'bdtsim', 'run', 'SimplePayment', 'PyEVM'], stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
 
     def test_run_simplepayment_prepaid(self) -> None:
-        p = subprocess.Popen(['bdtsim', 'run', 'SimplePayment-prepaid', 'PyEVM'], stdout=subprocess.PIPE)
+        p = subprocess.Popen(['env', 'bdtsim', 'run', 'SimplePayment-prepaid', 'PyEVM'], stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
 
     def test_run_simplepayment_prepaid_direct(self) -> None:
-        p = subprocess.Popen(['bdtsim', 'run', 'SimplePayment-prepaid-direct', 'PyEVM'], stdout=subprocess.PIPE)
+        p = subprocess.Popen(['env', 'bdtsim', 'run', 'SimplePayment-prepaid-direct', 'PyEVM'], stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
 
     def test_run_simplepayment_postpaid(self) -> None:
-        p = subprocess.Popen(['bdtsim', 'run', 'SimplePayment-postpaid', 'PyEVM'], stdout=subprocess.PIPE)
+        p = subprocess.Popen(['env', 'bdtsim', 'run', 'SimplePayment-postpaid', 'PyEVM'], stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
 
     def test_run_simplepayment_postpaid_direct(self) -> None:
-        p = subprocess.Popen(['bdtsim', 'run', 'SimplePayment-postpaid-direct', 'PyEVM'], stdout=subprocess.PIPE)
+        p = subprocess.Popen(['env', 'bdtsim', 'run', 'SimplePayment-postpaid-direct', 'PyEVM'], stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
 
     def test_run_fairswap(self) -> None:
-        p = subprocess.Popen(['bdtsim', 'run', 'FairSwap', 'PyEVM', '-d', 'size', '256', '-p', 'slices-count', '8'],
-                             stdout=subprocess.PIPE)
+        p = subprocess.Popen(
+            ['env', 'bdtsim', 'run', 'FairSwap', 'PyEVM', '-d', 'size', '256', '-p', 'slices-count', '8'],
+            stdout=subprocess.PIPE
+        )
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
 
     def test_run_fairswap_reusable(self) -> None:
-        p = subprocess.Popen(['bdtsim', 'run', 'FairSwap-Reusable', 'PyEVM', '-d', 'size', '256',
+        p = subprocess.Popen(['env', 'bdtsim', 'run', 'FairSwap-Reusable', 'PyEVM', '-d', 'size', '256',
                               '-p', 'slices-count', '8'],
                              stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
 
     def test_run_delgado(self) -> None:
-        p = subprocess.Popen(['bdtsim', 'run', 'Delgado', 'PyEVM'],
+        p = subprocess.Popen(['env', 'bdtsim', 'run', 'Delgado', 'PyEVM'],
                              stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
 
     def test_run_delgado_reusable_library(self) -> None:
-        p = subprocess.Popen(['bdtsim', 'run', 'Delgado-ReusableLibrary', 'PyEVM'],
+        p = subprocess.Popen(['env', 'bdtsim', 'run', 'Delgado-ReusableLibrary', 'PyEVM'],
                              stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
 
     def test_run_delgado_reusable_contract(self) -> None:
-        p = subprocess.Popen(['bdtsim', 'run', 'Delgado-ReusableContract', 'PyEVM'],
+        p = subprocess.Popen(['env', 'bdtsim', 'run', 'Delgado-ReusableContract', 'PyEVM'],
                              stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
 
     def test_run_smartjudge_fairswap(self) -> None:
-        p = subprocess.Popen(['bdtsim', 'run', 'SmartJudge-FairSwap', 'PyEVM', '-d', 'size', '128',
+        p = subprocess.Popen(['env', 'bdtsim', 'run', 'SmartJudge-FairSwap', 'PyEVM', '-d', 'size', '128',
                               '-p', 'slices-count', '4', '-p', 'slice_length', '32'],
                              stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
 
     def test_environment_info_pyevm(self) -> None:
-        p = subprocess.Popen(['bdtsim', 'environment-info', 'PyEVM'], stdout=subprocess.PIPE)
+        p = subprocess.Popen(['env', 'bdtsim', 'environment-info', 'PyEVM'], stdout=subprocess.PIPE)
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)

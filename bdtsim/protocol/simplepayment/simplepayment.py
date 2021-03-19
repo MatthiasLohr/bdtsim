@@ -46,11 +46,11 @@ class SimplePayment(Protocol):
         Returns:
             None
         """
-        release_goods = protocol_path.decide(seller, 'release goods?', ['yes', 'no'])
+        release_goods = protocol_path.decide(seller, 'release goods?', ('yes', 'no'))
         # [...] seller releases goods to buyer, not monitored by BDTsim
-        if release_goods == 'yes':
-            pay = protocol_path.decide(buyer, 'pay?', ['yes', 'no'])
-            if pay == 'yes':
+        if release_goods.outcome == 'yes':
+            pay = protocol_path.decide(buyer, 'pay?', ('yes', 'no'))
+            if pay.outcome == 'yes':
                 environment.send_direct_transaction(buyer, seller, price)
             else:
                 pass  # buyer left protocol, having goods, without payment
@@ -114,14 +114,14 @@ class SimplePaymentPrepaid(AbstractParameterizedSimplePayment):
         Returns:
             None
         """
-        if protocol_path.decide(buyer, description='Payment', variants=['paying', 'not paying']).is_honest():
+        if protocol_path.decide(buyer, description='Payment', options=('paying', 'not paying')).is_honest():
             logger.debug('Decided to be honest')
             if self._use_contract:
                 environment.send_contract_transaction(self.contract, buyer, 'pay', seller.wallet_address, value=price)
             else:
                 environment.send_direct_transaction(buyer, seller, price)
 
-            protocol_path.decide(seller, description='Give goods', variants=['yes', 'no'])
+            protocol_path.decide(seller, description='Give goods', options=('yes', 'no'))
         else:
             logger.debug('Decided to cheat')  # do nothing
 
@@ -142,8 +142,8 @@ class SimplePaymentPostpaid(AbstractParameterizedSimplePayment):
         Returns:
             None
         """
-        if protocol_path.decide(seller, 'Give goods', ['yes', 'no']).is_honest():
-            if protocol_path.decide(buyer, description='Payment', variants=['paying', 'not paying']).is_honest():
+        if protocol_path.decide(seller, 'Give goods', ('yes', 'no')).is_honest():
+            if protocol_path.decide(buyer, description='Payment', options=('paying', 'not paying')).is_honest():
                 logger.debug('Decided to be honest')
                 if self._use_contract:
                     environment.send_contract_transaction(self.contract, buyer, 'pay', seller.wallet_address,

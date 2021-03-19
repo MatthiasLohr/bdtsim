@@ -146,18 +146,18 @@ class SmartJudge(Protocol):
 
         # seller encrypts data and sends condition hash to buyer
         encryption_decision = protocol_path.decide(
-            seller, 'File Encryption/Transfer', ['expected', 'completely different', 'leaf forgery', 'hash forgery']
+            seller, 'File Encryption/Transfer', ('expected', 'completely different', 'leaf forgery', 'hash forgery')
         )
-        if encryption_decision == 'expected':
+        if encryption_decision.outcome == 'expected':
             encrypted_merkle_tree = encoding.encode(plain_merkle_tree, key)
-        elif encryption_decision == 'completely different':
+        elif encryption_decision.outcome == 'completely different':
             encrypted_merkle_tree = encoding.encode(
                 merkle.from_bytes(generate_bytes(data_provider.data_size), self._slices_count),
                 key
             )
-        elif encryption_decision == 'leaf forgery':
+        elif encryption_decision.outcome == 'leaf forgery':
             encrypted_merkle_tree = encoding.encode_forge_first_leaf(plain_merkle_tree, key)
-        elif encryption_decision == 'hash forgery':
+        elif encryption_decision.outcome == 'hash forgery':
             encrypted_merkle_tree = encoding.encode_forge_first_leaf_first_hash(plain_merkle_tree, key)
         else:
             raise NotImplementedError()
@@ -172,11 +172,11 @@ class SmartJudge(Protocol):
         )
         agreement_hash = Web3.soliditySha3(['uint32', 'bytes32'], [self._verifier_id, conditions_hash])
 
-        create_decision = protocol_path.decide(buyer, 'publish agreement', ['correct', 'incorrect'])
-        if create_decision == 'correct':
+        create_decision = protocol_path.decide(buyer, 'publish agreement', ('correct', 'incorrect'))
+        if create_decision.outcome == 'correct':
             logger.debug('Buyer: create trade with correct agreement hash')
             transfer_agreement_hash = agreement_hash
-        elif create_decision == 'incorrect':
+        elif create_decision.outcome == 'incorrect':
             logger.debug('Buyer: create trade with incorrect agreement hash')
             transfer_agreement_hash = generate_bytes(len(agreement_hash), avoid=agreement_hash)
         else:
@@ -193,12 +193,12 @@ class SmartJudge(Protocol):
         # === Mediator State: CREATED ===
         logger.debug('Seller: checking agreement_hash')
         if agreement_hash == transfer_agreement_hash:
-            acceptance_decision = protocol_path.decide(seller, 'accept?', ['yes', 'no'])
-            if acceptance_decision == 'yes':
+            acceptance_decision = protocol_path.decide(seller, 'accept?', ('yes', 'no'))
+            if acceptance_decision.outcome == 'yes':
                 logger.debug('Seller: accept trade')
                 environment.send_contract_transaction(self._mediator_contract, seller, 'accept', trade_id,
                                                       value=self._security_deposit * environment.gas_price)
-            elif acceptance_decision == 'no':
+            elif acceptance_decision.outcome == 'no':
                 logger.debug('Seller: do not accept trade')
                 environment.wait(self._timeout)
                 logger.debug('Buyer: no reaction from seller, aborting')
@@ -213,15 +213,15 @@ class SmartJudge(Protocol):
             return
 
         # === Mediator State: ACCEPTED ===
-        revelation_decision = protocol_path.decide(seller, 'reveal key?', ['correct', 'incorrect', 'skip'],
-                                                   ['correct', 'skip'])
-        if revelation_decision == 'correct':
+        revelation_decision = protocol_path.decide(seller, 'reveal key?', ('correct', 'incorrect', 'skip'),
+                                                   ('correct', 'skip'))
+        if revelation_decision.outcome == 'correct':
             logger.debug('Seller: revealing correct key')
             transfer_key: Optional[bytes] = key
-        elif revelation_decision == 'incorrect':
+        elif revelation_decision.outcome == 'incorrect':
             logger.debug('Seller: revealing incorrect key')
             transfer_key = generate_bytes(len(key), avoid=key)
-        elif revelation_decision == 'skip':
+        elif revelation_decision.outcome == 'skip':
             logger.debug('Seller: Not revealing key (now)')
             transfer_key = None
         else:
@@ -232,18 +232,18 @@ class SmartJudge(Protocol):
             decrypted_merkle_tree, errors = encoding.decode(encrypted_merkle_tree, transfer_key)
             if decrypted_merkle_tree.digest == plain_merkle_tree.digest:
                 logger.debug('Buyer: decryption successful')
-                finish_decision = protocol_path.decide(buyer, 'finish?', ['yes', 'no'])
-                if finish_decision == 'yes':
+                finish_decision = protocol_path.decide(buyer, 'finish?', ('yes', 'no'))
+                if finish_decision.outcome == 'yes':
                     environment.send_contract_transaction(self._mediator_contract, buyer, 'finish', trade_id)
                     return
             else:
                 logger.debug('Buyer: decryption not successful')
 
-        contest_decision = protocol_path.decide(seller, 'contest/reveal', ['correct', 'incorrect'])
-        if contest_decision == 'correct':
+        contest_decision = protocol_path.decide(seller, 'contest/reveal', ('correct', 'incorrect'))
+        if contest_decision.outcome == 'correct':
             logger.debug('Seller: contesting with correct key')
             contest_key = key
-        elif contest_decision == 'incorrect':
+        elif contest_decision.outcome == 'incorrect':
             logger.debug('Seller: contesting with incorrect key')
             contest_key = generate_bytes(len(key), avoid=key)
         else:
@@ -254,12 +254,12 @@ class SmartJudge(Protocol):
         # === Mediator State: CONTENDED ===
         decrypted_merkle_tree, errors = encoding.decode(encrypted_merkle_tree, contest_key)
         if decrypted_merkle_tree.digest == plain_merkle_tree.digest:
-            finish_decision = protocol_path.decide(buyer, 'finish?', ['yes', 'no'])
-            if finish_decision == 'yes':
+            finish_decision = protocol_path.decide(buyer, 'finish?', ('yes', 'no'))
+            if finish_decision.outcome == 'yes':
                 logger.debug('Buyer: confirming (correct) contest witness/finishing')
                 environment.send_contract_transaction(self._mediator_contract, buyer, 'finish', trade_id)
                 return
-            elif finish_decision == 'no':
+            elif finish_decision.outcome == 'no':
                 logger.debug('Buyer: not confirming (correct) contest witness')
                 logger.debug('Seller: wait for timeout')
                 environment.wait(self._timeout)
@@ -273,9 +273,9 @@ class SmartJudge(Protocol):
                                                   self._verifier_id, conditions_hash,
                                                   value=self._worst_case_cost * environment.gas_price)
             verify_initial_agreement_decision = protocol_path.decide(seller, 'verify initial agreement',
-                                                                     ['correct', 'incorrect ciphertext digest',
-                                                                      'incorrect plain digest', 'leave'])
-            if verify_initial_agreement_decision == 'correct':
+                                                                     ('correct', 'incorrect ciphertext digest',
+                                                                      'incorrect plain digest', 'leave'))
+            if verify_initial_agreement_decision.outcome == 'correct':
                 environment.send_contract_transaction(self._verifier_contract, seller, 'verify_initial_agreement',
                                                       trade_id, encrypted_merkle_tree.digest, plain_merkle_tree.digest)
                 # If witness (key) released during contest, verify_initial_agreement will end trade
@@ -286,7 +286,7 @@ class SmartJudge(Protocol):
                     return
 
                 # TODO implement - do we need more here?
-            elif verify_initial_agreement_decision == 'incorrect ciphertext digest':
+            elif verify_initial_agreement_decision.outcome == 'incorrect ciphertext digest':
                 environment.send_contract_transaction(
                     self._verifier_contract,
                     seller,
@@ -297,7 +297,7 @@ class SmartJudge(Protocol):
                 )
                 return
                 # TODO implement and/or check if return is enough
-            elif verify_initial_agreement_decision == 'incorrect plain digest':
+            elif verify_initial_agreement_decision.outcome == 'incorrect plain digest':
                 environment.send_contract_transaction(
                     self._verifier_contract,
                     seller,
@@ -308,7 +308,7 @@ class SmartJudge(Protocol):
                 )
                 return
                 # TODO implement and/or check if return is enough
-            elif verify_initial_agreement_decision == 'leave':
+            elif verify_initial_agreement_decision.outcome == 'leave':
                 logger.debug('Seller: not verifying initial agreement')
                 logger.debug('Buyer: requesting refund')
                 environment.wait(self._timeout)
