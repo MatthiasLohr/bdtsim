@@ -323,10 +323,11 @@ class ResultGraph(Digraph):  # type: ignore
 
     @staticmethod
     def _generate_transaction_edge(src: str, dest: str, tx_log: TransactionLogEntry) -> EdgeTemplate:
-        label = '<b>%s: %s</b> (%s Gas)' % (
+        label = '<b>%s: %s</b> (%s Gas, Bal. %s)' % (
             tx_log.account.name,
             tx_log.description or 'n.a.',
-            tx_log.tx_receipt['gasUsed']
+            tx_log.tx_receipt['gasUsed'],
+            - (int(tx_log.tx_receipt['gasUsed']) * int(tx_log.tx_dict['gasPrice']))
         )
         if not tx_log.funds_diff_collection.is_neutral:
             label += '<br/><b>Funds Diffs:</b>'

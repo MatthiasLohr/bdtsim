@@ -104,12 +104,13 @@ class SimulationGameTree(Digraph):  # type: ignore
             subject_summary = aggregation_summary.get(subject)
 
             for summary_label, summary_attr in (
-                    ('TX Fees', 'tx_fees'),
-                    ('TX Count', 'tx_count'),
-                    ('Funds Diff', 'funds_diff')
+                ('TX Fees', 'tx_fees'),
+                ('TX Count', 'tx_count'),
+                ('Funds Diff', 'funds_diff'),
+                ('Balance Diff', 'balance_diff')
             ):
                 if subject_summary is None:
-                    label_lines.append('<i>%s</i>: N.A.' % summary_label)
+                    label_lines.append('<i>%s</i>: 0' % summary_label)
                 else:
                     value_min = getattr(subject_summary, summary_attr + '_min')
                     value_max = getattr(subject_summary, summary_attr + '_max')

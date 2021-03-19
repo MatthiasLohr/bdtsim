@@ -57,13 +57,15 @@ class TransactionLogList(List[TransactionLogEntry]):
             tx_fees: int
             tx_count: int
             funds_diff: int
+            balance_diff: int
 
             def __str__(self) -> str:
-                return '%s: %d (%d transaction(s), value diff %d)' % (
+                return '%s: %d (%d transaction(s), funds diff %d, balance diff %d)' % (
                     self.account.name,
                     self.tx_fees,
                     self.tx_count,
-                    self.funds_diff
+                    self.funds_diff,
+                    self.balance_diff
                 )
 
         def __init__(self, tx_log_list: 'TransactionLogList') -> None:
@@ -76,7 +78,8 @@ class TransactionLogList(List[TransactionLogEntry]):
                         tx.account,
                         int(tx.tx_receipt['gasUsed']),
                         1,
-                        0
+                        0,
+                        - (int(tx.tx_receipt['gasUsed']) * int(tx.tx_dict['gasPrice']))
                     )
                     self.update({tx.account: entry})
                 else:
@@ -84,7 +87,8 @@ class TransactionLogList(List[TransactionLogEntry]):
                         tx.account,
                         entry.tx_fees + int(tx.tx_receipt['gasUsed']),
                         entry.tx_count + 1,
-                        entry.funds_diff
+                        entry.funds_diff,
+                        entry.balance_diff - (int(tx.tx_receipt['gasUsed']) * int(tx.tx_dict['gasPrice']))
                     )
                     self.update({tx.account: entry})
                 # work on all fund diffs
@@ -96,6 +100,7 @@ class TransactionLogList(List[TransactionLogEntry]):
                                 account,
                                 0,
                                 0,
+                                funds_diff,
                                 funds_diff
                             )
                         })
@@ -105,7 +110,8 @@ class TransactionLogList(List[TransactionLogEntry]):
                                 account,
                                 entry.tx_fees,
                                 entry.tx_count,
-                                funds_diff_entry.funds_diff + funds_diff
+                                funds_diff_entry.funds_diff + funds_diff,
+                                entry.balance_diff + funds_diff
                             )
                         })
 
@@ -141,6 +147,8 @@ class TransactionLogCollection(List[TransactionLogList]):
             tx_count_mean: float
             funds_diff_min: int
             funds_diff_max: int
+            balance_diff_min: int
+            balance_diff_max: int
 
             def __str__(self) -> str:
                 if self.tx_fees_min == self.tx_fees_max:
@@ -162,7 +170,18 @@ class TransactionLogCollection(List[TransactionLogList]):
                 else:
                     funds_diff_str = 'funds diff %d/%d' % (self.funds_diff_min, self.funds_diff_max)
 
-                return '%s: %s (%s, %s)' % (self.account.name, tx_fees_str, tx_count_str, funds_diff_str)
+                if self.balance_diff_min == self.balance_diff_max:
+                    balance_diff_str = 'balance diff %d' % self.balance_diff_min
+                else:
+                    balance_diff_str = 'balance diff %d/%d' % (self.balance_diff_min, self.balance_diff_max)
+
+                return '%s: %s (%s, %s, %s)' % (
+                    self.account.name,
+                    tx_fees_str,
+                    tx_count_str,
+                    funds_diff_str,
+                    balance_diff_str
+                )
 
         def __init__(self, tx_log_collection: 'TransactionLogCollection') -> None:
             super(TransactionLogCollection.Aggregation, self).__init__()
@@ -179,7 +198,9 @@ class TransactionLogCollection(List[TransactionLogList]):
                             tx_count_max=tx_list_aggregation_entry.tx_count,
                             tx_count_mean=tx_list_aggregation_entry.tx_count / len(tx_log_collection),
                             funds_diff_min=tx_list_aggregation_entry.funds_diff,
-                            funds_diff_max=tx_list_aggregation_entry.funds_diff
+                            funds_diff_max=tx_list_aggregation_entry.funds_diff,
+                            balance_diff_min=tx_list_aggregation_entry.balance_diff,
+                            balance_diff_max=tx_list_aggregation_entry.balance_diff
                         )})
                     else:
                         self.update({tx_list_aggregation_entry.account: TransactionLogCollection.Aggregation.Entry(
@@ -191,7 +212,9 @@ class TransactionLogCollection(List[TransactionLogList]):
                             tx_count_max=max(e.tx_count_max, tx_list_aggregation_entry.tx_count),
                             tx_count_mean=e.tx_count_mean + tx_list_aggregation_entry.tx_count / len(tx_log_collection),
                             funds_diff_min=min(e.funds_diff_min, tx_list_aggregation_entry.funds_diff),
-                            funds_diff_max=max(e.funds_diff_max, tx_list_aggregation_entry.funds_diff)
+                            funds_diff_max=max(e.funds_diff_max, tx_list_aggregation_entry.funds_diff),
+                            balance_diff_min=min(e.balance_diff_min, tx_list_aggregation_entry.balance_diff),
+                            balance_diff_max=max(e.balance_diff_max, tx_list_aggregation_entry.balance_diff),
                         )})
 
         def __iadd__(self, other: 'TransactionLogCollection.Aggregation') -> 'TransactionLogCollection.Aggregation':
@@ -210,7 +233,9 @@ class TransactionLogCollection(List[TransactionLogList]):
                             tx_count_max=local_entry.tx_count_max + remote_entry.tx_count_max,
                             tx_count_mean=local_entry.tx_count_mean + remote_entry.tx_count_mean,
                             funds_diff_min=local_entry.funds_diff_min + remote_entry.funds_diff_min,
-                            funds_diff_max=local_entry.funds_diff_max + remote_entry.funds_diff_max
+                            funds_diff_max=local_entry.funds_diff_max + remote_entry.funds_diff_max,
+                            balance_diff_min=local_entry.balance_diff_min + remote_entry.balance_diff_min,
+                            balance_diff_max=local_entry.balance_diff_max + remote_entry.balance_diff_max
                         )})
                 return self
             else:

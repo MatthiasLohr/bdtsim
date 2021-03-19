@@ -27,11 +27,13 @@ from .renderer_manager import RendererManager
 
 class GameMatrixAccountCell(object):
     def __init__(self, account: Account, tx_fees: Optional[Tuple[int, int]] = None,
-                 tx_count: Optional[Tuple[int, int]] = None, funds_diff: Optional[Tuple[int, int]] = None) -> None:
+                 tx_count: Optional[Tuple[int, int]] = None, funds_diff: Optional[Tuple[int, int]] = None,
+                 balance_diff: Optional[Tuple[int, int]] = None) -> None:
         self._account = account
         self._tx_fees = tx_fees
         self._tx_count = tx_count
         self._funds_diff = funds_diff
+        self._balance_diff = balance_diff
 
     @property
     def account(self) -> Account:
@@ -45,17 +47,25 @@ class GameMatrixAccountCell(object):
     def funds_diff(self) -> Optional[Tuple[int, int]]:
         return self._funds_diff
 
+    @property
+    def balance_diff(self) -> Optional[Tuple[int, int]]:
+        return self._balance_diff
+
     def __str__(self) -> str:
         results = []
         for label, interval in (
             ('TX Fees', self._tx_fees),
             ('TX Count', self._tx_count),
-            ('Funds Diff', self._funds_diff)
+            ('Funds Diff', self._funds_diff),
+            ('Bal. Diff', self._balance_diff)
         ):
             if interval is None:
-                results.append('%s: N.A.' % label)
+                results.append('%s: 0' % label)
             else:
-                results.append('%s: [%d, %d]' % (label, interval[0], interval[1]))
+                if interval[0] == interval[1]:
+                    results.append('%s: %d' % (label, interval[0]))
+                else:
+                    results.append('%s: [%d, %d]' % (label, interval[0], interval[1]))
 
         return '\n'.join(results)
 
@@ -82,7 +92,11 @@ class GameMatrixAccountCell(object):
                 funds_diff=(
                     min(_safe_attr_generator('funds_diff_min')),
                     max(_safe_attr_generator('funds_diff_max'))
-                )
+                ),
+                balance_diff=(
+                    min(_safe_attr_generator('balance_diff_min')),
+                    max(_safe_attr_generator('balance_diff_max'))
+                ),
             )
         else:
             return GameMatrixAccountCell(account=account)
