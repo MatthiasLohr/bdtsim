@@ -16,7 +16,7 @@
 # limitations under the License.
 
 import tempfile
-from typing import Any, List, NamedTuple, Optional, Union
+from typing import Any, Callable, List, NamedTuple, Optional, Union
 from uuid import uuid4
 
 from graphviz import Digraph  # type: ignore
@@ -25,7 +25,7 @@ from bdtsim.protocol_path import Decision
 from bdtsim.simulation_result import SimulationResult, ResultNode, TransactionLogList, TransactionLogCollection, \
     TransactionLogEntry
 from bdtsim.util.types import to_bool
-from .renderer import Renderer
+from .renderer import Renderer, ValueType
 from .renderer_manager import RendererManager
 
 
@@ -71,7 +71,12 @@ class GraphvizDotRenderer(Renderer):
             self._output_filename = tempfile.mktemp(prefix='bdtsim-', suffix='.dot')
 
     def render(self, simulation_result: SimulationResult) -> None:
-        graph = ResultGraph(simulation_result, self._show_transactions, self._show_transaction_duplicates)
+        graph = ResultGraph(
+            simulation_result=simulation_result,
+            show_transactions=self._show_transactions,
+            show_transaction_duplicates=self._show_transaction_duplicates,
+            autoscale_func=self.autoscale
+        )
 
         if self._output_filename is not None:
             graph.render(
@@ -146,7 +151,8 @@ class TransactionPathPartTuple(NamedTuple):
 
 class ResultGraph(Digraph):  # type: ignore
     def __init__(self, simulation_result: SimulationResult, show_transactions: bool = False,
-                 show_transaction_duplicates: bool = False) -> None:
+                 show_transaction_duplicates: bool = False,
+                 autoscale_func: Optional[Callable[[Any, ValueType], Any]] = None) -> None:
         super(ResultGraph, self).__init__(
             graph_attr=[
                 ('rankdir', 'LR'),
@@ -162,11 +168,18 @@ class ResultGraph(Digraph):  # type: ignore
 
         self._show_transactions = show_transactions
         self._show_transaction_duplicates = show_transaction_duplicates
+        self._autoscale_func = autoscale_func
 
         start_node_uuid = self._add_start_node()
         self._walk_result_nodes(start_node_uuid, simulation_result.execution_result_root)
         self._walk_preparation_nodes(simulation_result.preparation_transactions)
         self._walk_cleanup_nodes(simulation_result.cleanup_transactions)
+
+    def _autoscale(self, value: Any, value_type: ValueType) -> Any:
+        if self._autoscale_func is None:
+            return value
+        else:
+            return self._autoscale_func(value, value_type)
 
     def _walk_preparation_nodes(self, transactions: TransactionLogList) -> None:
         self._walk_operator_nodes('Preparation', transactions)
@@ -248,7 +261,11 @@ class ResultGraph(Digraph):  # type: ignore
         uuid = self._uuid()
         label = phase
         for entry in transactions.aggregation.values():
-            label += '\n%s: %d (%d)' % (entry.account.name, entry.tx_fees, entry.tx_count)
+            label += '\n%s: %d (%d)' % (
+                entry.account.name,
+                self._autoscale(entry.tx_fees, ValueType.GAS),
+                entry.tx_count
+            )
 
         self.node(uuid, label, shape='box')
 
@@ -321,18 +338,17 @@ class ResultGraph(Digraph):  # type: ignore
         edge_template = self._generate_transaction_edge(src, dest, tx_log)
         edge_template.generate(self)
 
-    @staticmethod
-    def _generate_transaction_edge(src: str, dest: str, tx_log: TransactionLogEntry) -> EdgeTemplate:
+    def _generate_transaction_edge(self, src: str, dest: str, tx_log: TransactionLogEntry) -> EdgeTemplate:
         label = '<b>%s: %s</b> (%s Gas, Bal. %s)' % (
             tx_log.account.name,
             tx_log.description or 'n.a.',
-            tx_log.tx_receipt['gasUsed'],
-            - (int(tx_log.tx_receipt['gasUsed']) * int(tx_log.tx_dict['gasPrice']))
+            self._autoscale(tx_log.tx_receipt['gasUsed'], ValueType.GAS),
+            - self._autoscale(int(tx_log.tx_receipt['gasUsed']) * int(tx_log.tx_dict['gasPrice']), ValueType.WEI)
         )
         if not tx_log.funds_diff_collection.is_neutral:
             label += '<br/><b>Funds Diffs:</b>'
             for account, value in tx_log.funds_diff_collection.items():
-                label += '<br />%s: %i' % (account.name, value)
+                label += '<br />%s: %i' % (account.name, self._autoscale(value, ValueType.WEI))
 
         return EdgeTemplate(
             src,

@@ -16,24 +16,26 @@
 # limitations under the License.
 
 from math import ceil
-from typing import Any, Generator, List, Optional, Tuple
+from typing import Any, Callable, Generator, List, Optional, Tuple
 
 from bdtsim.account import Account
 from bdtsim.simulation_result import SimulationResult, TransactionLogCollection
 from bdtsim.util.strings import str_block_table
-from .renderer import Renderer
+from .renderer import Renderer, ValueType
 from .renderer_manager import RendererManager
 
 
 class GameMatrixAccountCell(object):
     def __init__(self, account: Account, tx_fees: Optional[Tuple[int, int]] = None,
                  tx_count: Optional[Tuple[int, int]] = None, funds_diff: Optional[Tuple[int, int]] = None,
-                 balance_diff: Optional[Tuple[int, int]] = None) -> None:
+                 balance_diff: Optional[Tuple[int, int]] = None,
+                 autoscale_func: Optional[Callable[[Any, ValueType], Any]] = None) -> None:
         self._account = account
         self._tx_fees = tx_fees
         self._tx_count = tx_count
         self._funds_diff = funds_diff
         self._balance_diff = balance_diff
+        self._autoscale_func = autoscale_func
 
     @property
     def account(self) -> Account:
@@ -51,27 +53,39 @@ class GameMatrixAccountCell(object):
     def balance_diff(self) -> Optional[Tuple[int, int]]:
         return self._balance_diff
 
+    def _autoscale(self, value: Any, value_type: ValueType) -> Any:
+        if self._autoscale_func is None:
+            return value
+        else:
+            return self._autoscale_func(value, value_type)
+
     def __str__(self) -> str:
         results = []
-        for label, interval in (
-            ('TX Fees', self._tx_fees),
-            ('TX Count', self._tx_count),
-            ('Funds Diff', self._funds_diff),
-            ('Bal. Diff', self._balance_diff)
+        for label, interval, value_type in (
+            ('TX Fees', self._tx_fees, ValueType.GAS),
+            ('TX Count', self._tx_count, ValueType.PLAIN),
+            ('Funds Diff', self._funds_diff, ValueType.WEI),
+            ('Bal. Diff', self._balance_diff, ValueType.WEI)
         ):
             if interval is None:
                 results.append('%s: 0' % label)
             else:
                 if interval[0] == interval[1]:
-                    results.append('%s: %d' % (label, interval[0]))
+                    results.append('%s: %d' % (label, self._autoscale(interval[0], value_type)))
                 else:
-                    results.append('%s: [%d, %d]' % (label, interval[0], interval[1]))
+                    results.append('%s: [%d, %d]' % (
+                        label,
+                        self._autoscale(interval[0], value_type),
+                        self._autoscale(interval[1], value_type)
+                    ))
 
         return '\n'.join(results)
 
     @staticmethod
     def from_aggregation_summary_list(aggregation_summary_list: List[TransactionLogCollection.Aggregation],
-                                      account: Account) -> 'GameMatrixAccountCell':
+                                      account: Account,
+                                      autoscale_func: Optional[Callable[[Any, ValueType], Any]] = None
+                                      ) -> 'GameMatrixAccountCell':
         def _safe_attr_generator(attr_name: str) -> Generator[Any, None, None]:
             for entry in aggregation_summary_list:
                 item = entry.get(account)
@@ -97,9 +111,13 @@ class GameMatrixAccountCell(object):
                     min(_safe_attr_generator('balance_diff_min')),
                     max(_safe_attr_generator('balance_diff_max'))
                 ),
+                autoscale_func=autoscale_func
             )
         else:
-            return GameMatrixAccountCell(account=account)
+            return GameMatrixAccountCell(
+                account=account,
+                autoscale_func=autoscale_func
+            )
 
 
 class GameMatrixCell(object):
@@ -117,21 +135,25 @@ class GameMatrixCell(object):
 
     @staticmethod
     def from_aggregation_summary_list(aggregation_summary_list: List[TransactionLogCollection.Aggregation],
-                                      seller: Account, buyer: Account) -> 'GameMatrixCell':
+                                      seller: Account, buyer: Account,
+                                      autoscale_func: Optional[Callable[[Any, ValueType], Any]] = None
+                                      ) -> 'GameMatrixCell':
         return GameMatrixCell(
             seller_cell=GameMatrixAccountCell.from_aggregation_summary_list(
                 aggregation_summary_list=list(filter(
                     lambda item: item.get(seller) is not None,
                     aggregation_summary_list
                 )),
-                account=seller
+                account=seller,
+                autoscale_func=autoscale_func
             ),
             buyer_cell=GameMatrixAccountCell.from_aggregation_summary_list(
                 aggregation_summary_list=list(filter(
                     lambda item: item.get(buyer) is not None,
                     aggregation_summary_list
                 )),
-                account=buyer
+                account=buyer,
+                autoscale_func=autoscale_func
             )
         )
 
@@ -217,7 +239,8 @@ class GameMatrix(object):
         return output
 
     @staticmethod
-    def from_simulation_result(simulation_result: SimulationResult) -> 'GameMatrix':
+    def from_simulation_result(simulation_result: SimulationResult,
+                               autoscale_func: Optional[Callable[[Any, ValueType], Any]] = None) -> 'GameMatrix':
         # initialize aggregation summary lists
         asl_hh = []
         asl_hm = []
@@ -245,29 +268,39 @@ class GameMatrix(object):
             cell_hh=GameMatrixCell.from_aggregation_summary_list(
                 aggregation_summary_list=asl_hh,
                 seller=simulation_result.seller,
-                buyer=simulation_result.buyer
+                buyer=simulation_result.buyer,
+                autoscale_func=autoscale_func
             ),
             cell_hm=GameMatrixCell.from_aggregation_summary_list(
                 aggregation_summary_list=asl_hm,
                 seller=simulation_result.seller,
-                buyer=simulation_result.buyer
+                buyer=simulation_result.buyer,
+                autoscale_func=autoscale_func
             ),
             cell_mh=GameMatrixCell.from_aggregation_summary_list(
                 aggregation_summary_list=asl_mh,
                 seller=simulation_result.seller,
-                buyer=simulation_result.buyer
+                buyer=simulation_result.buyer,
+                autoscale_func=autoscale_func
             ),
             cell_mm=GameMatrixCell.from_aggregation_summary_list(
                 aggregation_summary_list=asl_mm,
                 seller=simulation_result.seller,
-                buyer=simulation_result.buyer
+                buyer=simulation_result.buyer,
+                autoscale_func=autoscale_func
             )
         )
 
 
 class GameMatrixRenderer(Renderer):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super(GameMatrixRenderer, self).__init__(*args, **kwargs)
+
     def render(self, simulation_result: SimulationResult) -> None:
-        game_matrix = GameMatrix.from_simulation_result(simulation_result)
+        game_matrix = GameMatrix.from_simulation_result(
+            simulation_result=simulation_result,
+            autoscale_func=self.autoscale
+        )
         print(game_matrix)
 
 

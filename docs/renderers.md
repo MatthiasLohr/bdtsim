@@ -15,8 +15,10 @@ The following renderers are currently available:
 
 The following parameters are available for all renderers:
 
-  * `wei-scaling`
-  * `gas-scaling`
+  * `wei-scaling` (Union[int, float, str]): If int/float provided, it will be multiplied with the value to be scaled.
+    For str, common unit prefixes (https://en.wikipedia.org/wiki/Unit_prefix) are allowed as well as Ethereum unit prefixes (Wei, GWei, Eth).
+  * `gas-scaling` (Union[int, float, str]): If int/float provided, it will be multiplied with the value to be scaled.
+    For str, common unit prefixes (https://en.wikipedia.org/wiki/Unit_prefix) are allowed.
 
 
 ## Renderers

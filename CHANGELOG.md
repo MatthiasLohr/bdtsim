@@ -6,6 +6,7 @@
   * Protocol: Support for SmartJudge (#20)
   * Renderer: Removed renderers `yaml`, `json` and `human-readable`
   * Renderer: Created new renderers `game-matrix` and `game-tree` (covers #33)
+  * Renderer: Use scaling for all existing (`dot`, `game-matrix`, `game-tree`) renderers (#27)
   * Feature: Added event filtering support for environments
   * Feature: Added `--protocol-path` parameter for limiting protocol paths to be executed (#23)
   * Feature: Renderer: Add scaling support (#25)

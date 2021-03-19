@@ -15,9 +15,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from enum import Enum
 from typing import Any, Optional, Union
 
 from bdtsim.simulation_result import SimulationResult
+
+
+class ValueType(Enum):
+    PLAIN = 0
+    WEI = 1
+    GAS = 2
 
 
 class Renderer(object):
@@ -53,7 +60,7 @@ class Renderer(object):
         """
         raise NotImplementedError()
 
-    def scale_wei(self, value: int, scaling: Optional[Union[int, float, str]]) -> Union[float, int]:
+    def scale_wei(self, value: int, scaling: Optional[Union[int, float, str]] = None) -> Union[float, int]:
         """
 
         Args:
@@ -70,7 +77,7 @@ class Renderer(object):
         else:
             return self.scale_wei_static(value, self._wei_scaling)
 
-    def scale_gas(self, value: int, scaling: Optional[Union[int, float, str]]) -> Union[float, int]:
+    def scale_gas(self, value: int, scaling: Optional[Union[int, float, str]] = None) -> Union[float, int]:
         """
 
         Args:
@@ -177,3 +184,13 @@ class Renderer(object):
             raise ValueError('Unsupported unit!')
 
         return factor
+
+    def autoscale(self, value: Any, value_type: ValueType) -> Any:
+        if value_type == ValueType.PLAIN:
+            return value
+        elif value_type == ValueType.WEI:
+            return self.scale_wei(value)
+        elif value_type == ValueType.GAS:
+            return self.scale_gas(value)
+        else:
+            raise ValueError('unsupported value type for scaling')
