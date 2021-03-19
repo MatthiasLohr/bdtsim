@@ -22,7 +22,7 @@ from .command_manager import SubCommand
 
 
 class ListRenderersSubCommand(SubCommand):
-    help = 'print a list of supported output formats'
+    help = 'print a list of supported renderers'
 
     def __call__(self, args: argparse.Namespace) -> None:
         for name in RendererManager.renderers.keys():
