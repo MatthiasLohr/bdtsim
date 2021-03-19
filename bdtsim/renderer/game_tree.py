@@ -19,7 +19,7 @@ import sys
 
 from graphviz import Digraph  # type: ignore
 
-from bdtsim.protocol_path import Decision
+from bdtsim.protocol_path import Decision, Choice
 from bdtsim.simulation_result import SimulationResult, ResultNode
 from .renderer import Renderer
 from .renderer_manager import RendererManager
@@ -27,66 +27,118 @@ from .renderer_manager import RendererManager
 
 class GameTreeRenderer(Renderer):
     def render(self, simulation_result: SimulationResult) -> None:
-        gt = GameTreeGraph()
-        gt.render_simulation_result(simulation_result)
+        gt = SimulationGameTree(simulation_result)
         sys.stdout.write(gt.source + '\n')
 
 
-class GameTreeGraph(Digraph):  # type: ignore
-    def __init__(self) -> None:
-        super(GameTreeGraph, self).__init__(
+class SimulationGameTree(Digraph):  # type: ignore
+    def __init__(self, simulation_result: SimulationResult) -> None:
+        super(SimulationGameTree, self).__init__(
+            name='gametree',
             graph_attr={
-                'rankdir': 'TB'
+                'fontname': 'Arial'
+            },
+            node_attr={
+                'fontname': 'Arial'
+            },
+            edge_attr={
+                'fontname': 'Arial'
             }
         )
+
+        self._simulation_result = simulation_result
+
         self._generated_node_count = 0
         self._generated_subgraph_count = 0
+        self.attr(_attributes={
+            'rankdir': 'LR',
+            'splines': 'true'
+        })
 
-    def render_simulation_result(self, simulation_result: SimulationResult) -> None:
-        start_nid = self._create_start_node()
-        self._process_child_nodes(simulation_result.execution_result_root, start_nid)
+        self._render_simulation_result()
 
-    def _process_child_nodes(self, parent_node: ResultNode, parent_nid: str) -> None:
-        if len(parent_node.children) > 0:
-            # this is a decision node
-            subgraph_id = self._create_unique_subgraph_id()
-            decision_sub_graph = Digraph(
-                name=subgraph_id,
-                graph_attr={
-                }
-            )
+    def _render_simulation_result(self) -> None:
+        self._process_node(self._simulation_result.execution_result_root)
 
-            for child_decision, child_node in parent_node.children.items():
-                child_nid = self._create_intermediary_node(decision_sub_graph)
-                self._create_decision_edge(parent_nid, child_nid, child_decision)
-                self._process_child_nodes(child_node, child_nid)
+    def _process_node(self, node: ResultNode) -> str:
+        if len(node.children):
+            # choice node
+            choice = list(node.children.keys())[0].choice
+            node_id = self._create_choice_node(choice)
 
-            self.subgraph(decision_sub_graph)
+            for child_decision, child_node in node.children.items():
+                child_nid = self._process_node(child_node)
+                self._create_decision_edge(node_id, child_nid, child_decision)
         else:
-            # this is a final node
-            pass
+            node_id = self._create_final_node(node)
+
+        return node_id
 
     def _create_unique_node_id(self) -> str:
         self._generated_node_count += 1
-        return 'gametree_node_%d' % self._generated_node_count
+        return 'node_%d' % self._generated_node_count
 
     def _create_unique_subgraph_id(self) -> str:
         self._generated_subgraph_count += 1
-        return 'gametree_subgraph_%d' % self._generated_subgraph_count
+        return 'cluster_%d' % self._generated_subgraph_count
 
-    def _create_start_node(self) -> str:
-        return self._create_intermediary_node(self)
-
-    def _create_intermediary_node(self, graph: Digraph) -> str:
+    def _create_choice_node(self, choice: Choice) -> str:
         nid = self._create_unique_node_id()
-        graph.node(nid, '', shape='point')
-        return str(nid)
+        self.node(
+            name=nid,
+            shape='circle',
+            label='',
+            xlabel='<<b>%s</b>>' % choice.subject.name,
+            style='filled',
+            fillcolor='black',
+            width='0.15'
+        )
+        return nid
 
-    def _create_decision_edge(self, nid_source: str, nid_target: str, decision: Decision) -> None:
+    def _create_final_node(self, node: ResultNode) -> str:
+        # prepare label
+        label_lines = []
+        for subject in (self._simulation_result.seller, self._simulation_result.buyer):
+            label_lines.append('<b>%s</b>' % subject.name)
+            aggregation_summary = node.aggregation_summary
+            subject_summary = aggregation_summary.get(subject)
+
+            for summary_label, summary_attr in (
+                    ('TX Fees', 'tx_fees'),
+                    ('TX Count', 'tx_count'),
+                    ('Funds Diff', 'funds_diff')
+            ):
+                if subject_summary is None:
+                    label_lines.append('<i>%s</i>: N.A.' % summary_label)
+                else:
+                    value_min = getattr(subject_summary, summary_attr + '_min')
+                    value_max = getattr(subject_summary, summary_attr + '_max')
+                    if value_min == value_max:
+                        value_str = str(value_min)
+                    else:
+                        value_str = '[%s, %s]' % (str(value_min), str(value_max))
+
+                    label_lines.append('<i>%s</i>: %s' % (
+                        summary_label,
+                        value_str
+                    ))
+
+        # create dot node
+        nid = self._create_unique_node_id()
+        self.node(
+            name=nid,
+            shape='note',
+            label='<%s>' % '<br/>'.join(label_lines)
+        )
+        return nid
+
+    def _create_decision_edge(self, from_nid: str, to_nid: str, decision: Decision) -> None:
+        color = 'blue' if decision.is_honest() else 'red'
         self.edge(
-            tail_name=nid_source,
-            head_name=nid_target,
-            label=decision.outcome
+            tail_name=from_nid,
+            head_name=to_nid,
+            label=decision.outcome,
+            color=color
         )
 
 
