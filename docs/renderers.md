@@ -6,22 +6,25 @@ to an interpretable format, such as readable CLI output or graphs.
 
 The following renderers are currently available:
 
-## human-readable
-
-Renders the results in a human-readable form.
-
-```
-bdtsim render human-readable -i simulation.result
-```
-
-### Parameters
-
-No additional parameters available.
+  * [dot](#dot)
+  * [game matrix](#game-matrix)
+  * [game-tree](#game-tree)
 
 
-## dot
+## General Options
+
+The following parameters are available for all renderers:
+
+  * `wei-scaling`
+  * `gas-scaling`
+
+
+## Renderers
+
+### dot
 
 Create a [dot graph](https://www.graphviz.org/) for simulation result presentation.
+Please note: the `dot` binary (graphviz package) needs to be available on your system.
 
 ```
 # Print dot sources
@@ -31,7 +34,7 @@ bdtsim render dot -i simulation.result
 bdtsim render dot -p output-filename /tmp/bdtsim.dot -p output-format png -i simulation.result
 ```
 
-### Parameters
+#### Parameters
 
   * `output-filename` (str): If provided, save dot graph to this file instead of printing to stdout
   * `view` (bool): Open the rendered result with the default application (defaults to False).
@@ -39,3 +42,33 @@ bdtsim render dot -p output-filename /tmp/bdtsim.dot -p output-format png -i sim
   * `output-format`: The output format used for rendering (`'pdf'`, `'png'`, etc., defaults to `'pdf'`).
   * `graphviz-renderer`: The output renderer used for rendering (`'cairo'`, `'gd'`, ...).
   * `graphviz-formatter`: The output formatter used for rendering (`'cairo'`, `'gd'`, ...). 
+
+
+### game-matrix
+
+Create a human-readable ASCII art table which contains the relevant output parameters in a comparable way.
+
+```
+bdtsim game-matrix dot -i simulation.result
+```
+
+#### Parameters
+
+*No additional parameters supported*
+
+### game-tree
+
+Create a game tree (using [graphviz dot](https://www.graphviz.org/)
+Please note: the `dot` binary (graphviz package) needs to be available on your system.
+
+```
+# print dot source to stdout
+bdtsim game-tree dot -i simulation.result
+
+# generate PDF file containing game tree graph
+bdtsim render game-tree -i simulation.result | dot -Tpdf -o game-tree.pdf
+```
+
+#### Parameters
+
+*No additional parameters supported*

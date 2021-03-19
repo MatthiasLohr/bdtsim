@@ -35,7 +35,7 @@ class RenderSubCommand(SubCommand):
         parser.add_argument('--input-compression', default=True)
         parser.add_argument('--input-b64encoding', default=True)
         parser.add_argument('-o', '--output', default='-', help='Output file to be used, default: stdout')
-        parser.add_argument('-p', '--parameter', nargs=2, action='append', dest='parameters',
+        parser.add_argument('-r', '--renderer-parameter', nargs=2, action='append', dest='parameters',
                             default=[], metavar=('KEY', 'VALUE'), help='additional parameters for the renderer')
 
     def __call__(self, args: argparse.Namespace) -> Optional[int]:

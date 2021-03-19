@@ -78,6 +78,7 @@ The following parameters are available:
   * `-i <filename>`, `--input <filename>`: input file with simulation result, defaults to `-` (read from stdin)
   * `--input-compression <true/false>`: treat the input as gzip compressed data (after base64 decoding), defaults to `true`
   * `--input-b64encoding <true/false>`: strip base64 encoding (done before decompressing), defaults to `true`
+  * `-r <key> <value>`, `--renderer-parameter <key> <value>`: pass additional parameters to the renderer
 
 
 ## run

@@ -88,7 +88,10 @@ class SimulationGameTree(Digraph):  # type: ignore
             name=nid,
             shape='circle',
             label='',
-            xlabel='<<b>%s</b>>' % choice.subject.name,
+            xlabel='<<b>%s</b><br/><i>%s</i>>' % (
+                choice.subject.name,
+                choice.description
+            ),
             style='filled',
             fillcolor='black',
             width='0.15'
@@ -107,7 +110,7 @@ class SimulationGameTree(Digraph):  # type: ignore
                 ('TX Fees', 'tx_fees'),
                 ('TX Count', 'tx_count'),
                 ('Funds Diff', 'funds_diff'),
-                ('Balance Diff', 'balance_diff')
+                ('Bal. Diff', 'balance_diff')
             ):
                 if subject_summary is None:
                     label_lines.append('<i>%s</i>: 0' % summary_label)
