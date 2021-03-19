@@ -1,11 +1,11 @@
 # Changelog
 
 ## unreleased
-  
+
   * Protocol: Delgado, Delgado-Reusable, Delgado-Library (#1)
   * Protocol: Support for SmartJudge (#20)
   * Renderer: Removed renderers `yaml` and `json`
-  * Renderer: Created new renderers `game-matrix` and `game-tree`
+  * Renderer: Created new renderers `game-matrix` and `game-tree` (covers #33)
   * Feature: Added event filtering support for environments
   * Feature: Added `--protocol-path` parameter for limiting protocol paths to be executed (#23)
   * Feature: Renderer: Add scaling support (#25)
