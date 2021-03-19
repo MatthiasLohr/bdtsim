@@ -16,12 +16,17 @@ unittests:
     - if: $CI_MERGE_REQUEST_ID
   before_script:
     - pip install --upgrade pip
-    - pip install .
+    - pip install . coverage
   script:
-    - python -m unittest discover tests
+    - coverage run -m unittest discover tests
+    - coverage xml
+    - coverage report
   parallel:
     matrix:
       - python_version: ["3.7", "3.8"]
+  artifacts:
+    reports:
+      cobertura: coverage.xml
 
 flake8 checks:
   stage: test

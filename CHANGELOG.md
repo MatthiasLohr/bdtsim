@@ -22,6 +22,7 @@
   * Dependency Update: web3 to 5.17.0
   * Documentation: Updated documentation of Delgado protocol
   * New dependency: ecdsa 0.16.1
+  * Other: Measure test coverage (#7)
 
 ## v1.1.1
 

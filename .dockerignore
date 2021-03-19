@@ -1,10 +1,11 @@
+/.coverage
 /.eggs/
 /.git/
 /.idea/
 /.mypy_cache/
 /build/
+/coverage.xml
 /docs/
 /public/
 /tests/
 /venv/
-

@@ -5,9 +5,11 @@
 # - https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
 # project specific ignores
+/.coverage
 /.eggs/
 /.mypy_cache/
 /build/
+/coverage.xml
 /dist/
 /docs/api/
 /public/
