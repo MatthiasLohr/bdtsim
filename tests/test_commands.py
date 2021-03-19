@@ -60,8 +60,7 @@ class CommandTest(TestCase):
         self.assertEqual(out.decode('utf-8').strip(), '\n'.join([
             'game-matrix',
             'game-tree',
-            'dot',
-            'human-readable'
+            'dot'
         ]))
 
     def test_run_simplepayment(self) -> None:

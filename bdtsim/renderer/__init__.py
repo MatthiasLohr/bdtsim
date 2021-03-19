@@ -18,7 +18,6 @@
 from .game_matrix import GameMatrixRenderer
 from .game_tree import GameTreeRenderer
 from .graphviz_dot import GraphvizDotRenderer
-from .human_readable import HumanReadableRenderer
 from .renderer import Renderer
 from .renderer_manager import RendererManager
 from .result_collector import ResultCollector
@@ -28,7 +27,6 @@ __all__ = [
     'GameMatrixRenderer',
     'GameTreeRenderer',
     'GraphvizDotRenderer',
-    'HumanReadableRenderer',
     'Renderer',
     'RendererManager',
     'ResultCollector'
