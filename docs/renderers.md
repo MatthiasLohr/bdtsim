@@ -11,7 +11,7 @@ The following renderers are currently available:
   * [game-tree](#game-tree)
 
 
-## General Options
+## General Renderer Parameters
 
 The following parameters are available for all renderers:
 
