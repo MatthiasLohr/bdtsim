@@ -33,7 +33,7 @@ setup(
     license='Apache License 2.0',
     install_requires=[
         'ecdsa==0.16.1',
-        'eth-hash==0.2.0',
+        # 'eth-hash==0.2.0',
         'eth-tester==0.5.0b3',
         'graphviz==0.16',
         'hexbytes==0.2.1',
@@ -55,10 +55,14 @@ setup(
         ]
     },
     classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Console',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: Apache Software License',
+        'Operating System :: Unix',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Solidity',
         'Topic :: Scientific/Engineering',
     ],
     project_urls={
