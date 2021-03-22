@@ -55,6 +55,7 @@ simulations:
   - protocol:
       name: SmartJudge-FairSwap
       parameters:
+        slice_length: 32
         slices_count: 8
     environment:
       name: PyEVM
@@ -67,7 +68,8 @@ simulations:
   - protocol:
       name: SmartJudge-FairSwap
       parameters:
-        slices_count: 265
+        slice_length: 32
+        slices_count: 256
     environment:
       name: PyEVM
       parameters: {}
@@ -138,7 +140,32 @@ simulations:
 
 renderers:
   - name: game-matrix
+    suffix: txt
 
   - name: game-tree
+    parameters: {}
+    suffix: dot
+
+  - name: game-tree
+    parameters:
+      output_format: pdf
+    suffix: pdf
+
+  - name: game-tree
+    parameters:
+      output_format: png
+    suffix: png
 
   - name: dot
+    parameters: {}
+    suffix: dot
+
+  - name: dot
+    parameters:
+      output_format: pdf
+    suffix: pdf
+
+  - name: dot
+    parameters:
+      output_format: png
+    suffix: png

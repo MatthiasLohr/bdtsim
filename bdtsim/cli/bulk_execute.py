@@ -20,7 +20,8 @@ import logging
 import multiprocessing
 import os
 from multiprocessing.pool import ApplyResult
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
+from queue import Queue
 
 import yaml
 
@@ -28,6 +29,7 @@ from bdtsim.account import AccountFile
 from bdtsim.data_provider import DataProviderManager
 from bdtsim.environment import EnvironmentManager
 from bdtsim.protocol import ProtocolManager, DEFAULT_ASSET_PRICE
+from bdtsim.renderer import RendererManager
 from bdtsim.simulation import Simulation
 from bdtsim.simulation_result import SimulationResult, SimulationResultSerializer
 from bdtsim.util.types import to_bool
@@ -53,7 +55,7 @@ class BulkExecuteSubCommand(SubCommand):
 
         logger.info('creating process pool with %i processes' % args.processes)
         process_pool = multiprocessing.Pool(processes=args.processes)
-        processes: List[ApplyResult[Any]] = []
+        processes: Queue[ApplyResult[Any]] = Queue()
 
         simulation_configurations = bulk_configuration.get('simulations')
         if not isinstance(simulation_configurations, list):
@@ -66,20 +68,25 @@ class BulkExecuteSubCommand(SubCommand):
         target_directory = bulk_configuration.get('target_directory', 'bulk_output')
         os.makedirs(target_directory, exist_ok=True)
 
-        def renderer_success_callback(result: None) -> None:
-            logger.info('renderer success callback called')
-            # TODO write down result
+        def renderer_success_callback(params: Tuple[Dict[str, Any], Dict[str, Any], bytes]) -> None:
+            sim_conf, renderer_conf, result = params
+            logger.info('renderer succeeded (%s, %s)' % (str(sim_conf), str(renderer_conf)))
+            with open(os.path.join(
+                target_directory,
+                self.get_output_filename(sim_conf, renderer_conf, suffix=renderer_conf.get('suffix'))
+            ), 'wb') as f:
+                f.write(result)
 
         def renderer_error_callback(error: BaseException) -> None:
-            logger.warning('renderer error callback called: %s' % str(error))
+            logger.warning('renderer error: %s' % str(error))
 
         def simulation_success_callback(params: Tuple[Dict[str, Any], SimulationResult]) -> None:
-            configuration, result = params
-            logger.info('simulation success callback called')
+            local_simulation_configuration, result = params
+            logger.info('simulation succeeded (%s)' % str(local_simulation_configuration))
             logger.debug('writing down result')
             with open(os.path.join(
                     target_directory,
-                    self.get_output_filename(configuration, suffix='result')
+                    self.get_output_filename(local_simulation_configuration, suffix='result')
             ), 'wb') as f:
                 simulation_result_serializer = SimulationResultSerializer(
                     compression=to_bool(bulk_configuration.get('output_compression', True)),
@@ -89,9 +96,10 @@ class BulkExecuteSubCommand(SubCommand):
 
             logger.debug('scheduling renderers')
             for renderer_configuration in renderer_configurations:
-                processes.append(process_pool.apply_async(
+                processes.put(process_pool.apply_async(
                     func=self.run_renderer,
                     kwds={
+                        'simulation_configuration': local_simulation_configuration,
                         'renderer_configuration': renderer_configuration,
                         'simulation_result': result
                     },
@@ -104,7 +112,7 @@ class BulkExecuteSubCommand(SubCommand):
 
         logger.debug('scheduling simulations')
         for simulation_configuration in simulation_configurations:
-            processes.append(process_pool.apply_async(
+            processes.put(process_pool.apply_async(
                 func=self.run_simulation,
                 kwds={
                     'simulation_configuration': simulation_configuration
@@ -113,7 +121,8 @@ class BulkExecuteSubCommand(SubCommand):
                 error_callback=simulation_error_callback
             ))
 
-        for process in processes:
+        while not processes.empty():
+            process = processes.get(block=True)
             process.wait()
 
         return 0
@@ -166,8 +175,14 @@ class BulkExecuteSubCommand(SubCommand):
         return simulation_configuration, simulation_result
 
     @staticmethod
-    def run_renderer(renderer_configuration: Dict[str, Any], simulation_result: SimulationResult) -> None:
-        return None
+    def run_renderer(simulation_configuration: Dict[str, Any], renderer_configuration: Dict[str, Any],
+                     simulation_result: SimulationResult) -> Tuple[Dict[str, Any], Dict[str, Any], bytes]:
+        renderer = RendererManager.instantiate(
+            name=renderer_configuration.get('name', ''),
+            **renderer_configuration.get('parameters', {})
+        )
+        result = renderer.render(simulation_result)
+        return simulation_configuration, renderer_configuration, result
 
     @staticmethod
     def get_output_filename(simulation_configuration: Dict[str, Any],
