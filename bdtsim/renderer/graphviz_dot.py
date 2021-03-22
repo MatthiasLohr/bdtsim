@@ -15,9 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import tempfile
-from typing import Any, Callable, List, NamedTuple, Optional, cast
+from typing import Any, Callable, List, NamedTuple, Optional
 from uuid import uuid4
 
 from graphviz import Digraph  # type: ignore
@@ -26,11 +24,12 @@ from bdtsim.protocol_path import Decision
 from bdtsim.simulation_result import SimulationResult, ResultNode, TransactionLogList, TransactionLogCollection, \
     TransactionLogEntry
 from bdtsim.util.types import to_bool
+from .graphviz_mixin import GraphvizMixin
 from .renderer import Renderer, ValueType
 from .renderer_manager import RendererManager
 
 
-class GraphvizDotRenderer(Renderer):
+class GraphvizDotRenderer(Renderer, GraphvizMixin):
     COLOR_HONEST = '#00CC00'
     COLOR_CHEATING = '#FF0000'
 
@@ -54,7 +53,7 @@ class GraphvizDotRenderer(Renderer):
             *args (Any): Collector for unrecognized positional arguments
             **kwargs (Any): Collector for unrecognized keyword arguments
         """
-        super(GraphvizDotRenderer, self).__init__(*args, **kwargs)
+        Renderer.__init__(self, *args, **kwargs)
         self._output_format = output_format
         self._graphviz_renderer = graphviz_renderer
         self._graphviz_formatter = graphviz_formatter
@@ -69,20 +68,12 @@ class GraphvizDotRenderer(Renderer):
             autoscale_func=self.autoscale
         )
 
-        if self._output_format is None:
-            return cast(bytes, graph.source.encode('utf-8')) + b'\n'
-        else:
-            tmp_dot_output_file = tempfile.mktemp()
-            graph.render(
-                filename=tmp_dot_output_file,
-                format=self._output_format,
-                renderer=self._graphviz_renderer,
-                formatter=self._graphviz_formatter
-            )
-            with open(tmp_dot_output_file + '.' + self._output_format, 'rb') as fp:
-                dot_output = fp.read()
-            os.remove(tmp_dot_output_file)
-            return dot_output
+        return self.render_graph(
+            graph=graph,
+            output_format=self._output_format,
+            graphviz_renderer=self._graphviz_renderer,
+            graphviz_formatter=self._graphviz_formatter
+        )
 
 
 class NodeTemplate(object):
