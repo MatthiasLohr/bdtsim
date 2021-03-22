@@ -17,6 +17,7 @@
 
 from typing import Optional
 
+from .bulk_execute import BulkExecuteSubCommand
 from .command_manager import CommandManager
 from .environment_info import EnvironmentInfoSubCommand
 from .list_data_providers import ListDataProvidersSubCommand
@@ -30,6 +31,7 @@ from .run import RunSubCommand
 
 def main() -> Optional[int]:
     command_manager = CommandManager()
+    command_manager.register_subcommand('bulk-execute', BulkExecuteSubCommand)
     command_manager.register_subcommand('environment-info', EnvironmentInfoSubCommand)
     command_manager.register_subcommand('list-protocols', ListProtocolsSubCommand)
     command_manager.register_subcommand('list-environments', ListEnvironmentsSubCommand)

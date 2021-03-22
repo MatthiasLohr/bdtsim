@@ -4,6 +4,7 @@
 /.idea/
 /.mypy_cache/
 /build/
+/bulk_output/
 /coverage.xml
 /docs/
 /public/

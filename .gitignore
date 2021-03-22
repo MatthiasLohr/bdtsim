@@ -9,6 +9,7 @@
 /.eggs/
 /.mypy_cache/
 /build/
+/bulk_output/
 /coverage.xml
 /dist/
 /docs/api/

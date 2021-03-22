@@ -1,0 +1,144 @@
+
+target_directory: bulk_output
+output_compression: true
+output_b64encoding: true
+
+simulations:
+  - protocol:
+      name: FairSwap
+      parameters:
+        slices_count: 4
+    environment:
+      name: PyEVM
+      parameters: {}
+    data_provider:
+      name: RandomDataProvider
+      parameters:
+        size: 256
+
+  - protocol:
+      name: FairSwap
+      parameters:
+        slices_count: 16
+    environment:
+      name: PyEVM
+      parameters: {}
+    data_provider:
+      name: RandomDataProvider
+      parameters:
+        size: 8192
+
+  - protocol:
+      name: FairSwap-Reusable
+      parameters:
+        slices_count: 4
+    environment:
+      name: PyEVM
+      parameters: {}
+    data_provider:
+      name: RandomDataProvider
+      parameters:
+        size: 256
+
+  - protocol:
+      name: FairSwap-Reusable
+      parameters:
+        slices_count: 16
+    environment:
+      name: PyEVM
+      parameters: {}
+    data_provider:
+      name: RandomDataProvider
+      parameters:
+        size: 8192
+
+  - protocol:
+      name: SmartJudge-FairSwap
+      parameters:
+        slices_count: 8
+    environment:
+      name: PyEVM
+      parameters: {}
+    data_provider:
+      name: RandomDataProvider
+      parameters:
+        size: 256
+
+  - protocol:
+      name: SmartJudge-FairSwap
+      parameters:
+        slices_count: 265
+    environment:
+      name: PyEVM
+      parameters: {}
+    data_provider:
+      name: RandomDataProvider
+      parameters:
+        size: 8192
+
+  - protocol:
+      name: Delgado
+    environment:
+      name: PyEVM
+      parameters: {}
+    data_provider:
+      name: RandomDataProvider
+      parameters:
+        size: 256
+
+  - protocol:
+      name: Delgado
+    environment:
+      name: PyEVM
+      parameters: {}
+    data_provider:
+      name: RandomDataProvider
+      parameters:
+        size: 8192
+
+  - protocol:
+      name: Delgado-ReusableLibrary
+    environment:
+      name: PyEVM
+      parameters: {}
+    data_provider:
+      name: RandomDataProvider
+      parameters:
+        size: 256
+
+  - protocol:
+      name: Delgado-ReusableLibrary
+    environment:
+      name: PyEVM
+      parameters: {}
+    data_provider:
+      name: RandomDataProvider
+      parameters:
+        size: 8192
+
+  - protocol:
+      name: Delgado-ReusableContract
+    environment:
+      name: PyEVM
+      parameters: {}
+    data_provider:
+      name: RandomDataProvider
+      parameters:
+        size: 256
+
+  - protocol:
+      name: Delgado-ReusableContract
+    environment:
+      name: PyEVM
+      parameters: {}
+    data_provider:
+      name: RandomDataProvider
+      parameters:
+        size: 8192
+
+renderers:
+  - name: game-matrix
+
+  - name: game-tree
+
+  - name: dot

@@ -1,0 +1,17 @@
+
+# list of simulations to be done
+simulations:
+
+  - description:
+    protocol:
+      name: FairSwap
+      parameters: {}
+    environment:
+      name: PyEVM
+      parameters: {}
+    data_provider:
+      name:
+      parameters:
+    account_file:
+    protocol_path:
+    price:
