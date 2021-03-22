@@ -36,6 +36,7 @@ from bdtsim.util.types import to_bool
 from .command_manager import SubCommand
 
 
+DEFAULT_ENVIRONMENT_CONFIGURATION: Dict[str, Any] = {'name': 'PyEVM'}
 DEFAULT_DATA_PROVIDER_CONFIGURATION: Dict[str, Any] = {'name': 'RandomDataProvider'}
 
 logger = logging.getLogger(__name__)
@@ -136,7 +137,7 @@ class BulkExecuteSubCommand(SubCommand):
         if protocol_configuration is None:
             raise ValueError('missing protocol configuration')
         if environment_configuration is None:
-            raise ValueError('missing environment configuration')
+            environment_configuration = DEFAULT_ENVIRONMENT_CONFIGURATION
         if data_provider_configuration is None:
             data_provider_configuration = DEFAULT_DATA_PROVIDER_CONFIGURATION
 

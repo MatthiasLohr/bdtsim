@@ -39,17 +39,13 @@ class GraphvizDotRenderer(Renderer, GraphvizMixin):
         """Create a [dot graph](https://www.graphviz.org/) for simulation result presentation.
 
         Args:
-            wei_scaling (Union[int, float, str]): If int/float provided, it will be multiplied with the value to be
-                scaled. For str, common unit prefixes (https://en.wikipedia.org/wiki/Unit_prefix) are allowed as well as
-                Ethereum unit prefixes (Wei, GWei, Eth).
-            gas_scaling (Union[int, float, str]): If int/float provided, it will be multiplied with the value to be
-                scaled. For str, common unit prefixes (https://en.wikipedia.org/wiki/Unit_prefix) are allowed.
-            output_format: The output format used for rendering (``'pdf'``, ``'png'``, etc., defaults to
-                ``None`` (dot raw source)).
+            output_format: The output format used for rendering. Supports any output format which is supported by
+                graphviz (see https://graphviz.org/doc/info/output.html for a list of supported formats). With
+                `None`, the dot source code will be returned.
             graphviz_renderer (Optional[str]): The output renderer used for rendering (``'cairo'``, ``'gd'``, ...).
             graphviz_formatter (Optional[str]): The output formatter used for rendering (``'cairo'``, ``'gd'``, ...).
-            show_transactions (bool):
-            show_transaction_duplicates(bool):
+            show_transactions (bool): Add transactions edges to graph
+            show_transaction_duplicates(bool): Add multiple edges for identical transaction
             *args (Any): Collector for unrecognized positional arguments
             **kwargs (Any): Collector for unrecognized keyword arguments
         """

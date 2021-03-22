@@ -53,8 +53,10 @@ class RunSubCommand(SubCommand):
                             dest='data_provider_parameters', default=[], metavar=('KEY', 'VALUE'),
                             help='pass additional parameters to the data provider')
         parser.add_argument('-o', '--output', default='-', help='Output file to be used, default: stdout')
-        parser.add_argument('--output-compression', default=True)
-        parser.add_argument('--output-b64encoding', default=True)
+        parser.add_argument('--output-compression', default=True, help='do a gzip compression on the generated output'
+                                                                       ' (before base64 encoding), default: true')
+        parser.add_argument('--output-b64encoding', default=True, help='encode the output using the base64 standard'
+                                                                       ' (after compression), default: true')
 
     def __call__(self, args: argparse.Namespace) -> int:
         protocol_parameters: Dict[str, str] = {}

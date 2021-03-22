@@ -4,7 +4,7 @@
 
 ![Python Version](https://img.shields.io/pypi/pyversions/bdtsim)
 [![PyPI Version](https://img.shields.io/pypi/v/bdtsim)](https://pypi.org/project/bdtsim/)
-[![Pipeline Status](https://img.shields.io/gitlab/pipeline/MatthiasLohr/bdtsim)](https://gitlab.com/MatthiasLohr/bdtsim/pipelines)
+[![Pipeline Status](https://img.shields.io/gitlab/pipeline/MatthiasLohr/bdtsim/main)](https://gitlab.com/MatthiasLohr/bdtsim/pipelines)
 [![Documentation Status](https://readthedocs.org/projects/bdtsim/badge/?version=latest)](https://bdtsim.readthedocs.io/en/latest/?badge=latest)
 
 

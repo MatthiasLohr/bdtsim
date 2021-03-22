@@ -33,17 +33,18 @@ Please note: the `dot` binary (graphviz package) needs to be available on your s
 bdtsim render dot -i simulation.result
 
 # Write to file and convert to PNG
-bdtsim render dot -p output-filename /tmp/bdtsim.dot -p output-format png -i simulation.result
+bdtsim render dot -o simulation.png -p output-format png -i simulation.result
 ```
 
 #### Parameters
 
-  * `output-filename` (str): If provided, save dot graph to this file instead of printing to stdout
-  * `view` (bool): Open the rendered result with the default application (defaults to False).
-  * `cleanup` (bool): Delete the source file after rendering (defaults to False).
-  * `output-format`: The output format used for rendering (`'pdf'`, `'png'`, etc., defaults to `'pdf'`).
-  * `graphviz-renderer`: The output renderer used for rendering (`'cairo'`, `'gd'`, ...).
-  * `graphviz-formatter`: The output formatter used for rendering (`'cairo'`, `'gd'`, ...). 
+  * `output-format` (Optional[str]): The output format used for rendering. Supports any output format which is supported
+    by graphviz (see https://graphviz.org/doc/info/output.html for a list of supported formats). With `None`, the dot
+    source code will be returned. Defaults to `None`
+  * `graphviz-renderer` (Optional[str]): The graphviz renderer used for rendering (see [graphviz docs](https://graphviz.org/documentation/))
+  * `graphviz-formatter` (Optional[str]): The graphviz formatter used for rendering (see [graphviz docs](https://graphviz.org/documentation/))
+  * `show_transactions` (bool): Add transactions edges to graph. Defaults to `True`
+  * `show_transaction_duplicates` (bool): Add multiple edges for identical transaction. Defaults to `False`
 
 
 ### game-matrix
@@ -73,4 +74,8 @@ bdtsim render game-tree -i simulation.result | dot -Tpdf -o game-tree.pdf
 
 #### Parameters
 
-*No additional parameters supported*
+  * `output-format` (Optional[str]): The output format used for rendering. Supports any output format which is supported
+    by graphviz (see https://graphviz.org/doc/info/output.html for a list of supported formats). With `None`, the dot
+    source code will be returned. Defaults to `None`
+  * `graphviz-renderer` (Optional[str]): The graphviz renderer used for rendering (see [graphviz docs](https://graphviz.org/documentation/))
+  * `graphviz-formatter` (Optional[str]): The graphviz formatter used for rendering (see [graphviz docs](https://graphviz.org/documentation/))

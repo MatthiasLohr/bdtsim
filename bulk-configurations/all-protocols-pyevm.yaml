@@ -156,6 +156,11 @@ renderers:
       output_format: png
     suffix: png
 
+  - name: game-tree
+    parameters:
+      output_format: svg
+    suffix: svg
+
   - name: dot
     parameters: {}
     suffix: dot
@@ -169,3 +174,8 @@ renderers:
     parameters:
       output_format: png
     suffix: png
+
+  - name: dot
+    parameters:
+      output_format: svg
+    suffix: svg

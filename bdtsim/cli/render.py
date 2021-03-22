@@ -32,8 +32,10 @@ class RenderSubCommand(SubCommand):
         super(RenderSubCommand, self).__init__(parser)
         parser.add_argument('renderer', choices=RendererManager.renderers.keys(), help='Renderer to be used')
         parser.add_argument('-i', '--input', default='-', help='Input file to be used, default: stdin')
-        parser.add_argument('--input-compression', default=True)
-        parser.add_argument('--input-b64encoding', default=True)
+        parser.add_argument('--input-compression', default=True, help='treat the input as gzip compressed data'
+                                                                      ' (after base64 decoding), default: true')
+        parser.add_argument('--input-b64encoding', default=True, help='decode base64 encoding'
+                                                                      ' (done before decompressing), default: true')
         parser.add_argument('-o', '--output', default='-', help='Output file to be used, default: stdout')
         parser.add_argument('-r', '--renderer-parameter', nargs=2, action='append', dest='parameters',
                             default=[], metavar=('KEY', 'VALUE'), help='additional parameters for the renderer')

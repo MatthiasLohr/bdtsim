@@ -5,12 +5,34 @@ Check `bdtsim -h` for a full list of supported commands and available parameters
 
 Below you can find more detailed information about available sub-commands:
 
+  * [bulk-execute](#bulk-execute)
+  * [environment-info](#environment-info)
+  * [list-data-providers](#list-data-providers)
+  * [list-environments](#list-environments)
+  * [list-protocols](#list-protocols)  
+  * [list-renderers](#list-renderers)
+  * [render](#render)
+  * [run](#run)
+
+
+## bulk-execute
+
+`bdtsim bulk-execute <bulk configuration>` allows running multiple simulations in parallel,
+using a process pool.
+Simulations and renderings are defined using a YAML based bulk configuration file.
+For examples, see the [bulk-configurations directory](https://gitlab.com/MatthiasLohr/bdtsim/-/tree/main/bulk-configurations).
+
+The following arguments are available:
+
+  * `-p <N>`, `--processes <N>`: number of processes (simulations) to run in parallel;
+    defaults to number of available CPUs
+
 
 ## environment-info
 
 `bdtsim environment-info <environment>` prints some information about the selected environment.
 
-The following options are available:
+The following arguments are available:
 
   * `--account-file <filename>`: Specify account configuration file to be used.
     When not provided, wallets will be generated randomly and saved. File locations are
@@ -65,7 +87,7 @@ Please read the [protocols documentation](protocols.md) for more details.
 `bdtsim list-renderers` prints a list of supported renderers for printing/visualizing simulation results.
 The listed renderer names can be used as renderer argument for the [render](#render) command.
 
-Please read the [renderers documentation](renderer.md) for more details.
+Please read the [renderers documentation](renderers.md) for more details.
 
 
 ## render
@@ -77,7 +99,8 @@ The following parameters are available:
 
   * `-i <filename>`, `--input <filename>`: input file with simulation result, defaults to `-` (read from stdin)
   * `--input-compression <true/false>`: treat the input as gzip compressed data (after base64 decoding), defaults to `true`
-  * `--input-b64encoding <true/false>`: strip base64 encoding (done before decompressing), defaults to `true`
+  * `--input-b64encoding <true/false>`: decode base64 encoding (done before decompressing), defaults to `true`
+  * `-o <filename>`, `--output <filename>`: output file for rendering result, defaults to `-` (write to stdout)
   * `-r <key> <value>`, `--renderer-parameter <key> <value>`: pass additional parameters to the renderer
 
 

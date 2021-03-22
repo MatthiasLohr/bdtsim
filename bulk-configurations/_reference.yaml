@@ -1,0 +1,103 @@
+########################################################################################################################
+## This file contains a reference bulk configuration for the `bdtsim bulk-execute` command.                           ##
+## For more information, take a look at the command documentation at                                                  ##
+## https://bdtsim.readthedocs.io/en/latest/commands/#bulk-execute                                                     ##
+########################################################################################################################
+
+target_directory: bulk_output
+## (Optional) The directory where simulation and rendering results will be stored. If the directory does not exist, it
+## will be created. Existing files in this directory (e.g. from previous runs) will be overwritten without any further
+## warning.
+## Defaults to `"bulk_output"`
+
+output_compression: true
+## (Optional) Whether to use output compression (gzip) for serialized result data.
+## Defaults to `true`
+
+output_b64encoding: true
+## (Optional) Whether to encode output using base64 for serialized result data. This is especially recommended when
+## compression is used and result should be transported via non binary-safe transport (e.g. CLI).
+## Defaults to `true`
+
+simulations:
+## List of simulations to be conducted. See options below to see how a list entry needs to be configured.
+
+  - description:
+    ## (Optional) Simulation description
+
+    protocol:
+    ## Protocol to be simulated. For detailed options see below.
+
+      name:
+      ## Name of the protocol to be simulated. Must be one of the supported protocols listed by
+      ## `bdtsim list-protocols` (https://bdtsim.readthedocs.io/en/latest/commands/#list-protocols) command.
+
+      parameters: {}
+      ## (Optional) Parameters for the protocol to be simulated. For a list of supported parameters take a look at the
+      ## protocol specific documentation at https://bdtsim.readthedocs.io/en/latest/protocols/.
+      ## Defaults to `{}`
+
+    environment:
+    ## (Optional) Environment in which the simulation will be conducted. For detailed options see below.
+    ## Defaults to `{name: "PyEVM"}`
+
+      name: PyEVM
+      ## (Optional) Name of the environment in which the simulation will be conducted. Must be on of the supported
+      ## environments listed by `bdtsim list-environments` (https://bdtsim.readthedocs.io/en/latest/environments/)
+      ## command.
+      ## Defaults to `"PyEVM"`
+
+      parameters: {}
+      ## (Optional) Parameters for the environment. For a list of supported parameters take a look at the
+      ## environment specific documentation at https://bdtsim.readthedocs.io/en/latest/environments/.
+      ## Defaults to `{}`
+
+    data_provider:
+    ## (Optional) Data provider used for the simulation. For detailed options see below.
+    ## Defaults to `{name: "RandomDataProvider"}`
+
+      name:
+      ## (Optional) Name of the data provider to be used for the simulation. Must be on of the supported data providers
+      ## listed by `bdtsim list-data-providers` (https://bdtsim.readthedocs.io/en/latest/data-providers/)
+      ## command.
+      ## Defaults to `"RandomDataProvider"`
+
+      parameters:
+      ## (Optional) Parameters for the data provider. For a list of supported parameters take a look at the
+      ## data provider specific documentation at https://bdtsim.readthedocs.io/en/latest/data-providers/.
+      ## Defaults to `{}`
+
+    account_file:
+    ## (Optional) Account file, which contains Ethereum wallet addresses and private keys for operator, seller and
+    ## buyer accounts. For more details, check the documentation for the `bdtsim environment-info` command at
+    ## https://bdtsim.readthedocs.io/en/latest/commands/#environment-info
+    ## Defaults to `None` (which will auto-generate a new account file, see documentation for details)
+
+    protocol_path:
+    ## (Optional) Limit protocol path according to the string provided with this options. For details, see documentation
+    ## at https://bdtsim.readthedocs.io/en/latest/commands_run_protocol_path/.
+    ## Defaults to `None`
+
+    price:
+    ## (Optional) Price to be paid for the data exchange.
+    ## Defaults to `1000000000000000000` (1 Eth)
+
+renderers:
+## List of renderers to be applied for each simulation result. See options below to see how a list entry needs to be
+## configured.
+
+  - description:
+    ## (Optional) Renderer description
+
+    name:
+    ## Name of the renderer to be applied. Must be one of the supported renderers listed by
+    ## `bdtsim list-renderers` (https://bdtsim.readthedocs.io/en/latest/commands/#list-renderers) command.
+
+    parameters: {}
+    ## (Optional) Parameters for the renderer to be applied. For a list of supported parameters take a look at the
+    ## renderer specific documentation at https://bdtsim.readthedocs.io/en/latest/renderers/.
+    ## Defaults to `{}`
+
+    suffix:
+    ## (Optional) Suffix to be appended to the generated output file.
+    ## Defaults to `None`
