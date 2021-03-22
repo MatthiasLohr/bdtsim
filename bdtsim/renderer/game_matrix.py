@@ -296,12 +296,12 @@ class GameMatrixRenderer(Renderer):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super(GameMatrixRenderer, self).__init__(*args, **kwargs)
 
-    def render(self, simulation_result: SimulationResult) -> None:
+    def render(self, simulation_result: SimulationResult) -> bytes:
         game_matrix = GameMatrix.from_simulation_result(
             simulation_result=simulation_result,
             autoscale_func=self.autoscale
         )
-        print(game_matrix)
+        return str(game_matrix).encode('utf-8') + b'\n'
 
 
 RendererManager.register('game-matrix', GameMatrixRenderer)

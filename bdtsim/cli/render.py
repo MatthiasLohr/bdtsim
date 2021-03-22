@@ -17,7 +17,7 @@
 
 import argparse
 import sys
-from typing import Dict, Optional
+from typing import Dict
 
 from bdtsim.renderer import RendererManager
 from bdtsim.simulation_result import SimulationResultSerializer
@@ -38,7 +38,7 @@ class RenderSubCommand(SubCommand):
         parser.add_argument('-r', '--renderer-parameter', nargs=2, action='append', dest='parameters',
                             default=[], metavar=('KEY', 'VALUE'), help='additional parameters for the renderer')
 
-    def __call__(self, args: argparse.Namespace) -> Optional[int]:
+    def __call__(self, args: argparse.Namespace) -> int:
         # prepare parameters
         parameters: Dict[str, str] = {}
         for key, value in args.parameters:
@@ -64,6 +64,12 @@ class RenderSubCommand(SubCommand):
 
         simulation_result = serializer.unserialize(data)
 
-        # render output
-        renderer.render(simulation_result)
+        result = renderer.render(simulation_result)
+
+        if args.output == '-':
+            sys.stdout.buffer.write(result)
+        else:
+            with open(args.output, 'wb') as fp:
+                fp.write(result)
+
         return 0

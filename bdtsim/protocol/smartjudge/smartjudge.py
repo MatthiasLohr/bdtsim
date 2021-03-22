@@ -17,7 +17,6 @@
 
 import logging
 import math
-import sys
 from typing import Any, Optional
 
 from web3 import Web3
@@ -137,7 +136,7 @@ class SmartJudge(Protocol):
         if self._slice_length * self._slices_count != data_provider.data_size:
             logger.error('(protocol) slice_length * (protocol) slices_count != (data provider) size')
             logger.error('Please check protocol and data provider parameters')
-            sys.exit(1)
+            raise ProtocolInitializationError()
 
         logger.debug('Seller prepares the data')
         plain_data = data_provider.file_pointer.read()
@@ -350,7 +349,7 @@ class SmartJudge(Protocol):
                 except Web3ValidationError:
                     logger.error('Error calling complainAboutLeaf.'
                                  ' This usually occurs when slice_length is not set properly.')
-                    sys.exit(1)
+                    raise ProtocolExecutionError()
                 return
             else:
                 error = errors[-1]

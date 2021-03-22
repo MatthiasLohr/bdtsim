@@ -49,7 +49,7 @@ class Renderer(object):
         self._wei_scaling = wei_scaling
         self._gas_scaling = gas_scaling
 
-    def render(self, simulation_result: SimulationResult) -> None:
+    def render(self, simulation_result: SimulationResult) -> bytes:
         """Render a simulation result. Should be overwritten by OutputFormat subclasses.
 
         Args:

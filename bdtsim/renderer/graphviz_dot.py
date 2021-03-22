@@ -15,8 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import tempfile
-from typing import Any, Callable, List, NamedTuple, Optional, Union
+from typing import Any, Callable, List, NamedTuple, Optional, cast
 from uuid import uuid4
 
 from graphviz import Digraph  # type: ignore
@@ -33,9 +34,7 @@ class GraphvizDotRenderer(Renderer):
     COLOR_HONEST = '#00CC00'
     COLOR_CHEATING = '#FF0000'
 
-    def __init__(self, wei_scaling: Union[int, float, str] = 1, gas_scaling: Union[int, float, str] = 1,
-                 output_filename: Optional[str] = None, view: bool = False, cleanup: bool = False,
-                 output_format: str = 'pdf', graphviz_renderer: Optional[str] = None,
+    def __init__(self, output_format: Optional[str] = None, graphviz_renderer: Optional[str] = None,
                  graphviz_formatter: Optional[str] = None, show_transactions: bool = True,
                  show_transaction_duplicates: bool = False, *args: Any, **kwargs: Any) -> None:
         """Create a [dot graph](https://www.graphviz.org/) for simulation result presentation.
@@ -46,10 +45,8 @@ class GraphvizDotRenderer(Renderer):
                 Ethereum unit prefixes (Wei, GWei, Eth).
             gas_scaling (Union[int, float, str]): If int/float provided, it will be multiplied with the value to be
                 scaled. For str, common unit prefixes (https://en.wikipedia.org/wiki/Unit_prefix) are allowed.
-            output_filename (str): If provided, save dot graph to this file instead of printing to stdout
-            view (bool): Open the rendered result with the default application (defaults to False).
-            cleanup (bool): Delete the source file after rendering (defaults to False).
-            output_format: The output format used for rendering (``'pdf'``, ``'png'``, etc., defaults to ``'pdf'``).
+            output_format: The output format used for rendering (``'pdf'``, ``'png'``, etc., defaults to
+                ``None`` (dot raw source)).
             graphviz_renderer (Optional[str]): The output renderer used for rendering (``'cairo'``, ``'gd'``, ...).
             graphviz_formatter (Optional[str]): The output formatter used for rendering (``'cairo'``, ``'gd'``, ...).
             show_transactions (bool):
@@ -57,20 +54,14 @@ class GraphvizDotRenderer(Renderer):
             *args (Any): Collector for unrecognized positional arguments
             **kwargs (Any): Collector for unrecognized keyword arguments
         """
-        super(GraphvizDotRenderer, self).__init__(wei_scaling, gas_scaling, *args, **kwargs)
-        self._output_filename = output_filename
-        self._view = to_bool(view)
-        self._cleanup = cleanup
+        super(GraphvizDotRenderer, self).__init__(*args, **kwargs)
         self._output_format = output_format
         self._graphviz_renderer = graphviz_renderer
         self._graphviz_formatter = graphviz_formatter
         self._show_transactions = to_bool(show_transactions)
         self._show_transaction_duplicates = to_bool(show_transaction_duplicates)
 
-        if self._view and self._output_filename is None:
-            self._output_filename = tempfile.mktemp(prefix='bdtsim-', suffix='.dot')
-
-    def render(self, simulation_result: SimulationResult) -> None:
+    def render(self, simulation_result: SimulationResult) -> bytes:
         graph = ResultGraph(
             simulation_result=simulation_result,
             show_transactions=self._show_transactions,
@@ -78,17 +69,20 @@ class GraphvizDotRenderer(Renderer):
             autoscale_func=self.autoscale
         )
 
-        if self._output_filename is not None:
+        if self._output_format is None:
+            return cast(bytes, graph.source.encode('utf-8')) + b'\n'
+        else:
+            tmp_dot_output_file = tempfile.mktemp()
             graph.render(
-                filename=self._output_filename,
-                view=self._view,
-                cleanup=self._cleanup,
+                filename=tmp_dot_output_file,
                 format=self._output_format,
                 renderer=self._graphviz_renderer,
                 formatter=self._graphviz_formatter
             )
-        else:
-            print(graph.source)
+            with open(tmp_dot_output_file + '.' + self._output_format, 'rb') as fp:
+                dot_output = fp.read()
+            os.remove(tmp_dot_output_file)
+            return dot_output
 
 
 class NodeTemplate(object):

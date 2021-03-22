@@ -15,8 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-from typing import Any, Callable, Optional
+import os
+import tempfile
+from typing import Any, Callable, Optional, cast
 
 from graphviz import Digraph  # type: ignore
 
@@ -27,12 +28,33 @@ from .renderer_manager import RendererManager
 
 
 class GameTreeRenderer(Renderer):
-    def render(self, simulation_result: SimulationResult) -> None:
+    def __init__(self, output_format: Optional[str] = None, graphviz_renderer: Optional[str] = None,
+                 graphviz_formatter: Optional[str] = None, *args: Any, **kwargs: Any) -> None:
+        super(GameTreeRenderer, self).__init__(*args, **kwargs)
+        self._output_format = output_format
+        self._graphviz_renderer = graphviz_renderer
+        self._graphviz_formatter = graphviz_formatter
+
+    def render(self, simulation_result: SimulationResult) -> bytes:
         gt = SimulationGameTree(
             simulation_result=simulation_result,
             autoscale_func=self.autoscale
         )
-        sys.stdout.write(gt.source + '\n')
+
+        if self._output_format is None:
+            return cast(bytes, gt.source.encode('utf-8')) + b'\n'
+        else:
+            tmp_dot_output_file = tempfile.mktemp()
+            gt.render(
+                filename=tmp_dot_output_file,
+                format=self._output_format,
+                renderer=self._graphviz_renderer,
+                formatter=self._graphviz_formatter
+            )
+            with open(tmp_dot_output_file + '.' + self._output_format, 'rb') as fp:
+                dot_output = fp.read()
+            os.remove(tmp_dot_output_file)
+            return dot_output
 
 
 class SimulationGameTree(Digraph):  # type: ignore

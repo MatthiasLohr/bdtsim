@@ -56,7 +56,7 @@ class RunSubCommand(SubCommand):
         parser.add_argument('--output-compression', default=True)
         parser.add_argument('--output-b64encoding', default=True)
 
-    def __call__(self, args: argparse.Namespace) -> None:
+    def __call__(self, args: argparse.Namespace) -> int:
         protocol_parameters: Dict[str, str] = {}
         environment_parameters: Dict[str, str] = {}
         data_provider_parameters: Dict[str, str] = {}
@@ -111,5 +111,7 @@ class RunSubCommand(SubCommand):
         if args.output == '-':
             sys.stdout.buffer.write(result_output)
         else:
-            with open(args.output, 'b') as fp:
+            with open(args.output, 'wb') as fp:
                 fp.write(result_output)
+
+        return 0
