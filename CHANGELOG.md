@@ -11,6 +11,7 @@
   * Feature: Added `--protocol-path` parameter for limiting protocol paths to be executed (#23)
   * Feature: Renderer: Add scaling support (#25)
   * Feature: Renderer: Graphviz Dot: Add option to show individual transactions in graph (#26)
+  * Feature: Added new command `bulk-execute` (#41)
   * Fix: Set default price to 1 ETH (#24)
   * Fix: Use gasPriceStrategy for determining gas price when available
   * Dependency Update: eth-tester to 0.5.0b3
