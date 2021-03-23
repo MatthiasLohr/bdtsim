@@ -17,8 +17,12 @@
 
 from setuptools import setup, find_packages
 
-with open('README.md', 'r') as readme:
-    long_description = readme.read()
+
+with open('README.md', 'r') as fp:
+    long_description = fp.read()
+
+with open('requirements.txt', 'r') as fp:
+    requirements = fp.read()
 
 setup(
     name='bdtsim',
@@ -31,19 +35,7 @@ setup(
     author_email='mail@mlohr.com',
     url='https://gitlab.com/MatthiasLohr/bdtsim',
     license='Apache License 2.0',
-    install_requires=[
-        'ecdsa==0.16.1',
-        # TODO remove, see #43
-        'eth-bloom @ git+https://github.com/konradkonrad/eth-bloom@update_eth_hash_dependency#egg=eth-bloom',
-        'eth-tester==0.5.0b3',
-        'graphviz==0.16',
-        'hexbytes==0.2.1',
-        'Jinja2==2.11.3',
-        'py-evm==0.3.0a20',
-        'py-solc-x==1.1.0',
-        'PyYAML==5.4.1',
-        'web3==5.17.0'
-    ],
+    install_requires=requirements.split('\n'),
     python_requires='>=3.7.*, <4',
     packages=find_packages(exclude=['tests', 'tests.*']),
     package_data={
