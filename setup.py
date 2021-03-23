@@ -34,7 +34,7 @@ setup(
     install_requires=[
         'ecdsa==0.16.1',
         # TODO remove, see #43
-        'eth-bloom @ git+https://github.com/konradkonrad/eth-bloom@update_eth_hash_dependency#egg=eth-bloom-1.0.3',
+        'eth-bloom @ https://github.com/konradkonrad/eth-bloom/archive/update_eth_hash_dependency.tar.gz',
         'eth-tester==0.5.0b3',
         'graphviz==0.16',
         'hexbytes==0.2.1',
