@@ -1,6 +1,6 @@
 # Changelog
 
-## unreleased
+## v2.0.0
 
   * Protocol: Delgado, Delgado-Reusable, Delgado-Library (#1)
   * Protocol: Support for SmartJudge (#20)
@@ -25,6 +25,7 @@
   * Documentation: Updated documentation of Delgado protocol
   * New dependency: ecdsa 0.16.1
   * Other: Measure test coverage (#7)
+  * Other: Added Python 3.9 support (#38)
 
 ## v1.1.1
 
