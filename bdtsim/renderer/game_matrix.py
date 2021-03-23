@@ -60,7 +60,7 @@ class GameMatrixAccountCell(object):
             return self._autoscale_func(value, value_type)
 
     def __str__(self) -> str:
-        results = []
+        results = ['- %s -' % self._account.name]
         for label, interval, value_type in (
             ('TX Fees', self._tx_fees, ValueType.GAS),
             ('TX Count', self._tx_count, ValueType.PLAIN),
