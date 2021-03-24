@@ -36,7 +36,6 @@ class CommandTest(TestCase):
             'Delgado-ReusableContract',
             'FairSwap',
             'FairSwap-Reusable',
-            'SimplePayment',
             'SimplePayment-prepaid',
             'SimplePayment-prepaid-direct',
             'SimplePayment-postpaid',
@@ -62,11 +61,6 @@ class CommandTest(TestCase):
             'game-tree',
             'dot'
         ]))
-
-    def test_run_simplepayment(self) -> None:
-        p = subprocess.Popen(['env', 'bdtsim', 'run', 'SimplePayment', 'PyEVM'], stdout=subprocess.PIPE)
-        out, err = p.communicate()
-        self.assertEqual(p.returncode, 0)
 
     def test_run_simplepayment_prepaid(self) -> None:
         p = subprocess.Popen(['env', 'bdtsim', 'run', 'SimplePayment-prepaid', 'PyEVM'], stdout=subprocess.PIPE)

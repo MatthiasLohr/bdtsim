@@ -29,131 +29,110 @@ from bdtsim.protocol_path import ProtocolPath
 logger = logging.getLogger(__name__)
 
 
-class SimplePayment(Protocol):
-    """Example implementation of SimplePayment (paying after exchange, direct payments)"""
-    def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
-                seller: Account, buyer: Account, price: int = DEFAULT_ASSET_PRICE) -> None:
-        """
-
-        Args:
-            protocol_path (ProtocolPath): Protocol path this simulation for a data exchange will take
-            environment (Environment): The environment (blockchain) in which the protocol interactions will take place
-            data_provider (DataProvider): The data to be traded
-            seller (Account): The selling party
-            buyer (Account): The buying party
-            price (int): Price for the data/asset to be traded (in Wei)
-
-        Returns:
-            None
-        """
-        release_goods = protocol_path.decide(seller, 'release goods?', ('yes', 'no'))
-        # [...] seller releases goods to buyer, not monitored by BDTsim
-        if release_goods.outcome == 'yes':
-            pay = protocol_path.decide(buyer, 'pay?', ('yes', 'no'))
-            if pay.outcome == 'yes':
-                environment.send_direct_transaction(buyer, seller, price)
-            else:
-                pass  # buyer left protocol, having goods, without payment
-        else:
-            pass  # seller left protocol, no reaction from buyer
-
-
-class AbstractParameterizedSimplePayment(Protocol):
+class AbstractSimplePaymentProtocol(Protocol):
     def __init__(self, use_contract: bool):
-        super(AbstractParameterizedSimplePayment, self).__init__()
+        super(AbstractSimplePaymentProtocol, self).__init__()
         self._use_contract = use_contract
         self._contract: Optional[SolidityContract] = None
 
     @property
-    def contract(self) -> SolidityContract:
-        if self._contract is not None:
-            return self._contract
-        else:
-            raise RuntimeError('Contract not initialized')
-
-    def get_contract(self) -> SolidityContract:
-        return SolidityContract('SimplePayment', self.contract_path(__file__, 'SimplePayment.sol'))
+    def contract(self) -> Optional[SolidityContract]:
+        return self._contract
 
     def prepare_simulation(self, environment: Environment, operator: Account) -> None:
         if self._use_contract:
-            logger.debug('Deploying contract...')
-            self._contract = self.get_contract()
-            environment.deploy_contract(operator, self.contract)
+            logger.debug('deploying contract')
+            self._contract = SolidityContract('SimplePayment', self.contract_path(__file__, 'SimplePayment.sol'))
+            environment.deploy_contract(operator, self._contract)
 
     def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
                 seller: Account, buyer: Account, price: int = DEFAULT_ASSET_PRICE) -> None:
-        """
-
-        Args:
-            protocol_path (ProtocolPath): Protocol path this simulation for a data exchange will take
-            environment (Environment): The environment (blockchain) in which the protocol interactions will take place
-            data_provider (DataProvider): The data to be traded
-            seller (Account): The selling party
-            buyer (Account): The buying party
-            price (int): Price for the data/asset to be traded (in Wei)
-
-        Returns:
-            None
-        """
         raise NotImplementedError()
 
 
-class SimplePaymentPrepaid(AbstractParameterizedSimplePayment):
+class SimplePaymentPrepaidProtocol(AbstractSimplePaymentProtocol):
+    def __init__(self) -> None:
+        super(SimplePaymentPrepaidProtocol, self).__init__(use_contract=True)
+
     def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
                 seller: Account, buyer: Account, price: int = DEFAULT_ASSET_PRICE) -> None:
-        """
+        if self.contract is None:
+            raise RuntimeError('contract not initialized')
 
-        Args:
-            protocol_path (ProtocolPath): Protocol path this simulation for a data exchange will take
-            environment (Environment): The environment (blockchain) in which the protocol interactions will take place
-            data_provider (DataProvider): The data to be traded
-            seller (Account): The selling party
-            buyer (Account): The buying party
-            price (int): Price for the data/asset to be traded (in Wei)
+        payment_decision = protocol_path.decide(buyer, 'pay', ('yes', 'no'))
+        if payment_decision.outcome == 'yes':
+            environment.send_contract_transaction(self.contract, buyer, 'pay', seller.wallet_address, value=price)
 
-        Returns:
-            None
-        """
-        if protocol_path.decide(buyer, description='Payment', options=('paying', 'not paying')).is_honest():
-            logger.debug('Decided to be honest')
-            if self._use_contract:
+            handover_decision = protocol_path.decide(seller, 'hand over', ('yes', 'no'))
+            if handover_decision.outcome == 'yes':
+                environment.indicate_item_share(seller, 1, buyer)
+            else:
+                pass  # do not handover item
+        else:
+            pass  # do nothing, seller will not react
+
+
+class SimplePaymentPrepaidDirectProtocol(AbstractSimplePaymentProtocol):
+    def __init__(self) -> None:
+        super(SimplePaymentPrepaidDirectProtocol, self).__init__(use_contract=False)
+
+    def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
+                seller: Account, buyer: Account, price: int = DEFAULT_ASSET_PRICE) -> None:
+        payment_decision = protocol_path.decide(buyer, 'pay', ('yes', 'no'))
+        if payment_decision.outcome == 'yes':
+            environment.send_direct_transaction(buyer, seller, price)
+
+            handover_decision = protocol_path.decide(seller, 'hand over', ('yes', 'no'))
+            if handover_decision.outcome == 'yes':
+                environment.indicate_item_share(seller, 1, buyer)
+            else:
+                pass  # do not handover item
+        else:
+            pass  # do nothing, seller will not react
+
+
+class SimplePaymentPostpaidProtocol(AbstractSimplePaymentProtocol):
+    def __init__(self) -> None:
+        super(SimplePaymentPostpaidProtocol, self).__init__(use_contract=True)
+
+    def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
+                seller: Account, buyer: Account, price: int = DEFAULT_ASSET_PRICE) -> None:
+        if self.contract is None:
+            raise RuntimeError('contract not initialized')
+
+        handover_decision = protocol_path.decide(seller, 'hand over', ('yes', 'no'))
+        if handover_decision.outcome == 'yes':
+            environment.indicate_item_share(seller, 1, buyer)
+
+            payment_decision = protocol_path.decide(buyer, 'pay', ('yes', 'no'))
+            if payment_decision.outcome == 'yes':
                 environment.send_contract_transaction(self.contract, buyer, 'pay', seller.wallet_address, value=price)
             else:
-                environment.send_direct_transaction(buyer, seller, price)
-
-            protocol_path.decide(seller, description='Give goods', options=('yes', 'no'))
+                pass  # do not pay
         else:
-            logger.debug('Decided to cheat')  # do nothing
+            pass  # do not handover item, buyer will not pay
 
 
-class SimplePaymentPostpaid(AbstractParameterizedSimplePayment):
+class SimplePaymentPostpaidDirectProtocol(AbstractSimplePaymentProtocol):
+    def __init__(self) -> None:
+        super(SimplePaymentPostpaidDirectProtocol, self).__init__(use_contract=False)
+
     def execute(self, protocol_path: ProtocolPath, environment: Environment, data_provider: DataProvider,
                 seller: Account, buyer: Account, price: int = DEFAULT_ASSET_PRICE) -> None:
-        """
+        handover_decision = protocol_path.decide(seller, 'hand over', ('yes', 'no'))
+        if handover_decision.outcome == 'yes':
+            environment.indicate_item_share(seller, 1, buyer)
 
-        Args:
-            protocol_path (ProtocolPath): Protocol path this simulation for a data exchange will take
-            environment (Environment): The environment (blockchain) in which the protocol interactions will take place
-            data_provider (DataProvider): The data to be traded
-            seller (Account): The selling party
-            buyer (Account): The buying party
-            price (int): Price for the data/asset to be traded (in Wei)
-
-        Returns:
-            None
-        """
-        if protocol_path.decide(seller, 'Give goods', ('yes', 'no')).is_honest():
-            if protocol_path.decide(buyer, description='Payment', options=('paying', 'not paying')).is_honest():
-                logger.debug('Decided to be honest')
-                if self._use_contract:
-                    environment.send_contract_transaction(self.contract, buyer, 'pay', seller.wallet_address,
-                                                          value=price)
-                else:
-                    environment.send_direct_transaction(buyer, seller, price)
+            payment_decision = protocol_path.decide(buyer, 'pay', ('yes', 'no'))
+            if payment_decision.outcome == 'yes':
+                environment.send_direct_transaction(buyer, seller, price)
+            else:
+                pass  # do not pay
+        else:
+            pass  # do not handover item, buyer will not pay
 
 
-ProtocolManager.register('SimplePayment', SimplePayment)
-ProtocolManager.register('SimplePayment-prepaid', SimplePaymentPrepaid, use_contract=True)
-ProtocolManager.register('SimplePayment-prepaid-direct', SimplePaymentPrepaid, use_contract=False)
-ProtocolManager.register('SimplePayment-postpaid', SimplePaymentPostpaid, use_contract=True)
-ProtocolManager.register('SimplePayment-postpaid-direct', SimplePaymentPostpaid, use_contract=False)
+ProtocolManager.register('SimplePayment-prepaid', SimplePaymentPrepaidProtocol)
+ProtocolManager.register('SimplePayment-prepaid-direct', SimplePaymentPrepaidDirectProtocol)
+ProtocolManager.register('SimplePayment-postpaid', SimplePaymentPostpaidProtocol)
+ProtocolManager.register('SimplePayment-postpaid-direct', SimplePaymentPostpaidDirectProtocol)

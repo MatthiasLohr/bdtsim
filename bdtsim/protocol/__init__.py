@@ -20,7 +20,8 @@ from .protocol_manager import ProtocolManager
 from .exceptions import ProtocolError, ProtocolInitializationError, ProtocolExecutionError
 from .delgado import DelgadoBasic, DelgadoReusableLibrary, DelgadoReusableContract
 from .fairswap import FairSwap, FairSwapReusable
-from .simplepayment import SimplePayment, SimplePaymentPrepaid, SimplePaymentPostpaid
+from .simplepayment import SimplePaymentPrepaidProtocol, SimplePaymentPrepaidDirectProtocol,\
+    SimplePaymentPostpaidProtocol, SimplePaymentPostpaidDirectProtocol
 from .smartjudge import SmartJudge
 
 __all__ = [
@@ -29,6 +30,7 @@ __all__ = [
     'ProtocolError', 'ProtocolInitializationError', 'ProtocolExecutionError',
     'DelgadoBasic', 'DelgadoReusableLibrary', 'DelgadoReusableContract',
     'FairSwap', 'FairSwapReusable',
-    'SimplePayment', 'SimplePaymentPrepaid', 'SimplePaymentPostpaid',
+    'SimplePaymentPrepaidProtocol', 'SimplePaymentPrepaidDirectProtocol',
+    'SimplePaymentPostpaidProtocol', 'SimplePaymentPostpaidDirectProtocol',
     'SmartJudge'
 ]

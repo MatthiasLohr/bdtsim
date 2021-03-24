@@ -124,7 +124,9 @@ class Environment(object):
         contract.address = tx_receipt['contractAddress']
 
     def send_contract_transaction(self, contract: Contract, account: Account, method: str, *args: Any,
-                                  value: int = 0, allow_failure: bool = False, **kwargs: Any) -> Any:
+                                  value: int = 0, item_share_indicator_amount: float = 0,
+                                  item_share_indicator_beneficiary: Optional[Account] = None,
+                                  allow_failure: bool = False, **kwargs: Any) -> Any:
         logger.debug('Preparing contract transaction %s(%s)' % (method, ', '.join([str(a) for a in [*args]])))
         web3_contract = self._web3.eth.contract(address=contract.address, abi=contract.abi)
         contract_method = getattr(web3_contract.functions, method)
@@ -137,6 +139,7 @@ class Environment(object):
             allow_failure=allow_failure
         )
         # TODO implement contract return value
+        # TODO handle item share indicators
 
     def send_direct_transaction(self, account: Account, to: Account, value: int = 0,
                                 allow_failure: bool = False) -> None:
@@ -211,6 +214,9 @@ class Environment(object):
             self.transaction_callback(TransactionLogEntry(account, tx_dict, dict(tx_receipt), description,
                                                           funds_diff_collection))
         return tx_receipt
+
+    def indicate_item_share(self, account: Account, amount: float, beneficiary: Optional[Account]) -> None:
+        pass  # TODO implement
 
     def event_filter(self, contract: Contract, event_name: str, event_args: Optional[List[Any]] = None,
                      from_block: Union[str, int] = 'latest', to_block: Union[str, int] = 'latest',
