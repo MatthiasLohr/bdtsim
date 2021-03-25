@@ -138,6 +138,43 @@ simulations:
       parameters:
         size: 8192
 
+  - protocol:
+      name: SimplePayment-prepaid
+    environment:
+      name: PyEVM
+      parameters: {}
+    data_provider:
+      name: RandomDataProvider
+      parameters: {}
+
+  - protocol:
+      name: SimplePayment-prepaid-direct
+    environment:
+      name: PyEVM
+      parameters: {}
+    data_provider:
+      name: RandomDataProvider
+      parameters: {}
+
+  - protocol:
+      name: SimplePayment-postpaid
+    environment:
+      name: PyEVM
+      parameters: {}
+    data_provider:
+      name: RandomDataProvider
+      parameters: {}
+
+  - protocol:
+      name: SimplePayment-postpaid-direct
+    environment:
+      name: PyEVM
+      parameters: {}
+    data_provider:
+      name: RandomDataProvider
+      parameters: {}
+
+
 renderers:
   - name: game-matrix
     suffix: txt
