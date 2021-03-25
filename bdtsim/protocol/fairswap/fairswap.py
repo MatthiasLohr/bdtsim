@@ -261,10 +261,8 @@ class FairSwap(Protocol):
                     return
 
         # === 5: Seller: Finalize (when Buyer leaves in 4)
-        if protocol_path.decide(seller, 'Request Payout', options=('yes', 'no'),
-                                honest_options=('yes', 'no')).outcome == 'yes':
-            environment.wait(self.timeout + 1)
-            self.smart_contract_refund(environment, seller, buyer, transfer_plain_root_hash, seller)
+        environment.wait(self.timeout + 1)
+        self.smart_contract_refund(environment, seller, buyer, transfer_plain_root_hash, seller)
 
     @staticmethod
     def hex(value: Union[HexBytes, bytes, bytearray]) -> str:
