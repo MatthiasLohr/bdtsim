@@ -147,7 +147,7 @@ class Environment(object):
             account=account,
             to=to,
             value=value,
-            description='->',
+            description='direct transfer',
             allow_failure=allow_failure
         )
 
