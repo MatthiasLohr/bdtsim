@@ -126,7 +126,12 @@ class SimulationGameTree(Digraph):  # type: ignore
         # prepare label
         label_lines = []
         for subject in (self._simulation_result.seller, self._simulation_result.buyer):
-            label_lines.append('<b>%s</b>' % subject.name)
+            if node.account_completely_honest(subject):
+                honesty_indicator = '<font color="green">✓</font>'
+            else:
+                honesty_indicator = '<font color="red">✗</font>'
+
+            label_lines.append('<b>%s %s</b>' % (honesty_indicator, subject.name))
             aggregation_summary = node.aggregation_summary
             subject_summary = aggregation_summary.get(subject)
 
