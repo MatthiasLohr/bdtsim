@@ -127,7 +127,7 @@ class SimulationGameTree(Digraph):  # type: ignore
         label_lines = []
         for subject in (self._simulation_result.seller, self._simulation_result.buyer):
             if node.account_completely_honest(subject):
-                honesty_indicator = '<font color="green">✓</font>'
+                honesty_indicator = '<font color="blue">✓</font>'
             else:
                 honesty_indicator = '<font color="red">✗</font>'
 

@@ -30,8 +30,8 @@ from .renderer_manager import RendererManager
 
 
 class GraphvizDotRenderer(Renderer, GraphvizMixin):
-    COLOR_HONEST = '#00CC00'
-    COLOR_CHEATING = '#FF0000'
+    COLOR_HONEST = 'blue'
+    COLOR_CHEATING = 'red'
 
     def __init__(self, output_format: Optional[str] = None, graphviz_renderer: Optional[str] = None,
                  graphviz_formatter: Optional[str] = None, show_transactions: bool = True,
@@ -276,8 +276,13 @@ class ResultGraph(Digraph):  # type: ignore
         uuid = self._uuid()
         label_lines = []
         for entry in node.aggregation_summary.values():
-            label_lines.append('<font color="%s">%s</font>' % (
-                self._color_by_honesty(node.account_completely_honest(entry.account)),
+            if node.account_completely_honest(entry.account):
+                honesty_indicator = '<font color="blue">✓</font>'
+            else:
+                honesty_indicator = '<font color="red">✗</font>'
+
+            label_lines.append('%s %s' % (
+                honesty_indicator,
                 str(entry)
             ))
 
