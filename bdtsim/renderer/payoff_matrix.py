@@ -25,7 +25,7 @@ from .renderer import Renderer, ValueType
 from .renderer_manager import RendererManager
 
 
-class GameMatrixAccountCell(object):
+class PayoffMatrixAccountCell(object):
     def __init__(self, account: Account, tx_fees: Optional[Tuple[int, int]] = None,
                  tx_count: Optional[Tuple[int, int]] = None, funds_diff: Optional[Tuple[int, int]] = None,
                  balance_diff: Optional[Tuple[int, int]] = None, item_share: Optional[Tuple[float, float]] = None,
@@ -87,7 +87,7 @@ class GameMatrixAccountCell(object):
     def from_aggregation_summary_list(aggregation_summary_list: List[TransactionLogCollection.Aggregation],
                                       account: Account,
                                       autoscale_func: Optional[Callable[[Any, ValueType], Any]] = None
-                                      ) -> 'GameMatrixAccountCell':
+                                      ) -> 'PayoffMatrixAccountCell':
         def _safe_attr_generator(attr_name: str) -> Generator[Any, None, None]:
             for entry in aggregation_summary_list:
                 item = entry.get(account)
@@ -95,7 +95,7 @@ class GameMatrixAccountCell(object):
                     yield getattr(item, attr_name)
 
         if len(aggregation_summary_list):
-            return GameMatrixAccountCell(
+            return PayoffMatrixAccountCell(
                 account=account,
                 tx_fees=(
                     min(_safe_attr_generator('tx_fees_min')),
@@ -120,32 +120,32 @@ class GameMatrixAccountCell(object):
                 autoscale_func=autoscale_func
             )
         else:
-            return GameMatrixAccountCell(
+            return PayoffMatrixAccountCell(
                 account=account,
                 autoscale_func=autoscale_func
             )
 
 
-class GameMatrixCell(object):
-    def __init__(self, seller_cell: GameMatrixAccountCell, buyer_cell: GameMatrixAccountCell) -> None:
+class PayoffMatrixCell(object):
+    def __init__(self, seller_cell: PayoffMatrixAccountCell, buyer_cell: PayoffMatrixAccountCell) -> None:
         self._seller_cell = seller_cell
         self._buyer_cell = buyer_cell
 
     @property
-    def seller_cell(self) -> GameMatrixAccountCell:
+    def seller_cell(self) -> PayoffMatrixAccountCell:
         return self._seller_cell
 
     @property
-    def buyer_cell(self) -> GameMatrixAccountCell:
+    def buyer_cell(self) -> PayoffMatrixAccountCell:
         return self._buyer_cell
 
     @staticmethod
     def from_aggregation_summary_list(aggregation_summary_list: List[TransactionLogCollection.Aggregation],
                                       seller: Account, buyer: Account,
                                       autoscale_func: Optional[Callable[[Any, ValueType], Any]] = None
-                                      ) -> 'GameMatrixCell':
-        return GameMatrixCell(
-            seller_cell=GameMatrixAccountCell.from_aggregation_summary_list(
+                                      ) -> 'PayoffMatrixCell':
+        return PayoffMatrixCell(
+            seller_cell=PayoffMatrixAccountCell.from_aggregation_summary_list(
                 aggregation_summary_list=list(filter(
                     lambda item: item.get(seller) is not None,
                     aggregation_summary_list
@@ -153,7 +153,7 @@ class GameMatrixCell(object):
                 account=seller,
                 autoscale_func=autoscale_func
             ),
-            buyer_cell=GameMatrixAccountCell.from_aggregation_summary_list(
+            buyer_cell=PayoffMatrixAccountCell.from_aggregation_summary_list(
                 aggregation_summary_list=list(filter(
                     lambda item: item.get(buyer) is not None,
                     aggregation_summary_list
@@ -164,9 +164,9 @@ class GameMatrixCell(object):
         )
 
 
-class GameMatrix(object):
-    def __init__(self, seller: Account, buyer: Account, cell_hh: GameMatrixCell, cell_hm: GameMatrixCell,
-                 cell_mh: GameMatrixCell, cell_mm: GameMatrixCell) -> None:
+class PayoffMatrix(object):
+    def __init__(self, seller: Account, buyer: Account, cell_hh: PayoffMatrixCell, cell_hm: PayoffMatrixCell,
+                 cell_mh: PayoffMatrixCell, cell_mm: PayoffMatrixCell) -> None:
         self._seller = seller
         self._buyer = buyer
         self._cell_hh = cell_hh
@@ -246,7 +246,7 @@ class GameMatrix(object):
 
     @staticmethod
     def from_simulation_result(simulation_result: SimulationResult,
-                               autoscale_func: Optional[Callable[[Any, ValueType], Any]] = None) -> 'GameMatrix':
+                               autoscale_func: Optional[Callable[[Any, ValueType], Any]] = None) -> 'PayoffMatrix':
         # initialize aggregation summary lists
         asl_hh = []
         asl_hm = []
@@ -268,28 +268,28 @@ class GameMatrix(object):
             else:
                 raise RuntimeError('Should be impossible to reach hear! Please contact developers.')
 
-        return GameMatrix(
+        return PayoffMatrix(
             seller=simulation_result.seller,
             buyer=simulation_result.buyer,
-            cell_hh=GameMatrixCell.from_aggregation_summary_list(
+            cell_hh=PayoffMatrixCell.from_aggregation_summary_list(
                 aggregation_summary_list=asl_hh,
                 seller=simulation_result.seller,
                 buyer=simulation_result.buyer,
                 autoscale_func=autoscale_func
             ),
-            cell_hm=GameMatrixCell.from_aggregation_summary_list(
+            cell_hm=PayoffMatrixCell.from_aggregation_summary_list(
                 aggregation_summary_list=asl_hm,
                 seller=simulation_result.seller,
                 buyer=simulation_result.buyer,
                 autoscale_func=autoscale_func
             ),
-            cell_mh=GameMatrixCell.from_aggregation_summary_list(
+            cell_mh=PayoffMatrixCell.from_aggregation_summary_list(
                 aggregation_summary_list=asl_mh,
                 seller=simulation_result.seller,
                 buyer=simulation_result.buyer,
                 autoscale_func=autoscale_func
             ),
-            cell_mm=GameMatrixCell.from_aggregation_summary_list(
+            cell_mm=PayoffMatrixCell.from_aggregation_summary_list(
                 aggregation_summary_list=asl_mm,
                 seller=simulation_result.seller,
                 buyer=simulation_result.buyer,
@@ -298,16 +298,16 @@ class GameMatrix(object):
         )
 
 
-class GameMatrixRenderer(Renderer):
+class PayoffMatrixRenderer(Renderer):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super(GameMatrixRenderer, self).__init__(*args, **kwargs)
+        super(PayoffMatrixRenderer, self).__init__(*args, **kwargs)
 
     def render(self, simulation_result: SimulationResult) -> bytes:
-        game_matrix = GameMatrix.from_simulation_result(
+        payoff_matrix = PayoffMatrix.from_simulation_result(
             simulation_result=simulation_result,
             autoscale_func=self.autoscale
         )
-        return str(game_matrix).encode('utf-8') + b'\n'
+        return str(payoff_matrix).encode('utf-8') + b'\n'
 
 
-RendererManager.register('game-matrix', GameMatrixRenderer)
+RendererManager.register('payoff-matrix', PayoffMatrixRenderer)

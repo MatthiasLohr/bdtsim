@@ -15,18 +15,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .game_matrix import GameMatrixRenderer
 from .game_tree import GameTreeRenderer
 from .graphviz_dot import GraphvizDotRenderer
+from .payoff_matrix import PayoffMatrix
 from .renderer import Renderer
 from .renderer_manager import RendererManager
 from .result_collector import ResultCollector
 
 
 __all__ = [
-    'GameMatrixRenderer',
     'GameTreeRenderer',
     'GraphvizDotRenderer',
+    'PayoffMatrix',
     'Renderer',
     'RendererManager',
     'ResultCollector'

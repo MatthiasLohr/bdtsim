@@ -176,7 +176,7 @@ simulations:
 
 
 renderers:
-  - name: game-matrix
+  - name: payoff-matrix
     suffix: txt
 
   - name: game-tree

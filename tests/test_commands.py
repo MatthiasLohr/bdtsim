@@ -57,9 +57,9 @@ class CommandTest(TestCase):
         out, err = p.communicate()
         self.assertEqual(p.returncode, 0)
         self.assertEqual(out.decode('utf-8').strip(), '\n'.join([
-            'game-matrix',
             'game-tree',
-            'dot'
+            'dot',
+            'payoff-matrix'
         ]))
 
     def test_run_simplepayment_prepaid(self) -> None:
