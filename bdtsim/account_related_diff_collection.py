@@ -15,20 +15,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Generic, Optional, TypeVar, cast
 
 from .account import Account
 
 
-class FundsDiffCollection(Dict[Account, int]):
-    def __init__(self, init: Optional[Dict[Account, int]] = None) -> None:
-        if init is None:
-            super().__init__()
-        else:
-            super().__init__(init)
+T = TypeVar('T', float, int)
 
-    def get(self, account: Account, default: int = 0) -> int:  # type: ignore
-        return super().get(account, default)
+
+class AccountRelatedNumericalCollection(Dict[Account, T], Generic[T]):
+    def __init__(self, init: Optional[Dict[Account, T]] = None) -> None:
+        super(AccountRelatedNumericalCollection, self).__init__()
+        if init is not None:
+            for k, v in init.items():
+                self.update({k: v})
+
+    def get(self, account: Account, default: T = 0) -> T:  # type: ignore
+        return cast(T, super().get(account, default))
 
     @property
     def is_neutral(self) -> bool:
@@ -44,8 +47,8 @@ class FundsDiffCollection(Dict[Account, int]):
             ', '.join(['%s: %d' % (account.name, diff) for account, diff in self.items()])
         )
 
-    def __iadd__(self, other: Any) -> 'FundsDiffCollection':
-        if isinstance(other, FundsDiffCollection):
+    def __iadd__(self, other: Any) -> Any:
+        if isinstance(other, self.__class__):
             for account, other_amount in other.items():
                 current_amount = self.get(account)
                 if current_amount is None:
@@ -56,17 +59,17 @@ class FundsDiffCollection(Dict[Account, int]):
         else:
             return NotImplemented
 
-    def __add__(self, other: Any) -> 'FundsDiffCollection':
-        if isinstance(other, FundsDiffCollection):
-            result = FundsDiffCollection()
+    def __add__(self, other: Any) -> Any:
+        if isinstance(other, self.__class__):
+            result = self.__class__()
             result += self
             result += other
             return result
         else:
             return NotImplemented
 
-    def __isub__(self, other: Any) -> 'FundsDiffCollection':
-        if isinstance(other, FundsDiffCollection):
+    def __isub__(self, other: Any) -> Any:
+        if isinstance(other, self.__class__):
             for account, other_amount in other.items():
                 current_amount = self.get(account)
                 if current_amount is None:
@@ -77,9 +80,9 @@ class FundsDiffCollection(Dict[Account, int]):
         else:
             return NotImplemented
 
-    def __sub__(self, other: Any) -> 'FundsDiffCollection':
-        if isinstance(other, FundsDiffCollection):
-            result = FundsDiffCollection()
+    def __sub__(self, other: Any) -> Any:
+        if isinstance(other, self.__class__):
+            result = self.__class__()
             result += self
             result -= other
             return result
@@ -87,7 +90,7 @@ class FundsDiffCollection(Dict[Account, int]):
             return NotImplemented
 
     def __eq__(self, other: Any) -> bool:
-        if isinstance(other, FundsDiffCollection):
+        if isinstance(other, self.__class__):
             for a, b in (self, other), (other, self):
                 for account in a.keys():
                     if a.get(account) != b.get(account):
@@ -98,3 +101,11 @@ class FundsDiffCollection(Dict[Account, int]):
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
+
+
+class FundsDiffCollection(AccountRelatedNumericalCollection[int]):
+    pass
+
+
+class ItemShareCollection(AccountRelatedNumericalCollection[float]):
+    pass

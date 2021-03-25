@@ -139,7 +139,8 @@ class SimulationGameTree(Digraph):  # type: ignore
                 ('TX Fees', 'tx_fees', ValueType.GAS),
                 ('TX Count', 'tx_count', ValueType.PLAIN),
                 ('Funds Diff', 'funds_diff', ValueType.WEI),
-                ('Bal. Diff', 'balance_diff', ValueType.WEI)
+                ('Bal. Diff', 'balance_diff', ValueType.WEI),
+                ('Item Share', 'item_share', ValueType.PLAIN)
             ):
                 if subject_summary is None:
                     label_lines.append('<i>%s</i>: 0' % summary_label)

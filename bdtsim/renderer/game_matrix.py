@@ -28,13 +28,14 @@ from .renderer_manager import RendererManager
 class GameMatrixAccountCell(object):
     def __init__(self, account: Account, tx_fees: Optional[Tuple[int, int]] = None,
                  tx_count: Optional[Tuple[int, int]] = None, funds_diff: Optional[Tuple[int, int]] = None,
-                 balance_diff: Optional[Tuple[int, int]] = None,
+                 balance_diff: Optional[Tuple[int, int]] = None, item_share: Optional[Tuple[float, float]] = None,
                  autoscale_func: Optional[Callable[[Any, ValueType], Any]] = None) -> None:
         self._account = account
         self._tx_fees = tx_fees
         self._tx_count = tx_count
         self._funds_diff = funds_diff
         self._balance_diff = balance_diff
+        self._item_share = item_share
         self._autoscale_func = autoscale_func
 
     @property
@@ -65,7 +66,8 @@ class GameMatrixAccountCell(object):
             ('TX Fees', self._tx_fees, ValueType.GAS),
             ('TX Count', self._tx_count, ValueType.PLAIN),
             ('Funds Diff', self._funds_diff, ValueType.WEI),
-            ('Bal. Diff', self._balance_diff, ValueType.WEI)
+            ('Bal. Diff', self._balance_diff, ValueType.WEI),
+            ('Item Share', self._item_share, ValueType.PLAIN)
         ):
             if interval is None:
                 results.append('%s: 0' % label)
@@ -110,6 +112,10 @@ class GameMatrixAccountCell(object):
                 balance_diff=(
                     min(_safe_attr_generator('balance_diff_min')),
                     max(_safe_attr_generator('balance_diff_max'))
+                ),
+                item_share=(
+                    min(_safe_attr_generator('item_share_min')),
+                    max(_safe_attr_generator('item_share_max'))
                 ),
                 autoscale_func=autoscale_func
             )
@@ -180,8 +186,8 @@ class GameMatrix(object):
         )
         seller_malicious_tbl_half_str = str_block_table(
             blocks=[
-                [str(self._cell_hh.seller_cell), str(self._cell_hh.buyer_cell)],
-                [str(self._cell_hm.seller_cell), str(self._cell_hm.buyer_cell)]
+                [str(self._cell_mh.seller_cell), str(self._cell_mh.buyer_cell)],
+                [str(self._cell_mm.seller_cell), str(self._cell_mm.buyer_cell)]
             ],
             column_separator=' │ ',
             line_crossing='─┼─',

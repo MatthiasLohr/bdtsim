@@ -25,7 +25,7 @@ import uuid
 from typing import Any, Callable, Dict, List, NamedTuple, Optional, Tuple, cast
 
 from bdtsim.account import Account
-from bdtsim.funds_diff_collection import FundsDiffCollection
+from bdtsim.account_related_diff_collection import FundsDiffCollection, ItemShareCollection
 from bdtsim.protocol_path import Decision
 
 
@@ -39,6 +39,7 @@ class TransactionLogEntry(NamedTuple):
     tx_receipt: Dict[str, Any]
     description: str
     funds_diff_collection: FundsDiffCollection
+    item_share_collection: ItemShareCollection
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, TransactionLogEntry):
@@ -46,7 +47,8 @@ class TransactionLogEntry(NamedTuple):
                     self.tx_dict == other.tx_dict and
                     self.tx_receipt == other.tx_receipt and
                     self.description == other.description and
-                    self.funds_diff_collection == other.funds_diff_collection)
+                    self.funds_diff_collection == other.funds_diff_collection and
+                    self.item_share_collection == other.item_share_collection)
         else:
             return NotImplemented
 
@@ -63,14 +65,16 @@ class TransactionLogList(List[TransactionLogEntry]):
             tx_count: int
             funds_diff: int
             balance_diff: int
+            item_share: float
 
             def __str__(self) -> str:
-                return '%s: %d (%d transaction(s), funds diff %d, balance diff %d)' % (
+                return '%s: %d (%d transaction(s), funds diff %d, balance diff %d, item share %d)' % (
                     self.account.name,
                     self.tx_fees,
                     self.tx_count,
                     self.funds_diff,
-                    self.balance_diff
+                    self.balance_diff,
+                    self.item_share
                 )
 
         def __init__(self, tx_log_list: 'TransactionLogList') -> None:
@@ -80,11 +84,12 @@ class TransactionLogList(List[TransactionLogEntry]):
                 entry = self.get(tx.account)
                 if entry is None:
                     entry = TransactionLogList.Aggregation.Entry(
-                        tx.account,
-                        int(tx.tx_receipt['gasUsed']),
-                        1,
-                        0,
-                        - (int(tx.tx_receipt['gasUsed']) * int(tx.tx_dict['gasPrice']))
+                        tx.account,                                                       # account
+                        int(tx.tx_receipt['gasUsed']),                                    # tx_fees
+                        1,                                                                # tx_count
+                        0,                                                                # funds_diff
+                        - (int(tx.tx_receipt['gasUsed']) * int(tx.tx_dict['gasPrice'])),  # balance_diff
+                        0                                                                 # item_share
                     )
                     self.update({tx.account: entry})
                 else:
@@ -93,7 +98,8 @@ class TransactionLogList(List[TransactionLogEntry]):
                         entry.tx_fees + int(tx.tx_receipt['gasUsed']),
                         entry.tx_count + 1,
                         entry.funds_diff,
-                        entry.balance_diff - (int(tx.tx_receipt['gasUsed']) * int(tx.tx_dict['gasPrice']))
+                        entry.balance_diff - (int(tx.tx_receipt['gasUsed']) * int(tx.tx_dict['gasPrice'])),
+                        entry.item_share
                     )
                     self.update({tx.account: entry})
                 # work on all fund diffs
@@ -106,7 +112,8 @@ class TransactionLogList(List[TransactionLogEntry]):
                                 0,
                                 0,
                                 funds_diff,
-                                funds_diff
+                                funds_diff,
+                                0
                             )
                         })
                     else:
@@ -116,7 +123,33 @@ class TransactionLogList(List[TransactionLogEntry]):
                                 entry.tx_fees,
                                 entry.tx_count,
                                 funds_diff_entry.funds_diff + funds_diff,
-                                entry.balance_diff + funds_diff
+                                entry.balance_diff + funds_diff,
+                                entry.item_share
+                            )
+                        })
+                # work on all item shares
+                for account, item_share in tx.item_share_collection.items():
+                    item_share_entry = self.get(account)
+                    if item_share_entry is None:
+                        self.update({
+                            account: TransactionLogList.Aggregation.Entry(
+                                account,
+                                0,
+                                0,
+                                0,
+                                0,
+                                item_share
+                            )
+                        })
+                    else:
+                        self.update({
+                            account: TransactionLogList.Aggregation.Entry(
+                                account,
+                                entry.tx_fees,
+                                entry.tx_count,
+                                entry.funds_diff,
+                                entry.balance_diff,
+                                item_share_entry.item_share + item_share
                             )
                         })
 
@@ -154,6 +187,8 @@ class TransactionLogCollection(List[TransactionLogList]):
             funds_diff_max: int
             balance_diff_min: int
             balance_diff_max: int
+            item_share_min: float
+            item_share_max: float
 
             def __str__(self) -> str:
                 if self.tx_fees_min == self.tx_fees_max:
@@ -180,12 +215,18 @@ class TransactionLogCollection(List[TransactionLogList]):
                 else:
                     balance_diff_str = 'balance diff %d/%d' % (self.balance_diff_min, self.balance_diff_max)
 
-                return '%s: %s (%s, %s, %s)' % (
+                if self.item_share_min == self.item_share_max:
+                    item_share_str = 'item share %d' % self.item_share_min
+                else:
+                    item_share_str = 'item share %d/%d' % (self.item_share_min, self.item_share_max)
+
+                return '%s: %s (%s, %s, %s, %s)' % (
                     self.account.name,
                     tx_fees_str,
                     tx_count_str,
                     funds_diff_str,
-                    balance_diff_str
+                    balance_diff_str,
+                    item_share_str
                 )
 
         def __init__(self, tx_log_collection: 'TransactionLogCollection') -> None:
@@ -205,7 +246,9 @@ class TransactionLogCollection(List[TransactionLogList]):
                             funds_diff_min=tx_list_aggregation_entry.funds_diff,
                             funds_diff_max=tx_list_aggregation_entry.funds_diff,
                             balance_diff_min=tx_list_aggregation_entry.balance_diff,
-                            balance_diff_max=tx_list_aggregation_entry.balance_diff
+                            balance_diff_max=tx_list_aggregation_entry.balance_diff,
+                            item_share_min=tx_list_aggregation_entry.item_share,
+                            item_share_max=tx_list_aggregation_entry.item_share
                         )})
                     else:
                         self.update({tx_list_aggregation_entry.account: TransactionLogCollection.Aggregation.Entry(
@@ -220,6 +263,8 @@ class TransactionLogCollection(List[TransactionLogList]):
                             funds_diff_max=max(e.funds_diff_max, tx_list_aggregation_entry.funds_diff),
                             balance_diff_min=min(e.balance_diff_min, tx_list_aggregation_entry.balance_diff),
                             balance_diff_max=max(e.balance_diff_max, tx_list_aggregation_entry.balance_diff),
+                            item_share_min=min(e.item_share_min, tx_list_aggregation_entry.item_share),
+                            item_share_max=max(e.item_share_max, tx_list_aggregation_entry.item_share)
                         )})
 
         def __iadd__(self, other: 'TransactionLogCollection.Aggregation') -> 'TransactionLogCollection.Aggregation':
@@ -240,7 +285,9 @@ class TransactionLogCollection(List[TransactionLogList]):
                             funds_diff_min=local_entry.funds_diff_min + remote_entry.funds_diff_min,
                             funds_diff_max=local_entry.funds_diff_max + remote_entry.funds_diff_max,
                             balance_diff_min=local_entry.balance_diff_min + remote_entry.balance_diff_min,
-                            balance_diff_max=local_entry.balance_diff_max + remote_entry.balance_diff_max
+                            balance_diff_max=local_entry.balance_diff_max + remote_entry.balance_diff_max,
+                            item_share_min=local_entry.item_share_min + remote_entry.item_share_min,
+                            item_share_max=local_entry.item_share_max + remote_entry.item_share_max
                         )})
                 return self
             else:

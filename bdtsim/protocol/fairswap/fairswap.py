@@ -296,7 +296,14 @@ class FairSwap(Protocol):
 
     def smart_contract_reveal_key(self, environment: Environment, seller: Account, buyer: Account,
                                   file_root_hash: bytes, key: bytes) -> None:
-        environment.send_contract_transaction(self.contract, seller, 'revealKey', key)
+        environment.send_contract_transaction(
+            self.contract,
+            seller,
+            'revealKey',
+            key,
+            item_share_indicator_amount=1,
+            item_share_indicator_beneficiary=buyer
+        )
 
     def smart_contract_refund(self, environment: Environment, seller: Account, buyer: Account, file_root_hash: bytes,
                               beneficiary: Account) -> None:
@@ -390,7 +397,15 @@ class FairSwapReusable(FairSwap):
     def smart_contract_reveal_key(self, environment: Environment, seller: Account, buyer: Account,
                                   file_root_hash: bytes, key: bytes) -> None:
         session_id = FairSwapReusable.get_session_id(seller, buyer, file_root_hash)
-        environment.send_contract_transaction(self.contract, seller, 'revealKey', session_id, key)
+        environment.send_contract_transaction(
+            self.contract,
+            seller,
+            'revealKey',
+            session_id,
+            key,
+            item_share_indicator_amount=1,
+            item_share_indicator_beneficiary=buyer
+        )
 
     def smart_contract_refund(self, environment: Environment, seller: Account, buyer: Account, file_root_hash: bytes,
                               beneficiary: Account) -> None:

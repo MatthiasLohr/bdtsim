@@ -18,7 +18,7 @@
 import unittest
 
 from bdtsim.account import Account
-from bdtsim.funds_diff_collection import FundsDiffCollection
+from bdtsim.account_related_diff_collection import FundsDiffCollection
 
 
 seller = Account('Seller', '0x3f2c7f45cb3014e2b9d12b7fb331bdfdad6170ce5e4a0d94890aa64162569756')

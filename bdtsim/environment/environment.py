@@ -28,8 +28,8 @@ from web3.providers.base import BaseProvider
 from web3.types import TxParams, Wei
 
 from bdtsim.account import Account
+from bdtsim.account_related_diff_collection import FundsDiffCollection, ItemShareCollection
 from bdtsim.contract import Contract
-from bdtsim.funds_diff_collection import FundsDiffCollection
 from bdtsim.simulation_result import TransactionLogEntry
 
 
@@ -135,11 +135,12 @@ class Environment(object):
             account=account,
             factory=factory,
             value=value,
+            item_share_indicator_amount=item_share_indicator_amount,
+            item_share_indicator_beneficiary=item_share_indicator_beneficiary,
             description=method,
             allow_failure=allow_failure
         )
         # TODO implement contract return value
-        # TODO handle item share indicators
 
     def send_direct_transaction(self, account: Account, to: Account, value: int = 0,
                                 allow_failure: bool = False) -> None:
@@ -152,8 +153,12 @@ class Environment(object):
         )
 
     def _send_transaction(self, account: Account, factory: Optional[Any] = None, to: Optional[Account] = None,
-                          value: int = 0, description: Optional[str] = None,
+                          value: int = 0, item_share_indicator_amount: float = 0,
+                          item_share_indicator_beneficiary: Optional[Account] = None, description: Optional[str] = None,
                           allow_failure: bool = False) -> AttributeDict[str, Any]:
+        if not item_share_indicator_amount == 0 and item_share_indicator_beneficiary is None:
+            raise ValueError('when sharing item, beneficiary must be defined')
+
         tx_dict = {
             'from': account.wallet_address,
             'nonce': self._web3.eth.get_transaction_count(account.wallet_address, 'pending'),
@@ -210,13 +215,38 @@ class Environment(object):
         if not funds_diff_collection.is_neutral:
             logger.debug('Funds diff: %s' % ', '.join(['%s: %i' % (k, v) for k, v in funds_diff_collection.items()]))
 
+        if item_share_indicator_amount == 0:
+            item_share_collection = ItemShareCollection()
+        else:
+            item_share_collection = ItemShareCollection({
+                account: -item_share_indicator_amount,
+                item_share_indicator_beneficiary: item_share_indicator_amount
+            })
+
         if self.transaction_callback is not None:
             self.transaction_callback(TransactionLogEntry(account, tx_dict, dict(tx_receipt), description,
-                                                          funds_diff_collection))
+                                                          funds_diff_collection, item_share_collection))
         return tx_receipt
 
     def indicate_item_share(self, account: Account, amount: float, beneficiary: Optional[Account]) -> None:
-        pass  # TODO implement
+        if amount == 0:
+            raise ValueError('there is no sense in indicating item share with zero amount')
+
+        if beneficiary is None:
+            raise ValueError('when sharing item, beneficiary must be defined')
+
+        if self.transaction_callback is not None:
+            self.transaction_callback(TransactionLogEntry(
+                account=account,
+                tx_dict={'gasPrice': 0},
+                tx_receipt={'gasUsed': 0},
+                description='item share',
+                funds_diff_collection=FundsDiffCollection(),
+                item_share_collection=ItemShareCollection({
+                    account: -amount,
+                    beneficiary: amount
+                })
+            ))
 
     def event_filter(self, contract: Contract, event_name: str, event_args: Optional[List[Any]] = None,
                      from_block: Union[str, int] = 'latest', to_block: Union[str, int] = 'latest',
