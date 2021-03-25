@@ -14,10 +14,11 @@
 /dist/
 /docs/api/
 /public/
+/test.pdf
+/test.png
+/test.result
+/test.svg
 /venv/
-/*.pdf
-/*.png
 __pycache__/
 *.egg-info/
 *.pyc
-*.result

@@ -19,12 +19,17 @@ import base64
 import copy
 import gzip
 import itertools
+import logging
 import pickle
+import uuid
 from typing import Any, Callable, Dict, List, NamedTuple, Optional, Tuple, cast
 
 from bdtsim.account import Account
 from bdtsim.funds_diff_collection import FundsDiffCollection
 from bdtsim.protocol_path import Decision
+
+
+logger = logging.getLogger(__name__)
 
 
 class TransactionLogEntry(NamedTuple):
@@ -266,6 +271,7 @@ class ResultNode(object):
         self.parent = parent
         self.children: Dict[Decision, ResultNode] = {}
         self.tx_collection: TransactionLogCollection = TransactionLogCollection()
+        self._uuid = uuid.uuid4()
 
     def child(self, decision: Decision) -> 'ResultNode':
         child = self.children.get(decision)
@@ -312,9 +318,7 @@ class ResultNode(object):
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, ResultNode):
-            return (self.parent == other.parent and
-                    self.children == other.children and
-                    self.tx_collection == other.tx_collection)
+            return self._uuid == other._uuid
         else:
             return NotImplemented
 
