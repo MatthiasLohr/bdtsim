@@ -19,11 +19,11 @@ from hashlib import sha256
 from typing import Any, Optional
 from unittest import TestCase
 
-from ecdsa.curves import SECP256k1
-from ecdsa.keys import SigningKey
+from ecdsa.curves import SECP256k1  # type: ignore
+from ecdsa.keys import SigningKey  # type: ignore
 
 
-class EcVulnerabilityTest(TestCase):
+class EcdsaVulnerabilityTest(TestCase):
     HASH_FUNC = sha256
     DEFAULT_N = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141
 
@@ -33,18 +33,18 @@ class EcVulnerabilityTest(TestCase):
 
     @staticmethod
     def hash_int(data: bytes) -> int:
-        h = EcVulnerabilityTest.HASH_FUNC()
+        h = EcdsaVulnerabilityTest.HASH_FUNC()
         h.update(data)
-        return EcVulnerabilityTest.to_int(h.hexdigest())
+        return EcdsaVulnerabilityTest.to_int(h.hexdigest())
 
     @staticmethod
     def mod_inv(x: int, n: Optional[int] = None) -> int:
         if n is None:
-            n = EcVulnerabilityTest.DEFAULT_N
+            n = EcdsaVulnerabilityTest.DEFAULT_N
         """modular multiplicative inverse (requires that n is prime)"""
         return pow(x, n - 2, n)
 
-    def test_vulnerability(self):
+    def test_vulnerability(self) -> None:
         signing_key = SigningKey.generate(curve=SECP256k1)  # private key
         verifying_key = signing_key.verifying_key  # public key
 
@@ -53,16 +53,16 @@ class EcVulnerabilityTest(TestCase):
         z1 = self.hash_int(m1)
         z2 = self.hash_int(m2)
 
-        signature = signing_key.sign(m1, k=2, hashfunc=self.HASH_FUNC)
+        signature = signing_key.sign(m1, k=2, hashfunc=EcdsaVulnerabilityTest.HASH_FUNC)
         r = self.to_int(signature[:32].hex())
         s1 = self.to_int(signature[32:].hex())
 
-        self.assertTrue(verifying_key.verify(signature, m1, hashfunc=self.HASH_FUNC))
+        self.assertTrue(verifying_key.verify(signature, m1, hashfunc=EcdsaVulnerabilityTest.HASH_FUNC))
 
-        signature2 = signing_key.sign(m2, k=2, hashfunc=self.HASH_FUNC)
+        signature2 = signing_key.sign(m2, k=2, hashfunc=EcdsaVulnerabilityTest.HASH_FUNC)
         s2 = self.to_int(signature2[32:].hex())
 
-        self.assertTrue(verifying_key.verify(signature2, m2, hashfunc=self.HASH_FUNC))
+        self.assertTrue(verifying_key.verify(signature2, m2, hashfunc=EcdsaVulnerabilityTest.HASH_FUNC))
 
         k = (z1 - z2) * self.mod_inv(s1 - s2) % self.DEFAULT_N
 
