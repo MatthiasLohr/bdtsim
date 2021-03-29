@@ -29,14 +29,14 @@ class GraphvizMixin(object):
         if output_format is None:
             return cast(bytes, graph.source.encode('utf-8')) + b'\n'
         else:
-            tmp_dot_output_file = tempfile.mktemp()
+            tmp_dot_output_fp, tmp_dot_output_filename = tempfile.mkstemp()
             graph.render(
-                filename=tmp_dot_output_file,
+                filename=tmp_dot_output_filename,
                 format=output_format,
                 renderer=graphviz_renderer,
                 formatter=graphviz_formatter
             )
-            with open(tmp_dot_output_file + '.' + output_format, 'rb') as fp:
+            with open(tmp_dot_output_filename + '.' + output_format, 'rb') as fp:
                 dot_output = fp.read()
-            os.remove(tmp_dot_output_file)
+            os.remove(tmp_dot_output_filename)
             return dot_output
