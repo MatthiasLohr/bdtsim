@@ -15,6 +15,7 @@
   * Feature: Added new command `bulk-execute` (#41)
   * Fix: Set default price to 1 ETH (#24)
   * Fix: Use gasPriceStrategy for determining gas price when available
+  * Dependency Update: eth-bloom to 1.0.4
   * Dependency Update: eth-tester to 0.5.0b3
   * Dependency Update: graphviz to 0.16
   * Dependency Update: hexbytes to 0.2.1
@@ -22,7 +23,7 @@
   * Dependency Update: py-evm to 0.3.0a20
   * Dependency Update: py-solc-x to 1.1.0
   * Dependency Update: PyYAML to 5.4.1
-  * Dependency Update: web3 to 5.17.0
+  * Dependency Update: web3 to 5.18.0
   * Documentation: Updated documentation of Delgado protocol
   * New dependency: ecdsa 0.16.1
   * Other: Measure test coverage (#7)
