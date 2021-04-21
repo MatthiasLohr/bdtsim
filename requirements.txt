@@ -1,5 +1,5 @@
 ecdsa==0.16.1
-eth-bloom @ git+https://github.com/konradkonrad/eth-bloom.git@update_eth_hash_dependency#egg=eth-bloom-1.0.4
+eth-bloom==1.0.4
 eth-tester==0.5.0b3
 graphviz==0.16
 hexbytes==0.2.1
