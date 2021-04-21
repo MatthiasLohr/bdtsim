@@ -112,7 +112,7 @@ class ContractTest(TestCase):
         tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
         # TODO check if type: ignore is still needed
         # fixes "error: Value of type TxReceipt? is not indexable"
-        return web3, web3.eth.contract(address=tx_receipt['contractAddress'], abi=contract_object.abi)  # type: ignore
+        return web3, web3.eth.contract(address=tx_receipt['contractAddress'], abi=contract_object.abi)
 
     def test_vrfy(self) -> None:
         tree = from_bytes(generate_bytes(128, seed=42), 4)

@@ -94,7 +94,7 @@ class Environment(object):
         else:
             gas_price = self._web3.eth.generateGasPrice()
             if gas_price is not None:
-                return gas_price
+                return int(gas_price)
             else:
                 raise RuntimeError('Could not determine gas price')
 
