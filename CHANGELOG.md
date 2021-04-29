@@ -23,7 +23,7 @@
   * Dependency Update: py-evm to 0.3.0a20
   * Dependency Update: py-solc-x to 1.1.0
   * Dependency Update: PyYAML to 5.4.1
-  * Dependency Update: web3 to 5.18.0
+  * Dependency Update: web3 to 5.19.0
   * Documentation: Updated documentation of Delgado protocol
   * New dependency: ecdsa 0.16.1
   * Other: Measure test coverage (#7)
