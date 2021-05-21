@@ -28,6 +28,7 @@
   * New dependency: ecdsa 0.16.1
   * Other: Measure test coverage (#7)
   * Other: Added Python 3.9 support (#38)
+  * Other: Marked package as PEP561 compatible
 
 ## v1.1.1
 
