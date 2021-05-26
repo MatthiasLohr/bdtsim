@@ -39,9 +39,13 @@ setup(
     python_requires='>=3.7.*, <4',
     packages=find_packages(exclude=['tests', 'tests.*']),
     package_data={
-        'bdtsim': ['py.typed', '*.sol']
+        'bdtsim': ['py.typed'],
+        'bdtsim.protocol.delgado': ['*.sol'],
+        'bdtsim.protocol.fairswap': ['*.sol'],
+        'bdtsim.protocol.optiswap': ['*.sol'],
+        'bdtsim.protocol.simplepayment': ['*.sol'],
+        'bdtsim.protocol.smartjudge': ['*.sol'],
     },
-    include_package_data=True,
     entry_points={
         'console_scripts': [
             'bdtsim=bdtsim.cli.main:main'
