@@ -110,8 +110,8 @@ class ContractTest(TestCase):
         contract_preparation = web3.eth.contract(abi=contract_object.abi, bytecode=contract_object.bytecode)
         tx_hash = contract_preparation.constructor().transact()
         tx_receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
-        # TODO check if type: ignore is still needed
-        # fixes "error: Value of type TxReceipt? is not indexable"
+        if tx_receipt is None:
+            raise RuntimeError('should not be None at this point')
         return web3, web3.eth.contract(address=tx_receipt['contractAddress'], abi=contract_object.abi)
 
     def test_vrfy(self) -> None:
