@@ -157,10 +157,13 @@ class MerkleTreeLeaf(MerkleTreeNode):
         if isinstance(other, MerkleTreeLeaf):
             return self.data == other.data
         else:
-            return NotImplemented
+            return False
 
     def __ne__(self, other: Any) -> bool:
-        return not self.__eq__(other)
+        if isinstance(other, MerkleTreeLeaf):
+            return not self.data == other.data
+        else:
+            return False
 
 
 class MerkleTreeHashLeaf(MerkleTreeLeaf):

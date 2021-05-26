@@ -77,9 +77,9 @@ class Environment(object):
 
         self._gas_price = gas_price
         if gas_price_strategy is not None:
-            self._web3.eth.setGasPriceStrategy(gas_price_strategy)
+            self._web3.eth.set_gas_price_strategy(gas_price_strategy)
         else:
-            self._web3.eth.setGasPriceStrategy(fast_gas_price_strategy)
+            self._web3.eth.set_gas_price_strategy(fast_gas_price_strategy)
 
         self._transaction_callback: Optional[Callable[[TransactionLogEntry], None]] = None
 
@@ -92,7 +92,7 @@ class Environment(object):
         if self._gas_price is not None:
             return self._gas_price
         else:
-            gas_price = self._web3.eth.generateGasPrice()
+            gas_price = self._web3.eth.generate_gas_price()
             if gas_price is not None:
                 return int(gas_price)
             else:
@@ -177,7 +177,7 @@ class Environment(object):
         if self._gas_price is not None:
             tx_dict['gasPrice'] = self._gas_price
         else:
-            tx_dict['gasPrice'] = self._web3.eth.generateGasPrice(tx_dict)
+            tx_dict['gasPrice'] = self._web3.eth.generate_gas_price(tx_dict)
         tx_signed = self._web3.eth.account.sign_transaction(tx_dict, private_key=account.wallet_private_key)
 
         # collect current account balances
@@ -192,7 +192,7 @@ class Environment(object):
         while tx_receipt is None:
             logger.debug('Waiting for transaction receipt (hash is %s)...' % str(tx_hash.hex()))
             try:
-                tx_receipt = self._web3.eth.waitForTransactionReceipt(tx_hash, timeout=10)
+                tx_receipt = self._web3.eth.wait_for_transaction_receipt(tx_hash, timeout=10)
             except TimeExhausted:
                 pass
 
