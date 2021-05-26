@@ -41,6 +41,7 @@ setup(
     package_data={
         'bdtsim': ['py.typed', '*.sol']
     },
+    include_package_data=True,
     entry_points={
         'console_scripts': [
             'bdtsim=bdtsim.cli.main:main'
