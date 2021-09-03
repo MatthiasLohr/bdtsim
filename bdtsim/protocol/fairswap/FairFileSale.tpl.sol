@@ -37,7 +37,7 @@ contract FileSale {
     uint price = {{ price }};
 
     bytes32 public keyCommit = {{ key_commitment }};
-    bytes32 public chiphertextRoot = {{ ciphertext_root_hash }};
+    bytes32 public ciphertextRoot = {{ ciphertext_root_hash }};
     bytes32 public fileRoot = {{ file_root_hash }};
 
     bytes32 public key;
@@ -140,6 +140,6 @@ contract FileSale {
             else
                 _value = keccak256(abi.encodePacked(_value, _proof[depth - i - 1]));
         }
-        return (_value == chiphertextRoot);
+        return (_value == ciphertextRoot);
     }
 }

@@ -37,7 +37,7 @@ contract FileSale {
         uint timeoutInterval;
         uint price;
         bytes32 keyCommit;
-        bytes32 chiphertextRoot;
+        bytes32 ciphertextRoot;
         bytes32 fileRoot;
         bytes32 key;
     }
@@ -172,6 +172,6 @@ contract FileSale {
             else
                 _value = keccak256(abi.encodePacked(_value, _proof[sessions[sessionId].depth - i - 1]));
         }
-        return (_value == sessions[sessionId].chiphertextRoot);
+        return (_value == sessions[sessionId].ciphertextRoot);
     }
 }

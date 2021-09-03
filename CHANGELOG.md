@@ -1,6 +1,6 @@
 # Changelog
 
-## v2.0.0
+## v2.0.0 (upcoming release)
 
   * Protocol: Delgado, Delgado-Reusable, Delgado-Library (#1)
   * Protocol: Support for SmartJudge (#20)
@@ -15,6 +15,7 @@
   * Feature: Added new command `bulk-execute` (#41)
   * Fix: Set default price to 1 ETH (#24)
   * Fix: Use gasPriceStrategy for determining gas price when available
+  * Fix: Typo in FairSwap solidity source code
   * Dependency Update: eth-bloom to 1.0.4
   * Dependency Update: eth-tester to 0.5.0b3
   * Dependency Update: graphviz to 0.16
