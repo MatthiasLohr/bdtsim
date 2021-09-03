@@ -21,7 +21,7 @@ import shutil
 import tempfile
 from typing import Any, Dict, Generator, Optional, Tuple
 
-import jinja2
+import jinja2  # type: ignore
 import solcx  # type: ignore
 
 

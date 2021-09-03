@@ -20,7 +20,7 @@ import math
 from typing import Any, List, Optional, Union, cast
 
 from hexbytes.main import HexBytes
-from jinja2 import Template
+from jinja2 import Template  # type: ignore
 from web3 import Web3
 
 from bdtsim.account import Account
